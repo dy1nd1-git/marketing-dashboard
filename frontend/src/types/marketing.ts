@@ -1,0 +1,59 @@
+export interface MarketingData {
+  id: string;
+  date: string;
+  spend: number;
+  revenue: number;
+  roas: number;
+}
+
+export interface KPI {
+  title: string;
+  value: string;
+  trendIcon: string;
+  trendValue: string;
+  trendBgClass: string;
+  trendTextClass: string;
+  barClasses: string[];
+}
+
+export interface FunnelLayerData {
+  label: string;
+  value: string;
+  metricLabel: string;
+  metricValue: string;
+  dropValue?: string;
+  colorClassMain: string;
+  colorClassHover: string;
+  widthClass: string;
+  textMainClass: string;
+  textSubClass: string;
+}
+
+export interface InsightData {
+  type: "success" | "warning" | "info";
+  title: string;
+  description: string;
+  icon: string;
+}
+
+export interface ChannelPerformance {
+  id: string;
+  name: string;
+  category: string;
+  spend: string;
+  revenue: string;
+  roas: string;
+  icon: string;
+  color: "indigo" | "orange" | "green" | "slate";
+}
+
+export interface DashboardData {
+  kpis: KPI[];
+  funnel: FunnelLayerData[];
+  insights: InsightData[];
+  channels: ChannelPerformance[];
+  liveInsight: {
+    title: string;
+    description: string;
+  };
+}

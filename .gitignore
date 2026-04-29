@@ -1,0 +1,29 @@
+# Node.js (Frontend)
+node_modules/
+.next/
+dist/
+build/
+.env*.local
+.env.development
+.env.test
+.env.production
+.eslintcache
+*.log
+
+# Go (Backend)
+bin/
+tmp/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.sum (※必要に応じて残してください)
+
+# OS/System files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
