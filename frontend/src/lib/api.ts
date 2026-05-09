@@ -1,5 +1,5 @@
 import axios from "axios";
-import { MarketingData, DashboardData } from "../types/marketing";
+import { MarketingData, DashboardData, PivotDetails } from "../types/marketing";
 
 export const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080",
@@ -202,5 +202,47 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
   } catch {
     console.warn("API Error: falling back to mock dashboard data");
     return fetchDashboardDataMock();
+  }
+};
+
+export const fetchPivotDataMock = async (id: string): Promise<PivotDetails> => {
+  return {
+    id,
+    pivotDate: "2026-04-15",
+    status: "achieved", // or "deviated"
+    memo: {
+      intent: "CPA高騰に対し、LPのファーストビューを改善し、動画フォーマットの配信比率を上げた。",
+      diagnosis: [
+        "CPA: 予測 ¥5,000 → 実績 ¥3,800 (-24%)",
+        "ROAS: 予測 250% → 実績 310% (+60pt)",
+        "掲載順位: 平均2.4位維持"
+      ],
+      conclusion: "クリエイティブ変更によりCPA抑制に成功し、ROASも大幅に改善した。"
+    },
+    timeline: [
+      { date: "2026-04-10", actual: 12000, predicted: 12000 },
+      { date: "2026-04-11", actual: 12500, predicted: 12500 },
+      { date: "2026-04-12", actual: 11800, predicted: 11800 },
+      { date: "2026-04-13", actual: 12200, predicted: 12200 },
+      { date: "2026-04-14", actual: 13000, predicted: 13000 },
+      { date: "2026-04-15", actual: 12800, predicted: 12800 }, // Pivot point
+      { date: "2026-04-16", actual: 14500, predicted: 13200 },
+      { date: "2026-04-17", actual: 16000, predicted: 13500 },
+      { date: "2026-04-18", actual: 18200, predicted: 13800 },
+      { date: "2026-04-19", actual: 17500, predicted: 14100 },
+      { date: "2026-04-20", actual: 19000, predicted: 14400 },
+      { date: "2026-04-21", actual: 21000, predicted: 14700 },
+      { date: "2026-04-22", actual: 22500, predicted: 15000 },
+    ],
+  };
+};
+
+export const fetchPivotData = async (id: string): Promise<PivotDetails> => {
+  try {
+    const response = await apiClient.get<PivotDetails>(`/api/pivot/${id}`);
+    return response.data;
+  } catch {
+    console.warn("API Error: falling back to mock pivot data");
+    return fetchPivotDataMock(id);
   }
 };

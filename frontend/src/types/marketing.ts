@@ -57,3 +57,21 @@ export interface DashboardData {
     description: string;
   };
 }
+
+export interface PivotData {
+  date: string;
+  actual: number | null;
+  predicted: number | null;
+}
+
+export interface PivotDetails {
+  id: string;
+  pivotDate: string;
+  status: "achieved" | "deviated";
+  memo: {
+    intent: string;
+    diagnosis: string[];
+    conclusion: string;
+  };
+  timeline: PivotData[];
+}

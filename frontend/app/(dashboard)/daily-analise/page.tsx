@@ -1,0 +1,628 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import {
+  BarChart,
+  Bar,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+  Cell,
+} from "recharts";
+
+const channelFluxData = [
+  { name: "Organic Search", value: 45000 },
+  { name: "Paid Social", value: 32000 },
+  { name: "Direct", value: 28000 },
+  { name: "Referral", value: 15000 },
+  { name: "Email", value: 12000 },
+];
+
+const audienceTidesData = [
+  { time: "00:00", returning: 1200, new: 400 },
+  { time: "04:00", returning: 800, new: 200 },
+  { time: "08:00", returning: 3400, new: 1500 },
+  { time: "12:00", returning: 5600, new: 2800 },
+  { time: "16:00", returning: 4800, new: 2100 },
+  { time: "20:00", returning: 6100, new: 3200 },
+];
+
+interface DailyCVR {
+  date: string;
+  revenue: number;
+  spend: number;
+  roas: number;
+  ctr: number;
+  cvr: number;
+}
+
+interface WeeklyROI {
+  week: string;
+  avg_revenue: number;
+  avg_spend: number;
+  net_roas: number;
+}
+
+// Utility to calculate Mean and Standard Deviation
+function calculateStats(data: number[]) {
+  if (data.length === 0) return { mean: 0, stdDev: 0 };
+  const mean = data.reduce((a, b) => a + b, 0) / data.length;
+  const variance =
+    data.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / data.length;
+  const stdDev = Math.sqrt(variance);
+  return { mean, stdDev };
+}
+
+export default function DailyDashboard() {
+  const router = useRouter();
+  const [dailyData, setDailyData] = useState<DailyCVR[]>([]);
+  const [weeklyData, setWeeklyData] = useState<WeeklyROI[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"ripples" | "flux" | "tides">(
+    "ripples",
+  );
+
+  // Sorting state
+  const [dailySort, setDailySort] = useState<{
+    key: keyof DailyCVR;
+    dir: "asc" | "desc";
+  }>({ key: "date", dir: "desc" });
+  const [weeklySort, setWeeklySort] = useState<{
+    key: keyof WeeklyROI;
+    dir: "asc" | "desc";
+  }>({ key: "week", dir: "desc" });
+
+  // Stats state
+  const [dailyRoasStats, setDailyRoasStats] = useState({ mean: 0, stdDev: 0 });
+  const [weeklyRoasStats, setWeeklyRoasStats] = useState({
+    mean: 0,
+    stdDev: 0,
+  });
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [dailyRes, weeklyRes] = await Promise.all([
+          fetch("http://localhost:8080/api/v1/marketing/daily-cvr"),
+          fetch("http://localhost:8080/api/v1/marketing/weekly-roi"),
+        ]);
+
+        const dailyRaw: DailyCVR[] = await dailyRes.json();
+        const weeklyRaw: WeeklyROI[] = await weeklyRes.json();
+
+        // Calculate stats on the full dataset (e.g. 30 days) to accurately find anomalies
+        const roasArray = dailyRaw.map((d) => d.roas);
+        setDailyRoasStats(calculateStats(roasArray));
+
+        const weeklyRoasArray = weeklyRaw.map((w) => w.net_roas);
+        setWeeklyRoasStats(calculateStats(weeklyRoasArray));
+
+        // Limit display to recent 7 days for the dashboard view
+        setDailyData(dailyRaw.slice(0, 7));
+        setWeeklyData(weeklyRaw);
+      } catch (e) {
+        console.error("Failed to fetch data", e);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  const handleDailySort = (key: keyof DailyCVR) => {
+    setDailySort((prev) => ({
+      key,
+      dir: prev.key === key && prev.dir === "desc" ? "asc" : "desc",
+    }));
+  };
+
+  const handleWeeklySort = (key: keyof WeeklyROI) => {
+    setWeeklySort((prev) => ({
+      key,
+      dir: prev.key === key && prev.dir === "desc" ? "asc" : "desc",
+    }));
+  };
+
+  const sortedDaily = [...dailyData].sort((a, b) => {
+    const valA = a[dailySort.key];
+    const valB = b[dailySort.key];
+    if (valA < valB) return dailySort.dir === "asc" ? -1 : 1;
+    if (valA > valB) return dailySort.dir === "asc" ? 1 : -1;
+    return 0;
+  });
+
+  const sortedWeekly = [...weeklyData].sort((a, b) => {
+    const valA = a[weeklySort.key];
+    const valB = b[weeklySort.key];
+    if (valA < valB) return weeklySort.dir === "asc" ? -1 : 1;
+    if (valA > valB) return weeklySort.dir === "asc" ? 1 : -1;
+    return 0;
+  });
+
+  const formatCurrency = (val: number) =>
+    `$${val.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+  const formatPercentage = (val: number) => `${(val * 100).toFixed(1)}%`;
+  const formatNumber = (val: number) => val.toFixed(2);
+
+  const onAnomalyClick = (date: string, metric: string) => {
+    router.push(
+      `/analise?date_range=${date}&metric=${metric}&segment_id=all_users`,
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-[60vh] text-on-surface-variant font-body-md">
+        Loading daily analytics...
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-xl max-w-[1400px] space-y-xl">
+      {/* Header section (replaces previous components to match Stitch HTML) */}
+      <header className="mb-xl">
+        <h1 className="font-h1 text-h1 text-on-surface tracking-tight">
+          Subaquatic Observatory
+        </h1>
+        <p className="text-on-surface-variant font-body-lg text-body-lg mt-2 max-w-2xl">
+          Daily tactical monitoring and structural health checks.
+        </p>
+      </header>
+
+      {/* Tabs */}
+      <nav className="flex items-center gap-8 border-b border-surface-container-highest mb-xl px-2">
+        <button
+          onClick={() => setActiveTab("ripples")}
+          className={`relative pb-4 font-label text-label transition-colors ${activeTab === "ripples" ? "text-primary" : "text-on-surface-variant hover:text-on-surface"}`}
+        >
+          7-Day Ripples
+          {activeTab === "ripples" && (
+            <div className="absolute bottom-0 left-0 w-full h-1 bg-primary-container rounded-t-full"></div>
+          )}
+        </button>
+        <button
+          onClick={() => setActiveTab("flux")}
+          className={`relative pb-4 font-label text-label transition-colors ${activeTab === "flux" ? "text-primary" : "text-on-surface-variant hover:text-on-surface"}`}
+        >
+          Channel Flux
+          {activeTab === "flux" && (
+            <div className="absolute bottom-0 left-0 w-full h-1 bg-primary-container rounded-t-full"></div>
+          )}
+        </button>
+        <button
+          onClick={() => setActiveTab("tides")}
+          className={`relative pb-4 font-label text-label transition-colors ${activeTab === "tides" ? "text-primary" : "text-on-surface-variant hover:text-on-surface"}`}
+        >
+          Audience Tides
+          {activeTab === "tides" && (
+            <div className="absolute bottom-0 left-0 w-full h-1 bg-primary-container rounded-t-full"></div>
+          )}
+        </button>
+      </nav>
+
+      <div className="flex flex-col lg:flex-row gap-lg items-stretch min-h-[600px]">
+        {activeTab === "ripples" && (
+          <>
+            {/* Left Column: 7-Day Ripples */}
+            <section className="flex-1 card-professional flex flex-col">
+              <header className="mb-6 flex justify-between items-end">
+                <div>
+                  <h2 className="font-h2 text-h2 text-on-surface">
+                    7-Day Ripples
+                  </h2>
+                  <p className="text-on-surface-variant font-body-md text-body-md mt-1">
+                    Daily tactical metrics
+                  </p>
+                </div>
+                <span className="px-3 py-1 bg-surface-container text-on-surface-variant font-label text-label rounded-full">
+                  Recent
+                </span>
+              </header>
+
+              <div className="flex-1 overflow-auto rounded-xl border border-surface-container-highest relative">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-surface-container-highest bg-surface-container-low">
+                      <th
+                        onClick={() => handleDailySort("date")}
+                        className="py-4 px-6 font-label text-label text-on-surface-variant whitespace-nowrap cursor-pointer hover:bg-surface-container transition-colors"
+                      >
+                        Day{" "}
+                        {dailySort.key === "date"
+                          ? dailySort.dir === "asc"
+                            ? "↑"
+                            : "↓"
+                          : ""}
+                      </th>
+                      <th
+                        onClick={() => handleDailySort("revenue")}
+                        className="py-4 px-6 font-label text-label text-on-surface-variant text-right whitespace-nowrap cursor-pointer hover:bg-surface-container transition-colors"
+                      >
+                        Revenue{" "}
+                        {dailySort.key === "revenue"
+                          ? dailySort.dir === "asc"
+                            ? "↑"
+                            : "↓"
+                          : ""}
+                      </th>
+                      <th
+                        onClick={() => handleDailySort("spend")}
+                        className="py-4 px-6 font-label text-label text-on-surface-variant text-right whitespace-nowrap cursor-pointer hover:bg-surface-container transition-colors"
+                      >
+                        Spend{" "}
+                        {dailySort.key === "spend"
+                          ? dailySort.dir === "asc"
+                            ? "↑"
+                            : "↓"
+                          : ""}
+                      </th>
+                      <th
+                        onClick={() => handleDailySort("roas")}
+                        className="py-4 px-6 font-label text-label text-on-surface-variant text-right whitespace-nowrap cursor-pointer hover:bg-surface-container transition-colors"
+                      >
+                        ROAS{" "}
+                        {dailySort.key === "roas"
+                          ? dailySort.dir === "asc"
+                            ? "↑"
+                            : "↓"
+                          : ""}
+                      </th>
+                      <th
+                        onClick={() => handleDailySort("ctr")}
+                        className="py-4 px-6 font-label text-label text-on-surface-variant text-right whitespace-nowrap cursor-pointer hover:bg-surface-container transition-colors"
+                      >
+                        CTR{" "}
+                        {dailySort.key === "ctr"
+                          ? dailySort.dir === "asc"
+                            ? "↑"
+                            : "↓"
+                          : ""}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-surface-container-highest font-data-lg text-data-lg text-on-surface">
+                    {sortedDaily.map((row) => {
+                      // Anomaly threshold: deviates by more than 1 stdDev from the mean
+                      const isAnomaly =
+                        Math.abs(row.roas - dailyRoasStats.mean) >
+                        dailyRoasStats.stdDev;
+
+                      return (
+                        <tr
+                          key={row.date}
+                          onClick={() =>
+                            isAnomaly && onAnomalyClick(row.date, "roas")
+                          }
+                          className={`${isAnomaly ? "bg-tertiary-container/10 hover:bg-tertiary-container/20 cursor-pointer" : "hover:bg-surface-container"} transition-colors group relative overflow-hidden`}
+                        >
+                          <td
+                            className={`py-5 px-6 whitespace-nowrap ${isAnomaly ? "font-medium text-tertiary flex items-center gap-2 anomaly-glow" : ""}`}
+                          >
+                            {isAnomaly && (
+                              <span className="material-symbols-outlined text-[18px]">
+                                warning
+                              </span>
+                            )}
+                            {new Date(row.date).toLocaleDateString("en-US", {
+                              weekday: "short",
+                              month: "short",
+                              day: "numeric",
+                            })}
+                          </td>
+                          <td
+                            className={`py-5 px-6 text-right ${isAnomaly ? "text-error" : ""}`}
+                          >
+                            {formatCurrency(row.revenue)}
+                          </td>
+                          <td
+                            className={`py-5 px-6 text-right ${isAnomaly ? "text-error" : ""}`}
+                          >
+                            {formatCurrency(row.spend)}
+                          </td>
+                          <td
+                            className={`py-5 px-6 text-right ${isAnomaly ? "font-data font-bold text-tertiary" : "font-data"}`}
+                          >
+                            {formatNumber(row.roas)}
+                          </td>
+                          <td
+                            className={`py-5 px-6 text-right ${isAnomaly ? "text-error" : ""}`}
+                          >
+                            {formatPercentage(row.ctr)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            {/* Right Column: 3-Month Sediment */}
+            <section className="flex-1 card-professional flex flex-col">
+              <header className="mb-6 flex justify-between items-end">
+                <div>
+                  <h2 className="font-h2 text-h2 text-on-surface">
+                    3-Month Sediment
+                  </h2>
+                  <p className="text-on-surface-variant font-body-md text-body-md mt-1">
+                    Weekly aggregate stability
+                  </p>
+                </div>
+                <span className="px-3 py-1 bg-surface-container text-on-surface-variant font-label text-label rounded-full">
+                  Q3 View
+                </span>
+              </header>
+
+              <div className="flex-1 overflow-auto rounded-xl border border-surface-container-highest relative">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-surface-container-highest bg-surface-container-low">
+                      <th
+                        onClick={() => handleWeeklySort("week")}
+                        className="py-4 px-6 font-label text-label text-on-surface-variant whitespace-nowrap cursor-pointer hover:bg-surface-container transition-colors"
+                      >
+                        Week{" "}
+                        {weeklySort.key === "week"
+                          ? weeklySort.dir === "asc"
+                            ? "↑"
+                            : "↓"
+                          : ""}
+                      </th>
+                      <th
+                        onClick={() => handleWeeklySort("avg_revenue")}
+                        className="py-4 px-6 font-label text-label text-on-surface-variant text-right whitespace-nowrap cursor-pointer hover:bg-surface-container transition-colors"
+                      >
+                        Avg Revenue{" "}
+                        {weeklySort.key === "avg_revenue"
+                          ? weeklySort.dir === "asc"
+                            ? "↑"
+                            : "↓"
+                          : ""}
+                      </th>
+                      <th
+                        onClick={() => handleWeeklySort("avg_spend")}
+                        className="py-4 px-6 font-label text-label text-on-surface-variant text-right whitespace-nowrap cursor-pointer hover:bg-surface-container transition-colors"
+                      >
+                        Avg Spend{" "}
+                        {weeklySort.key === "avg_spend"
+                          ? weeklySort.dir === "asc"
+                            ? "↑"
+                            : "↓"
+                          : ""}
+                      </th>
+                      <th
+                        onClick={() => handleWeeklySort("net_roas")}
+                        className="py-4 px-6 font-label text-label text-on-surface-variant text-right whitespace-nowrap cursor-pointer hover:bg-surface-container transition-colors"
+                      >
+                        Net ROAS{" "}
+                        {weeklySort.key === "net_roas"
+                          ? weeklySort.dir === "asc"
+                            ? "↑"
+                            : "↓"
+                          : ""}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-surface-container-highest font-data-lg text-data-lg text-on-surface">
+                    {sortedWeekly.map((row) => {
+                      const isAnomaly =
+                        Math.abs(row.net_roas - weeklyRoasStats.mean) >
+                        weeklyRoasStats.stdDev;
+
+                      return (
+                        <tr
+                          key={row.week}
+                          onClick={() =>
+                            isAnomaly && onAnomalyClick(row.week, "net_roas")
+                          }
+                          className={`${isAnomaly ? "bg-tertiary-container/10 hover:bg-tertiary-container/20 cursor-pointer" : "hover:bg-surface-container"} transition-colors group relative overflow-hidden`}
+                        >
+                          <td
+                            className={`py-5 px-6 whitespace-nowrap text-sm font-data ${isAnomaly ? "font-medium text-tertiary flex items-center gap-2 anomaly-glow" : "text-on-surface-variant"}`}
+                          >
+                            {isAnomaly && (
+                              <span className="material-symbols-outlined text-[16px]">
+                                error
+                              </span>
+                            )}
+                            {row.week}
+                          </td>
+                          <td
+                            className={`py-5 px-6 text-right ${isAnomaly ? "text-error" : ""}`}
+                          >
+                            {formatCurrency(row.avg_revenue)}
+                          </td>
+                          <td
+                            className={`py-5 px-6 text-right ${isAnomaly ? "text-error" : ""}`}
+                          >
+                            {formatCurrency(row.avg_spend)}
+                          </td>
+                          <td
+                            className={`py-5 px-6 text-right ${isAnomaly ? "font-bold text-error" : ""}`}
+                          >
+                            {formatNumber(row.net_roas)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </>
+        )}
+
+        {activeTab === "flux" && (
+          <section className="flex-1 card-professional flex flex-col w-full">
+            <header className="mb-6 flex justify-between items-end">
+              <div>
+                <h2 className="font-h2 text-h2 text-on-surface">
+                  Channel Flux
+                </h2>
+                <p className="text-on-surface-variant font-body-md text-body-md mt-1">
+                  Revenue Distribution by Channel
+                </p>
+              </div>
+            </header>
+            <div className="flex-1 w-full h-full min-h-[400px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={channelFluxData}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                    stroke="var(--color-outline-variant)"
+                  />
+                  <XAxis
+                    dataKey="name"
+                    tickLine={false}
+                    axisLine={false}
+                    tick={{ fill: "var(--color-outline)", fontSize: 12 }}
+                  />
+                  <YAxis
+                    tickFormatter={(val) => `$${val / 1000}k`}
+                    tickLine={false}
+                    axisLine={false}
+                    tick={{ fill: "var(--color-outline)", fontSize: 12 }}
+                  />
+                  <Tooltip
+                    cursor={{ fill: "#f4f4f1" }}
+                    contentStyle={{
+                      borderRadius: "12px",
+                      border: "none",
+                      boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                    }}
+                  />
+                  <Bar
+                    dataKey="value"
+                    fill="var(--color-primary-container)"
+                    radius={[4, 4, 0, 0]}
+                    name="Revenue"
+                  >
+                    {channelFluxData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={
+                          index === 0
+                            ? "var(--color-primary)"
+                            : "var(--color-primary-container)"
+                        }
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </section>
+        )}
+
+        {activeTab === "tides" && (
+          <section className="flex-1 card-professional flex flex-col w-full">
+            <header className="mb-6 flex justify-between items-end">
+              <div>
+                <h2 className="font-h2 text-h2 text-on-surface">
+                  Audience Tides
+                </h2>
+                <p className="text-on-surface-variant font-body-md text-body-md mt-1">
+                  Daily User Activity Waves
+                </p>
+              </div>
+            </header>
+            <div className="flex-1 w-full h-full min-h-[400px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={audienceTidesData}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <defs>
+                    <linearGradient
+                      id="colorReturning"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="5%"
+                        stopColor="var(--color-primary)"
+                        stopOpacity={0.3}
+                      />
+                      <stop
+                        offset="95%"
+                        stopColor="var(--color-primary)"
+                        stopOpacity={0}
+                      />
+                    </linearGradient>
+                    <linearGradient id="colorNew" x1="0" y1="0" x2="0" y2="1">
+                      <stop
+                        offset="5%"
+                        stopColor="var(--color-primary-container)"
+                        stopOpacity={0.3}
+                      />
+                      <stop
+                        offset="95%"
+                        stopColor="var(--color-primary-container)"
+                        stopOpacity={0}
+                      />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                    stroke="var(--color-outline-variant)"
+                  />
+                  <XAxis
+                    dataKey="time"
+                    tickLine={false}
+                    axisLine={false}
+                    tick={{ fill: "var(--color-outline)", fontSize: 12 }}
+                  />
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    tick={{ fill: "var(--color-outline)", fontSize: 12 }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: "12px",
+                      border: "none",
+                      boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                    }}
+                  />
+                  <Legend verticalAlign="top" height={36} iconType="circle" />
+                  <Area
+                    type="monotone"
+                    dataKey="returning"
+                    stroke="var(--color-primary)"
+                    strokeWidth={3}
+                    fillOpacity={1}
+                    fill="url(#colorReturning)"
+                    name="Returning Users"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="new"
+                    stroke="var(--color-primary-container)"
+                    strokeWidth={3}
+                    fillOpacity={1}
+                    fill="url(#colorNew)"
+                    name="New Users"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </section>
+        )}
+      </div>
+    </div>
+  );
+}

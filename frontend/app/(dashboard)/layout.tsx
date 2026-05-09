@@ -1,18 +1,20 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import { Sidebar } from "../../src/components/layout/Sidebar";
-import { TopAppBar } from "../../src/components/layout/TopAppBar";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
+
   return (
     <>
-      <Sidebar />
-      <main className="ml-64 min-h-screen flex flex-col">
-        <TopAppBar />
-        <div className="flex-1">
+      <Sidebar isCollapsed={isSidebarCollapsed} onToggle={() => setSidebarCollapsed(!isSidebarCollapsed)} />
+      <main className={`min-h-screen flex flex-col transition-all duration-300 ${isSidebarCollapsed ? "ml-20" : "ml-[300px]"}`}>
+        <div className="flex-1 p-6">
           {children}
         </div>
       </main>
