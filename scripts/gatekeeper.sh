@@ -32,11 +32,11 @@ cd ..
 
 # 3. Frontend Check
 echo "Checking Frontend (TypeScript & Lint project-wide)..."
-cd frontend && npx tsc --noEmit && npm run lint
+cd frontend && npx tsc --noEmit && npm run lint && npm run test
 if [ $? -eq 0 ]; then
     echo -e "${COLOR_GREEN}[PASS]${COLOR_NC} Frontend Quality Check"
 else
-    echo -e "${COLOR_RED}[FAIL]${COLOR_NC} Frontend Quality Check failed (Type or Lint error)."
+    echo -e "${COLOR_RED}[FAIL]${COLOR_NC} Frontend Quality Check failed (Type, Lint, or Test error)."
     exit 1
 fi
 cd ..
