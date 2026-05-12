@@ -10,9 +10,15 @@ import (
 	"github.com/dy1nd1-git/marketing-dashboard/backend/internal/provider"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	// Load .env file
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found, using system environment variables")
+	}
+
 	ctx := context.Background()
 
 	// Initialize Provider (Default to Mock, switch to BQ if env vars are set)
@@ -52,15 +58,29 @@ func main() {
 	{
 		v1.POST("/analyze", srv.AnalyzeData)
 		
-		// Aligning with frontend expectations (daily-analise/page.tsx)
+		// Aligning with frontend expectations (requirements.md Section 06)
 		v1.GET("/marketing/daily-cvr", func(c *gin.Context) {
-			data, _, _ := p.GetDailyTrends(c.Request.Context(), 7)
-			c.JSON(http.StatusOK, data)
+			data, meta, err := p.GetDailyTrends(c.Request.Context(), 7)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+			c.JSON(http.StatusOK, gin.H{
+				"data":     data,
+				"metadata": meta,
+			})
 		})
 
 		v1.GET("/marketing/weekly-roi", func(c *gin.Context) {
-			data, _, _ := p.GetWeeklyTrends(c.Request.Context(), 12)
-			c.JSON(http.StatusOK, data)
+			data, meta, err := p.GetWeeklyTrends(c.Request.Context(), 12)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+			c.JSON(http.StatusOK, gin.H{
+				"data":     data,
+				"metadata": meta,
+			})
 		})
 	}
 

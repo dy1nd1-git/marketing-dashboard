@@ -33,6 +33,12 @@ const audienceTidesData = [
   { time: "20:00", returning: 6100, new: 3200 },
 ];
 
+interface Lineage {
+  source: string;
+  query_id?: string;
+  sql_ref?: string;
+}
+
 interface DailyCVR {
   date: string;
   revenue: number;
@@ -40,6 +46,9 @@ interface DailyCVR {
   roas: number;
   ctr: number;
   cvr: number;
+  is_anomaly?: boolean;
+  z_score?: number;
+  lineage?: Lineage;
 }
 
 interface WeeklyROI {
@@ -47,22 +56,22 @@ interface WeeklyROI {
   avg_revenue: number;
   avg_spend: number;
   net_roas: number;
+  is_anomaly?: boolean;
+  z_score?: number;
+  lineage?: Lineage;
 }
 
-// Utility to calculate Mean and Standard Deviation
-function calculateStats(data: number[]) {
-  if (data.length === 0) return { mean: 0, stdDev: 0 };
-  const mean = data.reduce((a, b) => a + b, 0) / data.length;
-  const variance =
-    data.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / data.length;
-  const stdDev = Math.sqrt(variance);
-  return { mean, stdDev };
+interface ResponseMetadata {
+  engine: string;
+  confidence: string;
+  sql_ref?: string;
 }
 
 export default function DailyDashboard() {
   const router = useRouter();
   const [dailyData, setDailyData] = useState<DailyCVR[]>([]);
   const [weeklyData, setWeeklyData] = useState<WeeklyROI[]>([]);
+  const [metadata, setMetadata] = useState<ResponseMetadata | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"ripples" | "flux" | "tides">(
     "ripples",
@@ -78,13 +87,6 @@ export default function DailyDashboard() {
     dir: "asc" | "desc";
   }>({ key: "week", dir: "desc" });
 
-  // Stats state
-  const [dailyRoasStats, setDailyRoasStats] = useState({ mean: 0, stdDev: 0 });
-  const [weeklyRoasStats, setWeeklyRoasStats] = useState({
-    mean: 0,
-    stdDev: 0,
-  });
-
   useEffect(() => {
     async function fetchData() {
       try {
@@ -93,21 +95,14 @@ export default function DailyDashboard() {
           fetch("http://localhost:8080/api/v1/marketing/weekly-roi"),
         ]);
 
-        const dailyRaw: DailyCVR[] = await dailyRes.json();
-        const weeklyRaw: WeeklyROI[] = await weeklyRes.json();
+        const dailyJson = await dailyRes.json();
+        const weeklyJson = await weeklyRes.json();
 
-        // Calculate stats on the full dataset (e.g. 30 days) to accurately find anomalies
-        const roasArray = dailyRaw.map((d) => d.roas);
-        setDailyRoasStats(calculateStats(roasArray));
-
-        const weeklyRoasArray = weeklyRaw.map((w) => w.net_roas);
-        setWeeklyRoasStats(calculateStats(weeklyRoasArray));
-
-        // Limit display to recent 7 days for the dashboard view
-        setDailyData(dailyRaw.slice(0, 7));
-        setWeeklyData(weeklyRaw);
-      } catch (e) {
-        console.error("Failed to fetch data", e);
+        setDailyData(dailyJson.data || []);
+        setWeeklyData(weeklyJson.data || []);
+        setMetadata(dailyJson.metadata);
+      } catch (error) {
+        console.error("Failed to fetch marketing data:", error);
       } finally {
         setIsLoading(false);
       }
@@ -132,16 +127,23 @@ export default function DailyDashboard() {
   const sortedDaily = [...dailyData].sort((a, b) => {
     const valA = a[dailySort.key];
     const valB = b[dailySort.key];
-    if (valA < valB) return dailySort.dir === "asc" ? -1 : 1;
-    if (valA > valB) return dailySort.dir === "asc" ? 1 : -1;
+    
+    // Fallback for non-comparable types (like Lineage objects)
+    if (typeof valA === 'object' || typeof valB === 'object') return 0;
+    
+    if (valA! < valB!) return dailySort.dir === "asc" ? -1 : 1;
+    if (valA! > valB!) return dailySort.dir === "asc" ? 1 : -1;
     return 0;
   });
 
   const sortedWeekly = [...weeklyData].sort((a, b) => {
     const valA = a[weeklySort.key];
     const valB = b[weeklySort.key];
-    if (valA < valB) return weeklySort.dir === "asc" ? -1 : 1;
-    if (valA > valB) return weeklySort.dir === "asc" ? 1 : -1;
+    
+    if (typeof valA === 'object' || typeof valB === 'object') return 0;
+    
+    if (valA! < valB!) return weeklySort.dir === "asc" ? -1 : 1;
+    if (valA! > valB!) return weeklySort.dir === "asc" ? 1 : -1;
     return 0;
   });
 
@@ -167,13 +169,20 @@ export default function DailyDashboard() {
   return (
     <div className="p-xl max-w-[1400px] space-y-xl">
       {/* Header section (replaces previous components to match Stitch HTML) */}
-      <header className="mb-xl">
-        <h1 className="font-h1 text-h1 text-on-surface tracking-tight">
-          Subaquatic Observatory
-        </h1>
-        <p className="text-on-surface-variant font-body-lg text-body-lg mt-2 max-w-2xl">
-          Daily tactical monitoring and structural health checks.
-        </p>
+      <header className="mb-xl flex justify-between items-end">
+        <div>
+          <h1 className="font-h1 text-h1 text-on-surface tracking-tight">
+            Subaquatic Observatory
+          </h1>
+          <div className="flex items-center gap-3 mt-2 text-sm text-on-surface-variant opacity-70">
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              Engine: {metadata?.engine || "Initializing..."}
+            </span>
+            <span>|</span>
+            <span>Confidence: {metadata?.confidence || "Calculating..."}</span>
+          </div>
+        </div>
       </header>
 
       {/* Tabs */}
@@ -289,10 +298,7 @@ export default function DailyDashboard() {
                   </thead>
                   <tbody className="divide-y divide-surface-container-highest font-data-lg text-data-lg text-on-surface">
                     {sortedDaily.map((row) => {
-                      // Anomaly threshold: deviates by more than 1 stdDev from the mean
-                      const isAnomaly =
-                        Math.abs(row.roas - dailyRoasStats.mean) >
-                        dailyRoasStats.stdDev;
+                      const isAnomaly = row.is_anomaly;
 
                       return (
                         <tr
@@ -305,16 +311,25 @@ export default function DailyDashboard() {
                           <td
                             className={`py-5 px-6 whitespace-nowrap ${isAnomaly ? "font-medium text-tertiary flex items-center gap-2 anomaly-glow" : ""}`}
                           >
-                            {isAnomaly && (
-                              <span className="material-symbols-outlined text-[18px]">
-                                warning
+                            <div className="flex flex-col">
+                              <div className="flex items-center gap-2">
+                                {isAnomaly && (
+                                  <span className="material-symbols-outlined text-[18px]">
+                                    warning
+                                  </span>
+                                )}
+                                <span>
+                                  {new Date(row.date).toLocaleDateString("en-US", {
+                                    weekday: "short",
+                                    month: "short",
+                                    day: "numeric",
+                                  })}
+                                </span>
+                              </div>
+                              <span className="text-[10px] text-on-surface-variant opacity-50 mt-1">
+                                {row.lineage?.source}
                               </span>
-                            )}
-                            {new Date(row.date).toLocaleDateString("en-US", {
-                              weekday: "short",
-                              month: "short",
-                              day: "numeric",
-                            })}
+                            </div>
                           </td>
                           <td
                             className={`py-5 px-6 text-right ${isAnomaly ? "text-error" : ""}`}
@@ -412,9 +427,7 @@ export default function DailyDashboard() {
                   </thead>
                   <tbody className="divide-y divide-surface-container-highest font-data-lg text-data-lg text-on-surface">
                     {sortedWeekly.map((row) => {
-                      const isAnomaly =
-                        Math.abs(row.net_roas - weeklyRoasStats.mean) >
-                        weeklyRoasStats.stdDev;
+                      const isAnomaly = row.is_anomaly;
 
                       return (
                         <tr
@@ -427,12 +440,19 @@ export default function DailyDashboard() {
                           <td
                             className={`py-5 px-6 whitespace-nowrap text-sm font-data ${isAnomaly ? "font-medium text-tertiary flex items-center gap-2 anomaly-glow" : "text-on-surface-variant"}`}
                           >
-                            {isAnomaly && (
-                              <span className="material-symbols-outlined text-[16px]">
-                                error
+                            <div className="flex flex-col">
+                              <div className="flex items-center gap-2">
+                                {isAnomaly && (
+                                  <span className="material-symbols-outlined text-[16px]">
+                                    error
+                                  </span>
+                                )}
+                                <span>{row.week}</span>
+                              </div>
+                              <span className="text-[10px] opacity-50">
+                                {row.lineage?.source}
                               </span>
-                            )}
-                            {row.week}
+                            </div>
                           </td>
                           <td
                             className={`py-5 px-6 text-right ${isAnomaly ? "text-error" : ""}`}
