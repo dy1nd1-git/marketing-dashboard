@@ -1,0 +1,13 @@
+# Environment Variables
+.env
+.env.local
+
+# Binaries
+server
+server.exe
+*.exe
+*.test
+*.prof
+
+# OS files
+.DS_Store
