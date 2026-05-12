@@ -140,7 +140,7 @@ func (p *BigQueryProvider) executeQuery(ctx context.Context, queryStr string) ([
 		}
 
 		// Helper to extract float from various BQ types
-		asFloat := func(　v bigquery.Value) float64 {
+		asFloat := func(v bigquery.Value) float64 {
 			switch t := v.(type) {
 			case float64: return t
 			case int64: return float64(t)
