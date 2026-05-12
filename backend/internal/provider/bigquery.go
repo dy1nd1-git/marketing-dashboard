@@ -73,7 +73,7 @@ func (p *BigQueryProvider) GetDailyTrends(ctx context.Context, days int) ([]mode
 			FROM 
 				base
 			GROUP BY 1
-			ORDER BY 1 DESC`, sourceProject, p.datasetID, p.tableID, sourceProject, p.datasetID, p.tableID, sourceProject, p.datasetID, p.tableID, days)
+			ORDER BY 1 DESC`, sourceProject, p.datasetID, p.tableID, sourceProject, p.datasetID, p.tableID, days, sourceProject, p.datasetID, p.tableID)
 	} else {
 		// Standard flat schema query
 		queryStr = fmt.Sprintf(`
