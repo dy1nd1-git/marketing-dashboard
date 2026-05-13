@@ -190,7 +190,6 @@ export default function DailyDashboard() {
                 confidence: (metadata?.confidence === "Low" || metadata?.confidence === "Medium" ? metadata.confidence : "High"),
                 engine: metadata?.engine || "Decision-Tracer-BQ-v1",
               }}
-              align="left"
             />
           </div>
         </div>
