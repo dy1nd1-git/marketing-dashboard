@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { LineageHUD } from "../../../src/components/dashboard/LineageHUD";
 import {
   BarChart,
   Bar,
@@ -37,6 +38,7 @@ interface Lineage {
   source: string;
   query_id?: string;
   sql_ref?: string;
+  timestamp?: string;
 }
 
 interface DailyCVR {
@@ -181,6 +183,15 @@ export default function DailyDashboard() {
             </span>
             <span className="hidden sm:inline">|</span>
             <span>Confidence: {metadata?.confidence || "Calculating..."}</span>
+            <span className="hidden sm:inline">|</span>
+            <LineageHUD
+              telemetry={{
+                source: "bq://mellow-dw.engine.subaquatic_observatory_v1",
+                confidence: (metadata?.confidence === "Low" || metadata?.confidence === "Medium" ? metadata.confidence : "High"),
+                engine: metadata?.engine || "Decision-Tracer-BQ-v1",
+              }}
+              align="left"
+            />
           </div>
         </div>
       </header>
@@ -326,9 +337,20 @@ export default function DailyDashboard() {
                                   })}
                                 </span>
                               </div>
-                              <span className="text-[10px] text-on-surface-variant opacity-50 mt-1">
-                                {row.lineage?.source}
-                              </span>
+                              <div className="mt-1.5 flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                                <LineageHUD
+                                  telemetry={{
+                                    source: row.lineage?.source || `bq://mellow.dw.daily_nodes_${row.date}`,
+                                    confidence: isAnomaly ? "Low" : "High",
+                                    zScore: row.z_score,
+                                    timestamp: row.lineage?.timestamp,
+                                  }}
+                                  compact
+                                />
+                                <span className="text-[10px] text-on-surface-variant opacity-60 truncate max-w-[120px]">
+                                  {row.lineage?.source?.split("/").pop() || "daily_cvr"}
+                                </span>
+                              </div>
                             </div>
                           </td>
                           <td
