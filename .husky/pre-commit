@@ -1,8 +1,4 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-echo "🔍 Running pre-commit checks..."
-# frontendディレクトリ全体に対して厳格な型チェックを実行
 cd frontend
+echo "🔍 Running pre-commit checks from frontend context..."
 npx tsc --noEmit || { echo "❌ TypeScript Error: コミットを中断しました。"; exit 1; }
-# ステージングされたファイルに対して個別のLint検証と関連テストを実行
 npx lint-staged
