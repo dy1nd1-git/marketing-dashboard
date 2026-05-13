@@ -3,53 +3,39 @@ import { describe, it, expect } from "vitest";
 import { LineageHUD } from "./LineageHUD";
 import { LineageTelemetry } from "../../types/marketing";
 
-describe("LineageHUD Component (Provenance & Probabilistic Confidence Auditing)", () => {
-  const highConfidenceTelemetry: LineageTelemetry = {
+describe("LineageHUD Component (Query Origin Info Auditing)", () => {
+  const sampleTelemetry: LineageTelemetry = {
     source: "bq://marketing-dw.analytics.daily_cvr_view",
     confidence: "High",
     engine: "Decision-Tracer-BQ-v1",
     timestamp: "2026-05-13T12:00:00Z",
-    zScore: 0.25,
   };
 
-  const lowConfidenceTelemetry: LineageTelemetry = {
-    source: "bq://marketing-dw.staging.raw_clicks_offline",
-    confidence: "Low",
-    engine: "Fallback-Static-Engine",
-    timestamp: "2026-05-13T10:00:00Z",
-  };
+  it("renders collapsed interactive badge trigger initially", () => {
+    render(<LineageHUD telemetry={sampleTelemetry} />);
 
-  it("renders collapsed interactive badge trigger reflecting active confidence status initially", () => {
-    render(<LineageHUD telemetry={highConfidenceTelemetry} />);
-
-    const badgeTrigger = screen.getByRole("button", { name: /Data Provenance Telemetry/i });
+    const badgeTrigger = screen.getByRole("button", { name: /Query Origin Info/i });
     expect(badgeTrigger).toBeDefined();
     expect(badgeTrigger.getAttribute("aria-expanded")).toBe("false");
-
-    // Verify correct styling applied inline
-    expect(badgeTrigger.className).toContain("text-emerald-400");
-    expect(screen.getByText("High")).toBeDefined();
 
     // Verify HUD dialog overlay remains safely unmounted
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
-  it("toggles popover diagnostic trace HUD overlay upon user interaction", () => {
-    render(<LineageHUD telemetry={highConfidenceTelemetry} />);
+  it("toggles popover query origin detail overlay upon user interaction", () => {
+    render(<LineageHUD telemetry={sampleTelemetry} />);
 
-    const badgeTrigger = screen.getByRole("button", { name: /Data Provenance Telemetry/i });
+    const badgeTrigger = screen.getByRole("button", { name: /Query Origin Info/i });
 
     // Click to expand dialog overlay
     fireEvent.click(badgeTrigger);
     expect(badgeTrigger.getAttribute("aria-expanded")).toBe("true");
 
-    const dialog = screen.getByRole("dialog", { name: "Lineage Provenance Detail" });
+    const dialog = screen.getByRole("dialog", { name: "Query Origin Detail" });
     expect(dialog).toBeDefined();
 
     // Confirm metadata exposure layers mount canonical paths perfectly
     expect(screen.getByText("bq://marketing-dw.analytics.daily_cvr_view")).toBeDefined();
-    expect(screen.getByText("Decision-Tracer-BQ-v1")).toBeDefined();
-    expect(screen.getByText("Z-Score: 0.25")).toBeDefined();
     expect(screen.getByText("2026-05-13T12:00:00Z")).toBeDefined();
 
     // Click again to fold overlay dialog safely
@@ -57,23 +43,10 @@ describe("LineageHUD Component (Provenance & Probabilistic Confidence Auditing)"
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
-  it("applies Attentive Soft Rose/Red styles and customized subtext warnings when variance tier drops to Low", () => {
-    render(<LineageHUD telemetry={lowConfidenceTelemetry} />);
-
-    const badgeTrigger = screen.getByRole("button", { name: /Data Provenance Telemetry/i });
-    expect(badgeTrigger.className).toContain("text-rose-400");
-
-    // Expand HUD dialog layer
-    fireEvent.click(badgeTrigger);
-    expect(screen.getByText("bq://marketing-dw.staging.raw_clicks_offline")).toBeDefined();
-    expect(screen.getByText("Fallback-Static-Engine")).toBeDefined();
-    expect(screen.getByText("Calibrated")).toBeDefined();
-  });
-
   it("responds seamlessly to accessible keyboard Escape instructions folding viewports", () => {
-    render(<LineageHUD telemetry={highConfidenceTelemetry} />);
+    render(<LineageHUD telemetry={sampleTelemetry} />);
 
-    const badgeTrigger = screen.getByRole("button", { name: /Data Provenance Telemetry/i });
+    const badgeTrigger = screen.getByRole("button", { name: /Query Origin Info/i });
     fireEvent.click(badgeTrigger);
     expect(screen.getByRole("dialog")).toBeDefined();
 

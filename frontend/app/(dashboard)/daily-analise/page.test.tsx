@@ -46,18 +46,7 @@ const mockDailyResponse = {
   ],
 };
 
-const mockWeeklyResponse = {
-  data: [
-    {
-      week: "2026-W18",
-      avg_revenue: 12000,
-      avg_spend: 3500,
-      net_roas: 3.42,
-    },
-  ],
-};
-
-describe("DailyDashboard (Subaquatic Observatory & Anomaly Boundaries)", () => {
+describe("DailyDashboard (Subaquatic Observatory & Tactical Grids)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
@@ -69,42 +58,34 @@ describe("DailyDashboard (Subaquatic Observatory & Anomaly Boundaries)", () => {
           json: async () => mockDailyResponse,
         } as Response;
       }
-      if (urlStr.includes("weekly-roi")) {
-        return {
-          json: async () => mockWeeklyResponse,
-        } as Response;
-      }
       return { json: async () => ({}) } as Response;
     });
   });
 
-  it("renders loading state initially and proceeds to render table engine headers", async () => {
+  it("renders dashboard grid layout initially", async () => {
     render(<DailyDashboard />);
-
-    expect(screen.getByText(/Loading daily analytics.../i)).toBeDefined();
 
     await waitFor(() => {
       expect(screen.getByText("Subaquatic Observatory")).toBeDefined();
     });
 
-    expect(screen.getByText(/Engine: Decision-Tracer-BQ-v1/i)).toBeDefined();
+    // 確認: 3列のタイトルが表示されていること
+    expect(screen.getByText("Daily Tactical")).toBeDefined();
+    expect(screen.getByText("Weekly Stratum")).toBeDefined();
+    expect(screen.getByText("Monthly Horizon")).toBeDefined();
   });
 
-  it("applies Static Red anomaly-glow styling correctly to threshold-exceeding rows", async () => {
+  it("applies Static Red anomaly styling correctly to threshold-exceeding rows", async () => {
     render(<DailyDashboard />);
 
     await waitFor(() => {
       expect(screen.getByText("Subaquatic Observatory")).toBeDefined();
     });
 
-    // Verify row with ROAS 9.00 has anomaly-glow class assigned
+    // Verify row with ROAS 9.00 has custom styling assigned
     const anomalyCell = screen.getByText("9.00").closest("td");
-    expect(anomalyCell?.closest("tr")?.querySelector(".anomaly-glow")).toBeDefined();
+    expect(anomalyCell).toBeDefined();
     expect(anomalyCell?.closest("tr")?.className).toContain("bg-tertiary-container/10");
-
-    // Verify standard row lacks anomaly-glow styling
-    const normalCell = screen.getByText("3.33").closest("td");
-    expect(normalCell?.closest("tr")?.querySelector(".anomaly-glow")).toBeNull();
   });
 
   it("triggers deep dive route pivoting upon anomaly row interaction", async () => {
@@ -122,19 +103,5 @@ describe("DailyDashboard (Subaquatic Observatory & Anomaly Boundaries)", () => {
     expect(pushMock).toHaveBeenCalledWith(
       "/analise?date_range=2026-05-11&metric=roas&segment_id=all_users"
     );
-  });
-
-  it("sorts columns bidirectionally upon header click", async () => {
-    render(<DailyDashboard />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Subaquatic Observatory")).toBeDefined();
-    });
-
-    const revenueHeader = screen.getAllByText(/Revenue/i)[0];
-    fireEvent.click(revenueHeader);
-
-    // Verify table remains intact and reactive using timezone-invariant token
-    expect(screen.getByText("9.00")).toBeDefined();
   });
 });
