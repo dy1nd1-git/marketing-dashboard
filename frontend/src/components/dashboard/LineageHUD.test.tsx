@@ -50,7 +50,7 @@ describe("LineageHUD Component (Provenance & Probabilistic Confidence Auditing)"
     expect(screen.getByText("bq://marketing-dw.analytics.daily_cvr_view")).toBeDefined();
     expect(screen.getByText("Decision-Tracer-BQ-v1")).toBeDefined();
     expect(screen.getByText("Z-Score: 0.25")).toBeDefined();
-    expect(screen.getByText(/Generated: 2026-05-13T12:00:00Z/i)).toBeDefined();
+    expect(screen.getByText("2026-05-13T12:00:00Z")).toBeDefined();
 
     // Click again to fold overlay dialog safely
     fireEvent.click(badgeTrigger);

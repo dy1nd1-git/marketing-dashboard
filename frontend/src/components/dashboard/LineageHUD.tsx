@@ -81,83 +81,90 @@ export const LineageHUD: React.FC<LineageHUDProps> = ({
         </span>
       </button>
 
-      {/* Popover HUD Overlay */}
+      {/* Popover HUD Overlay converted to a Clip-Proof Center Modal */}
       {isOpen && (
         <div
-          role="dialog"
-          aria-modal="false"
-          aria-label="Lineage Provenance Detail"
-          className={`absolute bottom-full mb-2 ${
-            align === "left" ? "left-0" : "right-0"
-          } w-80 bg-surface-container-high border border-surface-container-highest rounded-xl p-4 shadow-2xl z-50 animate-fade-in text-left`}
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-fade-in"
+          onClick={() => setIsOpen(false)}
         >
-          <div className="flex items-center justify-between border-b border-surface-container-highest pb-2 mb-3">
-            <div className="flex items-center gap-2 text-on-surface font-label text-xs">
-              <span className="material-symbols-outlined text-[16px] text-primary">
-                policy
-              </span>
-              <span>Telemetry Lineage HUD</span>
-            </div>
-            <button
-              onClick={() => setIsOpen(false)}
-              aria-label="Close HUD"
-              className="text-on-surface-variant hover:text-on-surface cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[14px]">close</span>
-            </button>
-          </div>
-
-          <div className="space-y-3 font-body text-xs">
-            {/* Source Origin Path */}
-            <div>
-              <span className="text-on-surface-variant text-[10px] block uppercase font-label">
-                Canonical Source Path
-              </span>
-              <span className="text-on-surface font-data text-xs block truncate bg-surface-container-highest/30 px-2 py-1 rounded mt-0.5 border border-surface-container-highest">
-                {telemetry.source}
-              </span>
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Lineage Provenance Detail"
+            className="w-full max-w-md bg-surface-container-high border border-surface-container-highest rounded-2xl p-6 shadow-2xl text-left transition-all transform scale-100"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-surface-container-highest pb-3 mb-4">
+              <div className="flex items-center gap-2 text-on-surface font-label text-sm font-semibold">
+                <span className="material-symbols-outlined text-[18px] text-primary">
+                  policy
+                </span>
+                <span>Telemetry Lineage Audit HUD</span>
+              </div>
+              <button
+                onClick={() => setIsOpen(false)}
+                aria-label="Close HUD"
+                className="text-on-surface-variant hover:text-on-surface cursor-pointer p-1 rounded-full hover:bg-surface-container-highest transition-colors"
+              >
+                <span className="material-symbols-outlined text-[16px]">close</span>
+              </button>
             </div>
 
-            {/* Downstream Engine & Status */}
-            <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-4 font-body text-xs">
+              {/* Source Origin Path */}
               <div>
-                <span className="text-on-surface-variant text-[10px] block uppercase font-label">
-                  Evaluation Engine
+                <span className="text-on-surface-variant text-[10px] block uppercase font-label tracking-wider">
+                  Canonical Source Path
                 </span>
-                <span className="text-on-surface font-medium block truncate mt-0.5">
-                  {telemetry.engine || "Decision-Tracer-BQ-v1"}
-                </span>
+                <div className="bg-surface-container-highest/30 p-2.5 rounded-lg mt-1 border border-surface-container-highest font-data text-xs text-on-surface break-all select-all">
+                  {telemetry.source}
+                </div>
               </div>
-              <div>
-                <span className="text-on-surface-variant text-[10px] block uppercase font-label">
-                  Variance Threshold
-                </span>
-                <span className="text-on-surface font-data block mt-0.5">
-                  {telemetry.zScore !== undefined
-                    ? `Z-Score: ${telemetry.zScore}`
-                    : "Calibrated"}
-                </span>
-              </div>
-            </div>
 
-            {/* Status Feedback Subtext */}
-            <div className="bg-surface-container-low p-2 rounded border border-surface-container-highest text-[11px] text-on-surface-variant">
-              <div className="flex items-center gap-1.5 mb-0.5 font-medium text-on-surface">
-                <span className={`w-1.5 h-1.5 rounded-full ${currentTheme.indicator}`} />
-                <span>{currentTheme.label}</span>
+              {/* Downstream Engine & Status */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-surface-container-lowest p-2.5 rounded-lg border border-surface-container-highest/50">
+                  <span className="text-on-surface-variant text-[10px] block uppercase font-label tracking-wider">
+                    Evaluation Engine
+                  </span>
+                  <span className="text-on-surface font-medium block truncate mt-0.5 text-sm">
+                    {telemetry.engine || "Decision-Tracer-BQ-v1"}
+                  </span>
+                </div>
+                <div className="bg-surface-container-lowest p-2.5 rounded-lg border border-surface-container-highest/50">
+                  <span className="text-on-surface-variant text-[10px] block uppercase font-label tracking-wider">
+                    Variance Threshold
+                  </span>
+                  <span className="text-on-surface font-data block mt-0.5 text-sm">
+                    {telemetry.zScore !== undefined
+                      ? `Z-Score: ${telemetry.zScore}`
+                      : "Calibrated"}
+                  </span>
+                </div>
               </div>
-              <p className="leading-tight opacity-90">
-                {telemetry.confidence === "High"
-                  ? "Telemetry verified upstream via automated schema validation tests."
-                  : telemetry.confidence === "Medium"
-                  ? "Intermittent anomalies detected; automated statistical fallbacks successfully invoked."
-                  : "Attention: Source table schema out of threshold bounds. Using offline dynamic mocks."}
-              </p>
-            </div>
 
-            {/* Sync Timestamp Info */}
-            <div className="text-[9px] text-on-surface-variant text-right pt-1 opacity-70">
-              Generated: {telemetry.timestamp || new Date().toISOString()}
+              {/* Status Feedback Subtext */}
+              <div className="bg-surface-container-low p-3 rounded-xl border border-surface-container-highest text-xs text-on-surface-variant space-y-1.5">
+                <div className="flex items-center gap-2 font-semibold text-on-surface">
+                  <span className={`w-2 h-2 rounded-full ${currentTheme.indicator}`} />
+                  <span>{currentTheme.label}</span>
+                </div>
+                <p className="leading-relaxed opacity-90 text-[11px]">
+                  {telemetry.confidence === "High"
+                    ? "Telemetry verified upstream via automated schema validation tests."
+                    : telemetry.confidence === "Medium"
+                    ? "Intermittent anomalies detected; automated statistical fallbacks successfully invoked."
+                    : "Attention: Source table schema out of threshold bounds. Using offline dynamic mocks."}
+                </p>
+              </div>
+
+              {/* Sync Timestamp Info */}
+              <div className="flex items-center justify-between pt-2 text-[10px] text-on-surface-variant border-t border-surface-container-highest/40">
+                <span className="opacity-60 font-label">Status Verification Sync</span>
+                <span className="font-data opacity-80">
+                  {telemetry.timestamp || new Date().toISOString()}
+                </span>
+              </div>
             </div>
           </div>
         </div>
