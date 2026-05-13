@@ -1,85 +1,131 @@
-'use client';
+"use client";
 
-import { useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+
+interface AnalysisResult {
+  id: string;
+  title: string;
+  prompt: string;
+  sql: string;
+  chartType: "line" | "bar";
+  data: { name: string; value: number }[];
+  insight: string;
+  timestamp: string;
+  addedAt?: string;
+}
 
 function AnaliseContent() {
   const searchParams = useSearchParams();
-  
-  // 3. 日常ダッシュボードからの遷移（Context Bridge）
-  // URLSearchParamsを使用し、日常ダッシュボードで選択中の date_range, segment_id, metric を分析ページへ引き継ぐ処理
-  const segmentId = searchParams?.get('segment_id') || 'all_users';
-  const metric = searchParams?.get('metric') || 'revenue';
+  const segmentId = searchParams?.get("segment_id") || "all_users";
+  const metric = searchParams?.get("metric") || "revenue";
 
-  const [prompt, setPrompt] = useState('');
-  
-  interface AnalysisResult {
-    id: string;
-    prompt: string;
-    sql: string;
-    data: { name: string; value: number }[];
-    insight: string;
-    timestamp: string;
-    addedAt?: string;
-  }
-  
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const [prompt, setPrompt] = useState("");
+
+  const [tabs, setTabs] = useState<AnalysisResult[]>([]);
+  const [activeTabId, setActiveTabId] = useState<string | null>(null);
   const [cartItems, setCartItems] = useState<AnalysisResult[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  // 1. データ連携ロジック（BigQuery / GA4）
-  // AIからの自然言語をSQLに変換し、BigQueryへリクエストを投げるコアロジック
-  async function executeAIGeneratedAnalysis(prompt: string) {
+  // Load from LocalStorage on mount
+  useEffect(() => {
+    try {
+      const savedTabs = localStorage.getItem("exploration_tabs");
+      const savedCart = localStorage.getItem("exploration_cart");
+      setTimeout(() => {
+        if (savedTabs) {
+          const parsed = JSON.parse(savedTabs);
+          setTabs(parsed);
+          if (parsed.length > 0) setActiveTabId(parsed[0].id);
+        }
+        if (savedCart) {
+          setCartItems(JSON.parse(savedCart));
+        }
+      }, 0);
+    } catch (e) {
+      console.error("Failed to load from local storage", e);
+    }
+  }, []);
+
+  // Save to LocalStorage on changes
+  useEffect(() => {
+    localStorage.setItem("exploration_tabs", JSON.stringify(tabs));
+  }, [tabs]);
+
+  useEffect(() => {
+    localStorage.setItem("exploration_cart", JSON.stringify(cartItems));
+  }, [cartItems]);
+
+  async function executeAIGeneratedAnalysis(promptText: string) {
     setIsAnalyzing(true);
     try {
-      // 1. LLMによるPrompt to SQL変換 (現状はモック実装)
-      console.log(`[AI Logic] Converting prompt to SQL: "${prompt}"`);
+      console.log(`[AI Logic] Converting prompt to SQL: "${promptText}"`);
       const mockSql = `SELECT date, metric_value FROM \`project.dataset.marketing_data\` WHERE metric = '${metric}' AND segment = '${segmentId}' AND date >= DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)`;
-      
-      // 2. BigQuery APIによるクエリ実行 (擬似的なAPIコール)
-      console.log(`[BigQuery] Executing SQL: ${mockSql}`);
-      await new Promise(resolve => setTimeout(resolve, 1500)); // API遅延をシミュレート
-      
-      // 3. 結果をRecharts等の形式に整形してフロントへ返却
-      const mockResult = {
+
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      // Determine chart type and data based on keyword
+      const isComparison =
+        promptText.includes("比較") ||
+        promptText.includes("割合") ||
+        promptText.includes("デバイス");
+      const chartType = isComparison ? "bar" : "line";
+      const title = isComparison ? "Conversion Comparison" : "ROAS Trendline";
+
+      let mockData = [];
+      if (isComparison) {
+        mockData = [
+          { name: "Desktop", value: 4500 },
+          { name: "Mobile", value: 8200 },
+          { name: "Tablet", value: 1200 },
+        ];
+      } else {
+        mockData = [
+          { name: "Mon", value: 1200 },
+          { name: "Tue", value: 1900 },
+          { name: "Wed", value: 1500 },
+          { name: "Thu", value: 2100 },
+          { name: "Fri", value: 2400 },
+          { name: "Sat", value: 1800 },
+          { name: "Sun", value: 2600 },
+        ];
+      }
+
+      const mockResult: AnalysisResult = {
         id: crypto.randomUUID(),
-        prompt: prompt,
+        title: title,
+        prompt: promptText,
         sql: mockSql,
-        data: [
-          { name: 'Mon', value: 1200 },
-          { name: 'Tue', value: 1900 },
-          { name: 'Wed', value: 1500 },
-          { name: 'Thu', value: 2100 },
-          { name: 'Fri', value: 2400 },
-          { name: 'Sat', value: 1800 },
-          { name: 'Sun', value: 2600 },
-        ],
-        insight: '【AI Insight】 該当セグメントにおいて、指定期間中のコンバージョン率が前週比で20%増加しています。キャンペーンAの影響が考えられます。',
-        timestamp: new Date().toISOString()
+        chartType: chartType,
+        data: mockData,
+        insight: `【AI Insight】 該当セグメントにおいて、指定期間中の${isComparison ? "比較結果としてモバイルの割合が圧倒的に高い" : "コンバージョン率が前週比で20%増加している"}ことが確認できます。`,
+        timestamp: new Date().toISOString(),
       };
-      
-      setAnalysisResult(mockResult);
+
+      setTabs((prev) => [mockResult, ...prev]);
+      setActiveTabId(mockResult.id);
+      setPrompt("");
     } catch (error) {
-      console.error('Failed to execute analysis:', error);
+      console.error("Failed to execute analysis:", error);
     } finally {
       setIsAnalyzing(false);
     }
   }
 
-  // 2. ドラッグ＆ドロップの状態遷移
-  // カードをカートへドロップした際の処理
   const onDropToCart = (analysisData: AnalysisResult) => {
-    // 1. 分析結果、SQL、AIの洞察をパッケージ化
-    const packageData = {
-      ...analysisData,
-      addedAt: new Date().toISOString()
-    };
-    
-    // 2. 保存用State（CartItems）へ追加
-    setCartItems(prev => [...prev, packageData]);
-    
-    // 3. 次のGenSpark連携用プロンプトのコンテキストとして蓄積
-    console.log('[Context Builder] Added to cart. Current context state for next generation:', [...cartItems, packageData]);
+    const packageData = { ...analysisData, addedAt: new Date().toISOString() };
+    setCartItems((prev) => [...prev, packageData]);
   };
 
   const handleAnalyze = () => {
@@ -88,182 +134,364 @@ function AnaliseContent() {
     }
   };
 
+  const activeTab = tabs.find((t) => t.id === activeTabId);
+
   return (
     <div className="p-10 pb-32 min-h-screen bg-background relative flex flex-col font-sans">
-      {/* Header */}
-      <div className="mb-10">
-        <h1 className="text-[36px] font-semibold text-on-surface mb-2 tracking-tight">Exploration Workspace</h1>
-        <p className="text-body-md text-outline">Analyze and pivot your marketing data with organic precision.</p>
+      {/* Header & Top Input Bar */}
+      <div className="mb-8 flex justify-between items-start gap-8">
+        <div className="w-1/3">
+          <h1 className="text-[36px] font-semibold text-on-surface mb-2 tracking-tight">
+            Exploration
+          </h1>
+          <p className="text-body-md text-outline">
+            Analyze and pivot your marketing data.
+          </p>
+        </div>
+
+        {/* Top Input Bar */}
+        <div className="flex-1 max-w-[700px]">
+          <div className="flex items-center gap-4 bg-surface-container-lowest border border-outline-variant/40 rounded-full py-2 px-3 shadow-sm focus-within:ring-2 focus-within:ring-primary/20 transition-all focus-within:shadow-md">
+            <div className="pl-4 text-primary opacity-80">
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2.5}
+                  d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+            </div>
+            <input
+              type="text"
+              className="flex-1 bg-transparent px-2 py-2 text-data-lg focus:outline-none placeholder:text-outline/60 font-data-sm text-on-surface"
+              placeholder="// [INPUT]: Try '推移' or '比較'..."
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
+            />
+            <button
+              className="bg-primary text-on-primary hover:opacity-90 w-10 h-10 flex items-center justify-center rounded-full shadow-sm disabled:opacity-50 transition-all hover:scale-[1.02] shrink-0"
+              onClick={handleAnalyze}
+              disabled={isAnalyzing || !prompt.trim()}
+            >
+              {isAnalyzing ? (
+                <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+              ) : (
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M5 10l7-7m0 0l7 7m-7-7v18"
+                  />
+                </svg>
+              )}
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="flex gap-8 flex-1 items-start">
-        {/* Left Area: Grid of Graphs */}
-        <div className="flex-1 grid grid-cols-3 gap-6">
-          
-          {/* Top Left: Conversion Funnel (col-span-2) */}
-          <div className="col-span-2 bg-surface-container-lowest rounded-[20px] p-6 shadow-[0_10px_30px_rgba(135,169,150,0.05)] border border-outline-variant/30 flex flex-col">
-            <div className="flex justify-between items-start mb-6">
-              <div>
-                <h3 className="font-semibold text-on-surface mb-2">Yesterday&apos;s Conversion Funnel</h3>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#fdf2e9] text-[#c98e68] text-data-sm rounded-full font-medium">
-                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" /></svg>
-                  Campaign Q3
-                </span>
-              </div>
-              <button className="text-data-sm text-outline font-data-sm tracking-wider hover:text-primary transition-colors">&lt;&gt; SQL</button>
+        {/* Left Area: Dynamic Canvas */}
+        <div className="flex-1 flex flex-col gap-6">
+          {/* Tabs UI */}
+          {tabs.length > 0 && (
+            <div className="flex gap-2 border-b border-outline-variant/30 pb-2 overflow-x-auto scrollbar-hide">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTabId(tab.id)}
+                  className={`px-4 py-2 rounded-t-[12px] text-data-sm font-medium transition-colors whitespace-nowrap flex items-center gap-2 ${
+                    activeTabId === tab.id
+                      ? "bg-surface-container-lowest text-primary border-t border-l border-r border-outline-variant/30 shadow-[0_-4px_6px_-4px_rgba(0,0,0,0.05)]"
+                      : "text-outline hover:bg-surface-container-low/50 hover:text-on-surface"
+                  }`}
+                >
+                  {tab.title}
+                  <span
+                    className="opacity-40 hover:opacity-100 hover:text-red-500 rounded-full p-0.5"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const newTabs = tabs.filter((t) => t.id !== tab.id);
+                      setTabs(newTabs);
+                      if (activeTabId === tab.id) {
+                        setActiveTabId(
+                          newTabs.length > 0 ? newTabs[0].id : null,
+                        );
+                      }
+                    }}
+                  >
+                    <svg
+                      className="w-3 h-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </span>
+                </button>
+              ))}
             </div>
-            
-            {/* Bar Chart placeholder */}
-            <div className="flex-1 min-h-[200px] flex items-end justify-around gap-4 px-4 pt-4">
-               <div className="w-full flex flex-col items-center gap-2">
-                 <span className="text-data-sm text-outline">12k</span>
-                 <div className="w-full bg-[#e8eee9] rounded-t-lg h-[180px]"></div>
-               </div>
-               <div className="w-full flex flex-col items-center gap-2">
-                 <span className="text-data-sm text-outline">7.2k</span>
-                 <div className="w-full bg-[#d6e3db] rounded-t-lg h-[140px]"></div>
-               </div>
-               <div className="w-full flex flex-col items-center gap-2">
-                 <span className="text-data-sm text-outline">4.8k</span>
-                 <div className="w-full bg-[#c2d7cd] rounded-t-lg h-[100px]"></div>
-               </div>
-               <div className="w-full flex flex-col items-center gap-2">
-                 <span className="text-data-sm text-outline">1.8k</span>
-                 <div className="w-full bg-primary rounded-t-lg opacity-80 h-[40px]"></div>
-               </div>
-            </div>
-          </div>
+          )}
 
-          {/* Top Right: Traffic Source (col-span-1) */}
-          <div className="col-span-1 bg-surface-container-lowest rounded-[20px] p-6 shadow-[0_10px_30px_rgba(135,169,150,0.05)] border border-outline-variant/30 flex flex-col">
-            <div className="flex justify-between items-start mb-6">
-              <h3 className="font-semibold text-on-surface leading-tight">Traffic<br/>Source</h3>
-              <button className="text-data-sm text-outline font-data-sm tracking-wider hover:text-primary transition-colors">&lt;&gt; SQL</button>
-            </div>
-            
-            {/* Donut Chart placeholder */}
-            <div className="flex-1 flex items-center justify-center relative min-h-[200px]">
-               <div className="w-36 h-36 rounded-full border-[14px] border-primary border-r-[#d4a373] opacity-90 transform -rotate-45"></div>
-               <div className="absolute inset-0 flex flex-col items-center justify-center bg-white rounded-full m-auto w-36 h-36 border-[14px] border-transparent shadow-[inset_0_4px_10px_rgba(0,0,0,0.02)]">
-                 <span className="text-3xl font-bold text-on-surface tracking-tighter">42%</span>
-                 <span className="text-data-sm text-outline mt-1">Organic</span>
-               </div>
-            </div>
-          </div>
-
-          {/* Bottom: ROAS Trendline (col-span-3) */}
-          <div className="col-span-3 bg-surface-container-lowest rounded-[20px] p-6 shadow-[0_10px_30px_rgba(135,169,150,0.05)] border border-outline-variant/30">
-            <div className="flex justify-between items-start mb-8">
-              <div>
-                <h3 className="font-semibold text-on-surface">ROAS Trendline</h3>
-                <p className="text-data-sm text-outline mt-1 font-data-sm">Last 30 Days vs Target</p>
+          {/* Canvas Content */}
+          {activeTab ? (
+            <div className="bg-surface-container-lowest rounded-[20px] rounded-tl-none p-6 shadow-[0_10px_30px_rgba(135,169,150,0.05)] border border-outline-variant/30 flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="font-semibold text-on-surface text-lg">
+                    {activeTab.title}
+                  </h3>
+                  <p className="text-data-sm text-outline mt-1 font-data-sm italic">
+                    &quot;{activeTab.prompt}&quot;
+                  </p>
+                </div>
+                <button
+                  className="px-3 py-1.5 bg-primary/10 text-primary text-data-sm rounded-full font-medium hover:bg-primary/20 transition-colors flex items-center gap-1.5"
+                  onClick={() => onDropToCart(activeTab)}
+                >
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                  Save to Cart
+                </button>
               </div>
-              <button className="text-data-sm text-outline font-data-sm tracking-wider hover:text-primary transition-colors">&lt;&gt; SQL</button>
+
+              {/* Dynamic Recharts */}
+              <div className="h-[300px] w-full mt-4">
+                <ResponsiveContainer width="100%" height="100%">
+                  {activeTab.chartType === "line" ? (
+                    <LineChart
+                      data={activeTab.data}
+                      margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                    >
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        vertical={false}
+                        stroke="rgba(135,169,150,0.2)"
+                      />
+                      <XAxis
+                        dataKey="name"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 12, fill: "#6e7a73" }}
+                        dy={10}
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 12, fill: "#6e7a73" }}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          borderRadius: "12px",
+                          border: "none",
+                          boxShadow: "0 10px 20px rgba(0,0,0,0.05)",
+                        }}
+                        itemStyle={{ color: "#456555", fontWeight: 600 }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="value"
+                        stroke="#456555"
+                        strokeWidth={3}
+                        dot={{
+                          r: 4,
+                          fill: "#456555",
+                          strokeWidth: 2,
+                          stroke: "#fff",
+                        }}
+                        activeDot={{ r: 6 }}
+                      />
+                    </LineChart>
+                  ) : (
+                    <BarChart
+                      data={activeTab.data}
+                      margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                    >
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        vertical={false}
+                        stroke="rgba(135,169,150,0.2)"
+                      />
+                      <XAxis
+                        dataKey="name"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 12, fill: "#6e7a73" }}
+                        dy={10}
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 12, fill: "#6e7a73" }}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          borderRadius: "12px",
+                          border: "none",
+                          boxShadow: "0 10px 20px rgba(0,0,0,0.05)",
+                        }}
+                        itemStyle={{ color: "#456555", fontWeight: 600 }}
+                        cursor={{ fill: "rgba(69,101,85,0.05)" }}
+                      />
+                      <Bar
+                        dataKey="value"
+                        fill="#456555"
+                        radius={[4, 4, 0, 0]}
+                        maxBarSize={60}
+                      />
+                    </BarChart>
+                  )}
+                </ResponsiveContainer>
+              </div>
+
+              {/* AI Insight Box */}
+              <div className="bg-[#f0f4f1] border border-[#d6e3db] rounded-[16px] p-5 mt-4">
+                <div className="flex items-center gap-2 mb-2 text-[#2e4238] font-semibold text-data-sm">
+                  <svg
+                    className="w-4 h-4 text-[#d4a373]"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L9 4.323V3a1 1 0 011-1z" />
+                  </svg>
+                  AI Generated Insight
+                </div>
+                <p className="text-[#456555] text-data-sm leading-relaxed">
+                  {activeTab.insight}
+                </p>
+              </div>
             </div>
-            
-            {/* Scatter Chart Placeholder */}
-            <div className="h-[220px] w-full relative border-l border-b border-outline-variant/40 ml-6 mb-2">
-              {/* y-axis label */}
-              <span className="absolute -left-8 top-1/2 -translate-y-1/2 text-data-sm text-outline font-data-sm">2.5</span>
-              
-              {/* Target Line */}
-              <div className="absolute top-1/2 w-full border-t border-dashed border-primary/40"></div>
-              
-              {/* Dots */}
-              <div className="absolute left-[10%] top-[80%] w-3 h-3 rounded-full bg-primary/80"></div>
-              <div className="absolute left-[20%] top-[75%] w-3 h-3 rounded-full bg-primary/80"></div>
-              <div className="absolute left-[30%] top-[65%] w-3 h-3 rounded-full bg-primary/80"></div>
-              <div className="absolute left-[40%] top-[70%] w-3 h-3 rounded-full bg-primary/80"></div>
-              <div className="absolute left-[50%] top-[40%] w-3 h-3 rounded-full bg-primary/80"></div>
-              <div className="absolute left-[60%] top-[45%] w-3 h-3 rounded-full bg-primary/80"></div>
-              <div className="absolute left-[70%] top-[90%] w-3 h-3 rounded-full bg-[#d4a373]"></div>
-              <div className="absolute left-[80%] top-[25%] w-3 h-3 rounded-full bg-[#d4a373]"></div>
+          ) : (
+            // Empty State
+            <div className="bg-surface-container-lowest rounded-[20px] p-12 shadow-sm border border-outline-variant/30 flex flex-col items-center justify-center text-center h-[500px]">
+              <div className="w-20 h-20 bg-[#f0f4f1] rounded-full flex items-center justify-center mb-6">
+                <svg
+                  className="w-10 h-10 text-primary opacity-50"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-on-surface mb-2">
+                No active analysis
+              </h3>
+              <p className="text-outline text-data-sm max-w-md">
+                Use the input bar above to query your marketing data. E.g.
+                &quot;推移&quot; or &quot;比較&quot;.
+              </p>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Right Area: Insight Cart */}
-        <div className="w-80 bg-surface-container-low/50 rounded-[24px] p-6 h-full min-h-[600px] border border-outline-variant/20 shadow-inner">
+        <div className="w-80 bg-surface-container-low/50 rounded-[24px] p-6 h-full min-h-[600px] border border-outline-variant/20 shadow-inner flex flex-col">
           <div className="flex items-center gap-3 mb-6 px-2">
-            <svg className="w-5 h-5 text-outline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            <svg
+              className="w-5 h-5 text-outline"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+              />
             </svg>
             <h2 className="font-semibold text-on-surface">Insight Cart</h2>
           </div>
 
-          <div className="space-y-4">
-            {/* Drop zone */}
-            <div 
-              className="border-2 border-dashed border-primary/20 bg-primary/5 rounded-[16px] h-32 flex flex-col items-center justify-center text-outline/80 text-data-sm transition-all hover:bg-primary/10 hover:border-primary/40 cursor-pointer font-data-sm"
-              onClick={() => analysisResult && onDropToCart(analysisResult)}
-            >
-              <svg className="w-5 h-5 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-              </svg>
-              Drop card here to save insight {analysisResult && "(Click to save recent analysis)"}
-            </div>
-
-            {/* Added Items */}
+          <div className="space-y-4 flex-1 overflow-y-auto pr-2 scrollbar-hide">
             {cartItems.map((item, index) => (
-              <div key={index} className="bg-surface-container-lowest border border-outline-variant/40 p-5 rounded-[16px] shadow-sm relative group transition-all hover:shadow-md">
-                <h4 className="font-medium text-[15px] text-on-surface mb-2">Analysis Result</h4>
-                <p className="text-data-sm text-outline font-data-sm">Added recently</p>
-                <button 
-                  className="absolute top-4 right-4 text-outline/40 hover:text-outline transition-colors"
-                  onClick={() => setCartItems(prev => prev.filter((_, i) => i !== index))}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
+              <div
+                key={index}
+                className="bg-surface-container-lowest border border-outline-variant/40 p-4 rounded-[16px] shadow-sm relative group transition-all hover:shadow-md hover:border-primary/30"
+              >
+                <h4 className="font-medium text-[14px] text-on-surface mb-1 truncate pr-6">
+                  {item.title}
+                </h4>
+                <p className="text-[12px] text-outline line-clamp-2 leading-snug mb-2">
+                  &quot;{item.prompt}&quot;
+                </p>
+                <div className="flex justify-between items-end">
+                  <span className="text-[10px] text-outline/60 bg-surface-container-low px-2 py-0.5 rounded-sm">
+                    {item.chartType.toUpperCase()}
+                  </span>
+                  <button
+                    className="text-outline/40 hover:text-red-400 transition-colors"
+                    onClick={() =>
+                      setCartItems((prev) => prev.filter((_, i) => i !== index))
+                    }
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                  </button>
+                </div>
               </div>
             ))}
 
-            {/* Existing Card */}
             {cartItems.length === 0 && (
-              <div className="bg-surface-container-lowest border border-outline-variant/40 p-5 rounded-[16px] shadow-sm relative group transition-all hover:shadow-md">
-                <h4 className="font-medium text-[15px] text-on-surface mb-2">CAC by Region</h4>
-                <p className="text-data-sm text-outline font-data-sm">Saved 2h ago</p>
-                <button className="absolute top-4 right-4 text-outline/40 hover:text-outline transition-colors">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
+              <div className="text-center py-10">
+                <p className="text-data-sm text-outline/60">
+                  Cart is empty. Generate an analysis and save it here.
+                </p>
               </div>
             )}
           </div>
-        </div>
-      </div>
 
-      {/* Floating Input Bar */}
-      <div className="absolute bottom-12 left-[40%] -translate-x-1/2 w-[700px] z-50">
-        <div className="flex items-center gap-4 bg-surface-container-lowest border border-outline-variant/40 rounded-full py-2 px-3 shadow-[0_20px_40px_rgba(0,0,0,0.08)] focus-within:ring-2 focus-within:ring-primary/20 transition-all focus-within:shadow-[0_20px_40px_rgba(69,101,85,0.15)]">
-          <div className="pl-4 text-primary opacity-80 flex items-center justify-center">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <input 
-            type="text" 
-            className="flex-1 bg-transparent px-2 py-3 text-data-lg focus:outline-none placeholder:text-outline/60 font-data-sm text-on-surface"
-            placeholder="// [INPUT]: Verify yesterday's drop-off with..."
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleAnalyze()}
-          />
-          <button 
-            className="bg-primary text-on-primary hover:opacity-90 w-12 h-12 flex items-center justify-center rounded-full shadow-md disabled:opacity-50 transition-all hover:scale-[1.02] shrink-0"
-            onClick={handleAnalyze}
-            disabled={isAnalyzing || !prompt.trim()}
-            aria-label="Analyze"
+          <button
+            className="w-full py-3 mt-4 bg-on-surface text-surface-container-lowest rounded-[12px] font-medium text-data-sm shadow-md hover:opacity-90 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
+            disabled={cartItems.length === 0}
           >
-            {isAnalyzing ? (
-              <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-            ) : (
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-              </svg>
-            )}
+            Export Presentation ({cartItems.length})
           </button>
         </div>
       </div>
@@ -273,7 +501,9 @@ function AnaliseContent() {
 
 export default function AnalisePage() {
   return (
-    <Suspense fallback={<div className="p-6 text-gray-400">Loading workspace...</div>}>
+    <Suspense
+      fallback={<div className="p-6 text-gray-400">Loading workspace...</div>}
+    >
       <AnaliseContent />
     </Suspense>
   );
