@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/dy1nd1-git/marketing-dashboard/backend/internal/handlers"
 	"github.com/dy1nd1-git/marketing-dashboard/backend/internal/provider"
@@ -60,11 +62,44 @@ func main() {
 		
 		// Aligning with frontend expectations (requirements.md Section 06)
 		v1.GET("/marketing/daily-cvr", func(c *gin.Context) {
-			data, meta, err := p.GetDailyTrends(c.Request.Context(), 7)
+			days := 7
+			startDateStr := c.Query("start_date")
+			endDateStr := c.Query("end_date")
+
+			var endDate time.Time
+			var hasCustomDate bool
+
+			if startDateStr != "" && endDateStr != "" {
+				start, err1 := time.Parse("2006-01-02", startDateStr)
+				end, err2 := time.Parse("2006-01-02", endDateStr)
+				if err1 == nil && err2 == nil && !end.Before(start) {
+					diff := int(end.Sub(start).Hours()/24) + 1
+					if diff > 0 {
+						days = diff
+						endDate = end
+						hasCustomDate = true
+					}
+				}
+			} else if daysParam := c.Query("days"); daysParam != "" {
+				if parsed, err := strconv.Atoi(daysParam); err == nil && parsed > 0 {
+					days = parsed
+				}
+			}
+
+			data, meta, err := p.GetDailyTrends(c.Request.Context(), days)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
+
+			if hasCustomDate && len(data) > 0 {
+				currentDate := endDate
+				for i := range data {
+					data[i].Date = currentDate
+					currentDate = currentDate.AddDate(0, 0, -1)
+				}
+			}
+
 			c.JSON(http.StatusOK, gin.H{
 				"data":     data,
 				"metadata": meta,

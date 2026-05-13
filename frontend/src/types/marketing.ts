@@ -75,3 +75,11 @@ export interface PivotDetails {
   };
   timeline: PivotData[];
 }
+
+export interface LineageTelemetry {
+  source: string;
+  confidence: "High" | "Medium" | "Low";
+  engine?: string;
+  timestamp?: string;
+  zScore?: number;
+}
