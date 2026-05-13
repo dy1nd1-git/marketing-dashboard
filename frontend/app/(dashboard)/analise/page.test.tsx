@@ -7,6 +7,15 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams("?segment_id=test_segment&metric=roas"),
 }));
 
+// Mock MarketingContext
+vi.mock("../../../src/context/MarketingContext", () => ({
+  useMarketingContext: () => ({
+    segment: "Overall",
+    setSegment: vi.fn(),
+    isPending: false,
+  }),
+}));
+
 // Mock ResizeObserver for Recharts
 global.ResizeObserver = class {
   observe() {}

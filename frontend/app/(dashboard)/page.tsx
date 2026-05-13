@@ -2,6 +2,7 @@ import React from "react";
 import Image from "next/image";
 import { PivotLogDashboard } from "../../src/components/dashboard/PivotLogDashboard";
 import { KPICard } from "../../src/components/dashboard/KPICard";
+import { SegmentSelector } from "../../src/components/dashboard/SegmentSelector";
 
 const kpiData = [
   {
@@ -92,15 +93,7 @@ export default async function Home({
           <div className="flex justify-between items-end">
             <h2 className="font-h1 text-h1 text-on-surface">Exploration</h2>
             <div className="flex gap-2">
-              <span className="px-md py-1.5 rounded-full bg-secondary-container/15 text-secondary text-label soft-pulse cursor-pointer">
-                Overall
-              </span>
-              <span className="px-md py-1.5 rounded-full bg-primary-container text-white text-label soft-pulse cursor-pointer shadow-sm">
-                Paid Social
-              </span>
-              <span className="px-md py-1.5 rounded-full bg-surface-container text-outline text-label soft-pulse cursor-pointer">
-                Organic Search
-              </span>
+              <SegmentSelector />
             </div>
           </div>
         </div>

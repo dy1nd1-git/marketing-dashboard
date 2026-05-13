@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { useMarketingContext } from "../../../src/context/MarketingContext";
 import {
   LineChart,
   Line,
@@ -28,7 +29,7 @@ interface AnalysisResult {
 
 function AnaliseContent() {
   const searchParams = useSearchParams();
-  const segmentId = searchParams?.get("segment_id") || "all_users";
+  const { segment } = useMarketingContext();
   const metric = searchParams?.get("metric") || "revenue";
 
   const [prompt, setPrompt] = useState("");
@@ -71,7 +72,7 @@ function AnaliseContent() {
     setIsAnalyzing(true);
     try {
       console.log(`[AI Logic] Converting prompt to SQL: "${promptText}"`);
-      const mockSql = `SELECT date, metric_value FROM \`project.dataset.marketing_data\` WHERE metric = '${metric}' AND segment = '${segmentId}' AND date >= DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)`;
+      const mockSql = `SELECT date, metric_value FROM \`project.dataset.marketing_data\` WHERE metric = '${metric}' AND segment = '${segment}' AND date >= DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)`;
 
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
@@ -141,9 +142,14 @@ function AnaliseContent() {
       {/* Header & Top Input Bar */}
       <div className="mb-8 flex justify-between items-start gap-8">
         <div className="w-1/3">
-          <h1 className="text-[36px] font-semibold text-on-surface mb-2 tracking-tight">
-            Exploration
-          </h1>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-[36px] font-semibold text-on-surface tracking-tight leading-none">
+              Exploration
+            </h1>
+            <span className="px-3 py-1 bg-primary-container/20 text-primary rounded-full text-xs font-medium tracking-wide">
+              {segment}
+            </span>
+          </div>
           <p className="text-body-md text-outline">
             Analyze and pivot your marketing data.
           </p>
