@@ -19,7 +19,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { name: "Top", path: "/", icon: "home" },
     { name: "Daily Analysis", path: "/daily-analise", icon: "insert_chart" },
     { name: "Deep Analysis", path: "/analise", icon: "troubleshoot" },
-    { name: "Logic Canvas", path: "/logic-canvas", icon: "account_tree" },
+    { name: "Logic Genealogy", path: "/logic-genealogy", icon: "account_tree" },
   ];
 
   return (
