@@ -28,3 +28,4 @@ go.sum (※必要に応じて残してください)
 Thumbs.db
 .vscode/
 .idea/
+scripts/
