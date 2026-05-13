@@ -169,24 +169,24 @@ export default function DailyDashboard() {
   return (
     <div className="p-xl max-w-[1400px] space-y-xl">
       {/* Header section (replaces previous components to match Stitch HTML) */}
-      <header className="mb-xl flex justify-between items-end">
+      <header className="mb-xl flex flex-col sm:flex-row sm:justify-between items-start sm:items-end gap-4">
         <div>
           <h1 className="font-h1 text-h1 text-on-surface tracking-tight">
             Subaquatic Observatory
           </h1>
-          <div className="flex items-center gap-3 mt-2 text-sm text-on-surface-variant opacity-70">
+          <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-on-surface-variant opacity-70">
             <span className="flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-emerald-400" />
               Engine: {metadata?.engine || "Initializing..."}
             </span>
-            <span>|</span>
+            <span className="hidden sm:inline">|</span>
             <span>Confidence: {metadata?.confidence || "Calculating..."}</span>
           </div>
         </div>
       </header>
 
       {/* Tabs */}
-      <nav className="flex items-center gap-8 border-b border-surface-container-highest mb-xl px-2">
+      <nav className="flex items-center gap-8 border-b border-surface-container-highest mb-xl px-2 overflow-x-auto whitespace-nowrap scrollbar-none">
         <button
           onClick={() => setActiveTab("ripples")}
           className={`relative pb-4 font-label text-label transition-colors ${activeTab === "ripples" ? "text-primary" : "text-on-surface-variant hover:text-on-surface"}`}
