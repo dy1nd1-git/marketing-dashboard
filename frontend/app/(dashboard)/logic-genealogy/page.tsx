@@ -3,11 +3,11 @@
 import React, { useState, useEffect, useTransition } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMarketingContext } from "../../../src/context/MarketingContext";
-import { HistoryLogItem, StrategyNode } from "../../../src/components/dashboard/genealogy/types";
-import { SelectionHistoryPanel } from "../../../src/components/dashboard/genealogy/SelectionHistoryPanel";
-import { DocumentPanel } from "../../../src/components/dashboard/genealogy/DocumentPanel";
-import { EvidencePanel } from "../../../src/components/dashboard/genealogy/EvidencePanel";
-import { GenealogyHUD } from "../../../src/components/dashboard/genealogy/GenealogyHUD";
+import { HistoryLogItem, StrategyNode } from "./components/types";
+import { SelectionHistoryPanel } from "./components/SelectionHistoryPanel";
+import { DocumentPanel } from "./components/DocumentPanel";
+import { EvidencePanel } from "./components/EvidencePanel";
+import { GenealogyHUD } from "./components/GenealogyHUD";
 
 const CURRENT_PATH_D =
   "M 150,450 C 300,450 300,300 450,300 C 625,300 650,210 800,210";

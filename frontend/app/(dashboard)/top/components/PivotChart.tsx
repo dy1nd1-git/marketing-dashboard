@@ -10,8 +10,11 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { ValueType, NameType } from "recharts/types/component/DefaultTooltipContent";
-import { PivotData, PivotDetails } from "../../types/marketing";
+import {
+  ValueType,
+  NameType,
+} from "recharts/types/component/DefaultTooltipContent";
+import { PivotData, PivotDetails } from "../../../../src/types/marketing";
 import { MemoCard } from "./MemoCard";
 
 interface PivotChartProps {
@@ -111,7 +114,10 @@ export const PivotChart: React.FC<PivotChartProps> = ({ data, details }) => {
             }}
             itemStyle={{ color: "#F1F5F9" }}
             labelStyle={{ color: "#94A3B8", marginBottom: "4px" }}
-            formatter={(value: ValueType | undefined, name: NameType | undefined) => {
+            formatter={(
+              value: ValueType | undefined,
+              name: NameType | undefined,
+            ) => {
               if (value == null) return ["-", name];
               return [`¥${Number(value).toLocaleString()}`, name];
             }}

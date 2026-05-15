@@ -1,7 +1,7 @@
 import { render } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 import { PivotChart } from "./PivotChart";
-import { PivotDetails } from "../../types/marketing";
+import { PivotDetails } from "../../../../src/types/marketing";
 
 describe("PivotChart Component (Large Dataset Rendering Performance Validation)", () => {
   const mockDetails: PivotDetails = {
@@ -11,7 +11,8 @@ describe("PivotChart Component (Large Dataset Rendering Performance Validation)"
     memo: {
       intent: "Performance scaling validation test intent.",
       diagnosis: ["Metric point rendering OK"],
-      conclusion: "Large array charts successfully pass rendering boundary constraints.",
+      conclusion:
+        "Large array charts successfully pass rendering boundary constraints.",
     },
     timeline: [],
   };
@@ -26,12 +27,14 @@ describe("PivotChart Component (Large Dataset Rendering Performance Validation)"
 
     const startTime = performance.now();
     const { container } = render(
-      <PivotChart data={denseTimeline} details={mockDetails} />
+      <PivotChart data={denseTimeline} details={mockDetails} />,
     );
     const duration = performance.now() - startTime;
 
     // Verify DOM mounts SVGs properly
-    const rechartsWrapper = container.querySelector(".recharts-responsive-container");
+    const rechartsWrapper = container.querySelector(
+      ".recharts-responsive-container",
+    );
     expect(rechartsWrapper).toBeDefined();
 
     // Confirm execution finishes extremely rapidly (under 500ms even in dense simulation contexts)

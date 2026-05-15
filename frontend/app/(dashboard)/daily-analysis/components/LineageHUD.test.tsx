@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 import { LineageHUD } from "./LineageHUD";
-import { LineageTelemetry } from "../../types/marketing";
+import { LineageTelemetry } from "../../../../src/types/marketing";
 
 describe("LineageHUD Component (Query Origin Info Auditing)", () => {
   const sampleTelemetry: LineageTelemetry = {

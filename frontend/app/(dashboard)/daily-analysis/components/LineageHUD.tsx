@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { LineageTelemetry } from "../../types/marketing";
+import { LineageTelemetry } from "../../../../src/types/marketing";
 
 interface LineageHUDProps {
   telemetry: LineageTelemetry;
