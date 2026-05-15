@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { LineageHUD } from "../../../src/components/dashboard/LineageHUD";
+import { LineageHUD } from "./components/LineageHUD";
+import { StockInsightButton } from "../../../src/components/dashboard/StockInsightButton";
 import {
   BarChart,
   Bar,
@@ -268,6 +269,22 @@ export default function DailyDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-1 shrink-0">
+          <StockInsightButton
+            item={{
+              title: `${title} Matrix`,
+              type: "table",
+              metricsSummary: `Aggregated Rows: ${data.length}`,
+              sourceRef: sourceUri,
+              notes: `Periodic slice export structured under ${sourceTag} grouping.`,
+              chartPayload: data.map((r) => ({
+                Period: formatShortLabel(r.period, sourceTag),
+                Revenue: formatCurrency(r.revenue),
+                Spend: formatCurrency(r.spend),
+                ROAS: formatNumber(r.roas),
+              })),
+            }}
+            variant="icon"
+          />
           <span className="px-2 py-0.5 bg-surface-container-low text-on-surface-variant font-label text-[9px] rounded font-bold uppercase tracking-wider border border-outline-variant/20">
             {sourceTag}
           </span>
@@ -484,20 +501,33 @@ export default function DailyDashboard() {
 
         {activeTab === "flux" && (
           <section className="flex-1 card-professional flex flex-col w-full">
-            <header className="mb-6 flex justify-between items-end">
+            <header className="mb-6 flex justify-between items-end gap-2">
               <div>
                 <h2 className="font-h2 text-h2 text-on-surface">Channel Flux</h2>
                 <p className="text-on-surface-variant font-body-md text-body-md mt-1">
                   Revenue Distribution by Channel
                 </p>
               </div>
-              <LineageHUD
-                telemetry={{
-                  source: "bq://mellow.dw.channel_revenue_flux",
-                  confidence: "High",
-                  engine: "Decision-Tracer-BQ-v1",
-                }}
-              />
+              <div className="flex items-center gap-2">
+                <StockInsightButton
+                  item={{
+                    title: "Channel Flux Distribution",
+                    type: "chart",
+                    metricsSummary: "Top Channel: Organic Search",
+                    sourceRef: "bq://mellow.dw.channel_revenue_flux",
+                    notes: "Revenue yield distribution breakdown by primary attribution parameters.",
+                    chartPayload: channelFluxData.map((d) => ({ name: d.name, value: d.value })),
+                  }}
+                  variant="icon"
+                />
+                <LineageHUD
+                  telemetry={{
+                    source: "bq://mellow.dw.channel_revenue_flux",
+                    confidence: "High",
+                    engine: "Decision-Tracer-BQ-v1",
+                  }}
+                />
+              </div>
             </header>
             <div className="w-full h-[400px]">
               <ResponsiveContainer width="100%" height="100%" minHeight={400}>
@@ -529,20 +559,33 @@ export default function DailyDashboard() {
 
         {activeTab === "tides" && (
           <section className="flex-1 card-professional flex flex-col w-full">
-            <header className="mb-6 flex justify-between items-end">
+            <header className="mb-6 flex justify-between items-end gap-2">
               <div>
                 <h2 className="font-h2 text-h2 text-on-surface">Audience Tides</h2>
                 <p className="text-on-surface-variant font-body-md text-body-md mt-1">
                   Daily User Activity Waves
                 </p>
               </div>
-              <LineageHUD
-                telemetry={{
-                  source: "bq://mellow.dw.audience_activity_tides",
-                  confidence: "High",
-                  engine: "Decision-Tracer-BQ-v1",
-                }}
-              />
+              <div className="flex items-center gap-2">
+                <StockInsightButton
+                  item={{
+                    title: "Audience Tides Waveform",
+                    type: "chart",
+                    metricsSummary: "Peak Hour: 20:00",
+                    sourceRef: "bq://mellow.dw.audience_activity_tides",
+                    notes: "Comparative daily user activation pulses comparing returning vs new telemetry.",
+                    chartPayload: audienceTidesData.map((d) => ({ time: d.time, returning: d.returning, new: d.new })),
+                  }}
+                  variant="icon"
+                />
+                <LineageHUD
+                  telemetry={{
+                    source: "bq://mellow.dw.audience_activity_tides",
+                    confidence: "High",
+                    engine: "Decision-Tracer-BQ-v1",
+                  }}
+                />
+              </div>
             </header>
             <div className="w-full h-[400px]">
               <ResponsiveContainer width="100%" height="100%" minHeight={400}>

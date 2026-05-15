@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { fetchPivotData } from "../../lib/api";
-import { PivotDetails } from "../../types/marketing";
+import { fetchPivotData } from "../../../../src/lib/api";
+import { PivotDetails } from "../../../../src/types/marketing";
 import { PivotChart } from "./PivotChart";
 
 interface PivotLogDashboardProps {

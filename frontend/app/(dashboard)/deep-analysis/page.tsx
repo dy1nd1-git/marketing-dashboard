@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useMarketingContext } from "../../../src/context/MarketingContext";
+import { useInsightCart } from "../../../src/context/InsightCartContext";
 import {
   LineChart,
   Line,
@@ -30,6 +31,7 @@ interface AnalysisResult {
 function AnaliseContent() {
   const searchParams = useSearchParams();
   const { segment } = useMarketingContext();
+  const { addInsight } = useInsightCart();
   const metric = searchParams?.get("metric") || "revenue";
 
   const [prompt, setPrompt] = useState("");
@@ -127,6 +129,16 @@ function AnaliseContent() {
   const onDropToCart = (analysisData: AnalysisResult) => {
     const packageData = { ...analysisData, addedAt: new Date().toISOString() };
     setCartItems((prev) => [...prev, packageData]);
+
+    // Presentation Master のストックパレットへシームレス同時プール
+    addInsight({
+      title: analysisData.title,
+      type: analysisData.chartType === "bar" ? "chart" : "chart",
+      metricsSummary: `AI Prompt: "${analysisData.prompt}"`,
+      sourceRef: `bq://exploration.ai.${analysisData.chartType}`,
+      notes: analysisData.insight,
+      chartPayload: analysisData.data.map((d) => ({ name: d.name, value: d.value })),
+    });
   };
 
   const handleAnalyze = () => {

@@ -11,17 +11,19 @@
 
 ## 🛠️ Workflow Steps
 1. **Plan**: `TaskBoard.md` を更新し、`04_Logs/pre_check_XXX.md` を作成する。
-2. **Branch First**: 【重要】**コードを1行でも変更（write_to_file / replace_file_content）する前に、必ず `git checkout -b` を実行して新しいブランチを作成すること。** プラン合意直後のこの基本動作をスキップしてはならない。
+2. **Branch First (CRITICAL BLOCKER)**: 【絶対遵守・ブランチ作成の先行強制】**新しいタスクの計画承認後、いかなるファイル生成・変更ツール（write_to_file / replace_file_content 等）も、事前に `git checkout -b` を実行して新規ブランチへの切り替えが成功したことを確認するまでは呼び出しを完全厳禁とする。** プラン合意直後にこの基本動作をスキップしてファイル操作を行った場合、重大なガバナンス違反とみなす。
 3. **Execute**: `.antigravity/gatekeeper.sh` をパスするまで実装を行う。
-4. **Verify (Verification-First Principle)**: 【絶対規約】**コードや設定の変更後は、確認なしに安易に `git add` や `git commit` を自動実行してはならない。ステージング・コミットフェーズへ移行する前に、必ず自ら以下の検証コマンドを実行し、正常性を証明する義務がある。**
+4. **Verify (Verification-First Principle & Vitest Enforcement)**: 【絶対規約・自動テスト作成の強制】**コードや設定の変更後は、確認なしに安易に `git add` や `git commit` を自動実行してはならない。ステージング・コミットフェーズへ移行する前に、必ず以下の検証プロセスを自ら実行し、正常性を証明する義務がある。**
+   - **自動テストの作成義務**: 新規機能、状態管理ロジック（Context等）、またはコンポーネントを作成・修正した際は、**必ず対応する Vitest ユニットテストファイル（`*.test.tsx`）をセットで作成または拡充すること**。テストファイルの作成を忘却したまま作業完了を宣言することは厳禁とする。
    - フロントエンド層におけるリンター確認（`npm run lint`）
    - TypeScriptコンパイルチェック（`npx tsc --noEmit`）
    - モジュール解決やキャッシュ不整合を検出するためのビルド検証（`npm run build` 等）
-   - Vitestテストスイートの全件通過確認
+   - Vitestテストスイートの全件通過確認（`npx vitest run ...`）
    推論ではなく、これら実行結果の「ノーエラー出力」をもって完了を証明せよ。
 5. **Push & PR**: `git push` を実行した後は、必ず `.antigravity/PR_TEMPLATE.md` のフォーマットに従い、チャット上に GitHub 用の PR サマリーを出力する。
 
 ## 🚫 Prohibited Actions
+- 新規機能や状態管理ロジックの実装完了時、対応する自動テスト（Vitest）の作成および実行確認を行わずにタスクの完了を宣言すること。
 - コード修正後、リンターやビルド検証による動作証明をスキップして、即座に `git add` や `git commit` を試みること。
 - `eslint-disable` によるエラーの無視。
 - グローバルな型定義の無断変更。

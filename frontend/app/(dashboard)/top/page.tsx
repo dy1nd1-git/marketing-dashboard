@@ -1,8 +1,9 @@
 import React from "react";
 import Image from "next/image";
-import { PivotLogDashboard } from "../../src/components/dashboard/PivotLogDashboard";
-import { KPICard } from "../../src/components/dashboard/KPICard";
-import { SegmentSelector } from "../../src/components/dashboard/SegmentSelector";
+import { PivotLogDashboard } from "./components/PivotLogDashboard";
+import { KPICard } from "./components/KPICard";
+import { SegmentSelector } from "../../../src/components/dashboard/SegmentSelector";
+import { StockInsightButton } from "../../../src/components/dashboard/StockInsightButton";
 
 const kpiData = [
   {
@@ -119,12 +120,25 @@ export default async function Home({
                 Deep analysis of customer drop-off points
               </p>
             </div>
-            <button className="text-primary-container font-label flex items-center gap-2 hover:opacity-70 transition-opacity">
-              View Detail{" "}
-              <span className="material-symbols-outlined text-sm">
-                arrow_forward
-              </span>
-            </button>
+            <div className="flex items-center gap-2">
+              <StockInsightButton
+                item={{
+                  title: "Mellow Conversion Funnel",
+                  type: "funnel",
+                  metricsSummary: "1.2M -> 3.4K (2.7% CONV)",
+                  sourceRef: "SELECT * FROM analytics_funnel_view",
+                  notes:
+                    "Significant drop-off between consideration and intent detected.",
+                }}
+                variant="minimal"
+              />
+              <button className="text-primary-container font-label flex items-center gap-2 hover:opacity-70 transition-opacity">
+                View Detail{" "}
+                <span className="material-symbols-outlined text-sm">
+                  arrow_forward
+                </span>
+              </button>
+            </div>
           </div>
 
           <div className="space-y-md">
@@ -218,10 +232,23 @@ export default async function Home({
 
         {/* AI Strategic Insight Bento Cluster */}
         <section className="lg:col-span-5 grid grid-cols-2 gap-md">
-          <div className="bg-white p-lg rounded-3xl shadow-[0_20px_30px_rgba(135,169,150,0.05)] col-span-1">
-            <span className="material-symbols-outlined text-primary-container mb-2">
-              auto_awesome
-            </span>
+          <div className="bg-white p-lg rounded-3xl shadow-[0_20px_30px_rgba(135,169,150,0.05)] col-span-1 relative group">
+            <div className="flex justify-between items-start mb-2">
+              <span className="material-symbols-outlined text-primary-container">
+                auto_awesome
+              </span>
+              <StockInsightButton
+                item={{
+                  title: "Strategic Top Success",
+                  type: "general",
+                  metricsSummary: "ROAS +14% via Paid Social",
+                  sourceRef: "AI Heuristics Engine v2.1",
+                  notes: "Paid social scaling increased ROAS by 14% this week.",
+                }}
+                variant="icon"
+                className="opacity-0 group-hover:opacity-100 transition-opacity"
+              />
+            </div>
             <h4 className="font-label text-sm text-on-surface mb-2">
               Top Success
             </h4>
@@ -229,10 +256,23 @@ export default async function Home({
               Paid social scaling increased ROAS by 14% this week.
             </p>
           </div>
-          <div className="card-professional col-span-1 border-l-4 border-secondary/20">
-            <span className="material-symbols-outlined text-secondary mb-2">
-              lightbulb
-            </span>
+          <div className="card-professional col-span-1 border-l-4 border-secondary/20 relative group">
+            <div className="flex justify-between items-start mb-2">
+              <span className="material-symbols-outlined text-secondary">
+                lightbulb
+              </span>
+              <StockInsightButton
+                item={{
+                  title: "Tactical Opportunity",
+                  type: "general",
+                  metricsSummary: "SMS Intent 4x > Email",
+                  sourceRef: "AI Heuristics Engine v2.1",
+                  notes: "SMS retargeting shows 4x higher intent than email.",
+                }}
+                variant="icon"
+                className="opacity-0 group-hover:opacity-100 transition-opacity"
+              />
+            </div>
             <h4 className="font-label text-sm text-on-surface mb-2">
               Opportunity
             </h4>
@@ -240,12 +280,26 @@ export default async function Home({
               SMS retargeting shows 4x higher intent than email.
             </p>
           </div>
-          <div className="card-professional col-span-2 text-white !bg-primary">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="material-symbols-outlined text-primary-fixed-dim">
-                psychology
-              </span>
-              <h4 className="font-label text-sm">Root Cause Analysis</h4>
+          <div className="card-professional col-span-2 text-white !bg-primary relative group">
+            <div className="flex justify-between items-center mb-2">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary-fixed-dim">
+                  psychology
+                </span>
+                <h4 className="font-label text-sm">Root Cause Analysis</h4>
+              </div>
+              <StockInsightButton
+                item={{
+                  title: "Root Cause: Cart Abandonment",
+                  type: "anomaly",
+                  metricsSummary: "Regional Shipping API Latency Spike",
+                  sourceRef: "System Trace Diagnostics Log",
+                  notes:
+                    "Recommend a 'Free Express Shipping' voucher for affected segments.",
+                }}
+                variant="minimal"
+                className="!text-white opacity-80 group-hover:opacity-100"
+              />
             </div>
             <p className="text-sm font-body-md opacity-90">
               Cart abandonment spiked on Tuesday due to a regional shipping API

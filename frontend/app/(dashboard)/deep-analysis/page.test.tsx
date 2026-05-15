@@ -16,6 +16,16 @@ vi.mock("../../../src/context/MarketingContext", () => ({
   }),
 }));
 
+// Mock InsightCart Context
+vi.mock("../../../src/context/InsightCartContext", () => ({
+  useInsightCart: () => ({
+    items: [],
+    addItem: vi.fn(),
+    removeItem: vi.fn(),
+    clearCart: vi.fn(),
+  }),
+}));
+
 // Mock ResizeObserver for Recharts
 global.ResizeObserver = class {
   observe() {}
