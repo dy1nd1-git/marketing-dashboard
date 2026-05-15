@@ -142,6 +142,61 @@ export default function PresentationDeckEngine() {
     }
   };
 
+  // --- AI Analysis Orchestration (Phase 1: Data-Centric Reconstruction Prompt) ---
+  const copyAiPrompt = () => {
+    try {
+      const fullDeckBlueprint = deck.map((slide, sIdx) => {
+        const artifacts = slide.nodes.map((node, nIdx) => {
+          // Serialize the raw data for factual reconstruction
+          const rawDataString = node.item.chartPayload 
+            ? JSON.stringify(node.item.chartPayload, null, 2)
+            : "No raw payload available (Summary: " + (node.item.metricsSummary || "N/A") + ")";
+
+          return `### Artifact ${nIdx + 1}: ${node.item.title}
+- **Data Type**: ${node.item.type}
+- **Raw Analytical Data**:
+\`\`\`json
+${rawDataString}
+\`\`\`
+`;
+        }).join("\n");
+
+        return `## SLIDE ${sIdx + 1}: ${slide.title || "Untitled"}
+**Context/Subtitle**: ${slide.subtitle || "N/A"}
+**Strategic Notes**: ${slide.executiveNotes || "N/A"}
+
+${artifacts}
+`;
+      }).join("\n\n---\n\n");
+
+      const prompt = `
+# SYSTEM ROLE: Data Analyst & Presentation Logic Architect
+# TASK: Generate a data-driven presentation based on the following metrics.
+
+You are provided with the logical structure and raw data for a marketing ROI deck. 
+Focus exclusively on the data accuracy and the strategic narrative. 
+
+# DATA HIERARCHY:
+
+${fullDeckBlueprint}
+
+# RECONSTRUCTION GUIDELINES:
+1. **Data Accuracy**: Use the provided JSON payloads to represent the metrics exactly as they appear in the source.
+2. **Logical Sequence**: Maintain the slide and artifact order to preserve the narrative flow.
+3. **Note Integration**: Use the "Strategic Notes" to inform the insights or summaries for each slide.
+
+# FINAL OUTPUT REQUEST:
+Confirm that you have received all ${deck.length} slides and the associated data. 
+Then, suggest a strategic summary for this deck based on the aggregated data provided.
+`.trim();
+
+      navigator.clipboard.writeText(prompt);
+      alert(`Data Blueprint (${deck.length} slides) copied!`);
+    } catch (error) {
+      console.error("Prompt Generation Failed:", error);
+    }
+  };
+
   const activeSlide = deck[activeSlideIndex] || deck[0];
 
   // HTML5 Native Drag and Drop dropzone mapping
@@ -555,6 +610,15 @@ export default function PresentationDeckEngine() {
         {/* Deck Global Control Panel */}
         <div className="flex items-center gap-2 self-end sm:self-auto">
           <button
+            onClick={copyAiPrompt}
+            className="px-4 py-2 bg-secondary text-on-secondary rounded-xl text-xs font-label font-bold hover:shadow-md hover:scale-105 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm relative overflow-hidden group"
+          >
+            <span className="material-symbols-outlined text-sm animate-pulse">auto_awesome</span>
+            <span>Copy Deck Blueprint for AI</span>
+            <div className="absolute inset-0 w-full h-full bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+          </button>
+          
+          <button
             onClick={() => setIsFullscreenMode(true)}
             className="px-4 py-2 bg-primary text-on-primary rounded-xl text-xs font-label font-bold hover:shadow-md hover:scale-105 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm relative overflow-hidden group"
           >
@@ -569,14 +633,6 @@ export default function PresentationDeckEngine() {
           >
             <span className="material-symbols-outlined text-sm">download</span>
             <span>Export Deck</span>
-          </button>
-          <button
-            onClick={exportToCsv}
-            className="px-3 py-2 bg-surface text-on-surface border border-outline-variant/40 rounded-xl text-xs font-label hover:bg-surface-container transition-colors flex items-center gap-1 cursor-pointer"
-            title="Export Data to Spreadsheet (CSV)"
-          >
-            <span className="material-symbols-outlined text-sm">table_view</span>
-            <span>Spreadsheet</span>
           </button>
         </div>
       </section>
@@ -631,6 +687,7 @@ export default function PresentationDeckEngine() {
         setIsExportModalOpen={setIsExportModalOpen}
         deck={deck}
         setIsExporting={setIsExporting}
+        onExportCsv={exportToCsv}
       />
 
       {/* Print-only Dedicated Full Deck Stage Rendering */}

@@ -9,6 +9,7 @@ interface ExportGuidanceModalProps {
   setIsExportModalOpen: (val: boolean) => void;
   deck: SlidePage[];
   setIsExporting: (val: boolean) => void;
+  onExportCsv: () => void;
 }
 
 export const ExportGuidanceModal: React.FC<ExportGuidanceModalProps> = ({
@@ -16,6 +17,7 @@ export const ExportGuidanceModal: React.FC<ExportGuidanceModalProps> = ({
   setIsExportModalOpen,
   deck,
   setIsExporting,
+  onExportCsv,
 }) => {
   const [mounted, setMounted] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -123,8 +125,8 @@ export const ExportGuidanceModal: React.FC<ExportGuidanceModalProps> = ({
         Tailwindパーサーの未定義や親のFlex圧縮仕様による横潰れ（細長い線状の帯化）を完全に根絶する設計 
       */}
       <div
-        className="bg-white dark:bg-[#1E1F25] border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-2xl flex flex-col gap-5 relative overflow-hidden text-left transition-all"
-        style={{ width: "100%", maxWidth: "540px", minWidth: "420px", boxSizing: "border-box" }}
+        className="bg-white dark:bg-[#1E1F25] border border-slate-200 dark:border-slate-800 rounded-3xl p-10 shadow-2xl flex flex-col gap-8 relative overflow-hidden text-left transition-all"
+        style={{ width: "100%", maxWidth: "800px", minWidth: "680px", boxSizing: "border-box" }}
         role="dialog"
         aria-modal="true"
         aria-label="Export Guidance Workflow"
@@ -196,41 +198,57 @@ export const ExportGuidanceModal: React.FC<ExportGuidanceModalProps> = ({
           </div>
         )}
 
-        <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+        <div className="flex items-center justify-between gap-6 pt-6 border-t border-slate-100 dark:border-slate-800">
           <button
             onClick={() => setIsExportModalOpen(false)}
             disabled={isGenerating}
-            className="px-4 py-2 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-label border border-slate-200 dark:border-slate-800 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-2.5 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-xl text-xs font-label border border-slate-200 dark:border-slate-800 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
           >
             キャンセル
           </button>
           
-          <button
-            onClick={generatePPTX}
-            disabled={isGenerating}
-            className="px-4 py-2 bg-surface text-on-surface border border-primary/30 hover:border-primary hover:bg-primary/5 rounded-xl text-xs font-label font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <span className="material-symbols-outlined text-sm block">
-              present_to_all
-            </span>
-            <span>PowerPoint (.pptx) で出力</span>
-          </button>
+          <div className="flex items-center gap-3 flex-nowrap shrink-0">
+            <button
+              onClick={generatePPTX}
+              disabled={isGenerating}
+              className="px-4 py-2.5 bg-surface text-on-surface border border-primary/30 hover:border-primary hover:bg-primary/5 rounded-xl text-xs font-label font-bold transition-all flex items-center gap-2 cursor-pointer shadow-xs disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+            >
+              <span className="material-symbols-outlined text-sm block">
+                present_to_all
+              </span>
+              <span>PowerPoint (.pptx)</span>
+            </button>
 
-          <button
-            onClick={() => {
-              setIsExportModalOpen(false);
-              setTimeout(() => {
-                window.print();
-              }, 100);
-            }}
-            disabled={isGenerating}
-            className="px-5 py-2 bg-primary text-on-primary hover:shadow-md hover:scale-105 rounded-xl text-xs font-label font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <span className="material-symbols-outlined text-sm block">
-              print
-            </span>
-            <span>フルスクリーンPDFを出力</span>
-          </button>
+            <button
+              onClick={() => {
+                onExportCsv();
+                setIsExportModalOpen(false);
+              }}
+              disabled={isGenerating}
+              className="px-4 py-2.5 bg-surface text-on-surface border border-secondary/30 hover:border-secondary hover:bg-secondary/5 rounded-xl text-xs font-label font-bold transition-all flex items-center gap-2 cursor-pointer shadow-xs disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+            >
+              <span className="material-symbols-outlined text-sm block">
+                table_chart
+              </span>
+              <span>Spreadsheet (.csv)</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setIsExportModalOpen(false);
+                setTimeout(() => {
+                  window.print();
+                }, 100);
+              }}
+              disabled={isGenerating}
+              className="px-6 py-2.5 bg-primary text-on-primary hover:shadow-md hover:scale-105 rounded-xl text-xs font-label font-bold transition-all flex items-center gap-2 cursor-pointer shadow-xs disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+            >
+              <span className="material-symbols-outlined text-sm block">
+                print
+              </span>
+              <span>フルスクリーンPDFを出力</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>,
