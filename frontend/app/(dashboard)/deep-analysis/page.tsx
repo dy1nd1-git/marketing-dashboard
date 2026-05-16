@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
 import { useMarketingContext } from "../../../src/context/MarketingContext";
 import { useInsightCart } from "../../../src/context/InsightCartContext";
 import { DateRangePicker } from "../../../src/components/dashboard/DateRangePicker";
@@ -25,42 +24,61 @@ interface AnalysisResult {
   chartType: "line" | "bar";
   data: { name: string; value: number }[];
   insight: string;
+  actions?: string[]; // Added for Task-023
   timestamp: string;
   addedAt?: string;
 }
 
 function AnaliseContent() {
-  const searchParams = useSearchParams();
-  const { segment, startDate, endDate } = useMarketingContext();
+  const { segment } = useMarketingContext();
   const { addInsight } = useInsightCart();
-  const metric = searchParams?.get("metric") || "revenue";
 
   const [prompt, setPrompt] = useState("");
 
-  const [tabs, setTabs] = useState<AnalysisResult[]>([]);
-  const [activeTabId, setActiveTabId] = useState<string | null>(null);
-  const [cartItems, setCartItems] = useState<AnalysisResult[]>([]);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-
-  // Load from LocalStorage on mount
-  useEffect(() => {
-    try {
-      const savedTabs = localStorage.getItem("exploration_tabs");
-      const savedCart = localStorage.getItem("exploration_cart");
-      setTimeout(() => {
-        if (savedTabs) {
-          const parsed = JSON.parse(savedTabs);
-          setTabs(parsed);
-          if (parsed.length > 0) setActiveTabId(parsed[0].id);
+  const [tabs, setTabs] = useState<AnalysisResult[]>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("exploration_tabs");
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (err) {
+          console.error("Failed to parse tabs", err);
         }
-        if (savedCart) {
-          setCartItems(JSON.parse(savedCart));
-        }
-      }, 0);
-    } catch (e) {
-      console.error("Failed to load from local storage", e);
+      }
     }
-  }, []);
+    return [];
+  });
+
+  const [activeTabId, setActiveTabId] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("exploration_tabs");
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          return parsed.length > 0 ? parsed[0].id : null;
+        } catch {
+          return null;
+        }
+      }
+    }
+    return null;
+  });
+
+  const [cartItems, setCartItems] = useState<AnalysisResult[]>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("exploration_cart");
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error("Failed to parse cart", e);
+        }
+      }
+    }
+    return [];
+  });
+
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   // Save to LocalStorage on changes
   useEffect(() => {
@@ -74,54 +92,42 @@ function AnaliseContent() {
   async function executeAIGeneratedAnalysis(promptText: string) {
     setIsAnalyzing(true);
     try {
-      console.log(`[AI Logic] Converting prompt to SQL: "${promptText}"`);
-      const mockSql = `SELECT date, metric_value FROM \`project.dataset.marketing_data\` WHERE metric = '${metric}' AND segment = '${segment}' AND date BETWEEN '${startDate}' AND '${endDate}'`;
+      const response = await fetch("http://localhost:8080/api/v1/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: promptText }),
+      });
 
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      if (!response.ok) throw new Error("Failed to connect to analysis engine");
 
-      // Determine chart type and data based on keyword
-      const isComparison =
-        promptText.includes("比較") ||
-        promptText.includes("割合") ||
-        promptText.includes("デバイス");
-      const chartType = isComparison ? "bar" : "line";
-      const title = isComparison ? "Conversion Comparison" : "ROAS Trendline";
+      const res = await response.json();
+      
+      // Map backend response to frontend AnalysisResult
+      const chartData = res.data.map((d: { date: string; metric_value: number }) => ({
+        name: new Date(d.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+        value: d.metric_value,
+      }));
 
-      let mockData = [];
-      if (isComparison) {
-        mockData = [
-          { name: "Desktop", value: 4500 },
-          { name: "Mobile", value: 8200 },
-          { name: "Tablet", value: 1200 },
-        ];
-      } else {
-        mockData = [
-          { name: "Mon", value: 1200 },
-          { name: "Tue", value: 1900 },
-          { name: "Wed", value: 1500 },
-          { name: "Thu", value: 2100 },
-          { name: "Fri", value: 2400 },
-          { name: "Sat", value: 1800 },
-          { name: "Sun", value: 2600 },
-        ];
-      }
-
-      const mockResult: AnalysisResult = {
+      const isComparison = promptText.includes("比較") || promptText.includes("割合");
+      
+      const realResult: AnalysisResult = {
         id: crypto.randomUUID(),
-        title: title,
+        title: isComparison ? "AI Structural Comparison" : "AI Intelligence Trend",
         prompt: promptText,
-        sql: mockSql,
-        chartType: chartType,
-        data: mockData,
-        insight: `【AI Insight】 該当セグメントにおいて、指定期間中の${isComparison ? "比較結果としてモバイルの割合が圧倒的に高い" : "コンバージョン率が前週比で20%増加している"}ことが確認できます。`,
+        sql: res.metadata?.execution_sql || "N/A",
+        chartType: isComparison ? "bar" : "line",
+        data: chartData,
+        insight: res.analysis,
+        actions: res.actions,
         timestamp: new Date().toISOString(),
       };
 
-      setTabs((prev) => [mockResult, ...prev]);
-      setActiveTabId(mockResult.id);
+      setTabs((prev) => [realResult, ...prev]);
+      setActiveTabId(realResult.id);
       setPrompt("");
     } catch (error) {
       console.error("Failed to execute analysis:", error);
+      alert("AI分析エンジンの呼び出しに失敗しました。バックエンドとAPIキーの設定を確認してください。");
     } finally {
       setIsAnalyzing(false);
     }
@@ -408,6 +414,22 @@ function AnaliseContent() {
                 <p className="text-[#456555] text-data-sm leading-relaxed">
                   {activeTab.insight}
                 </p>
+
+                {activeTab.actions && activeTab.actions.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-[#d6e3db]">
+                    <div className="text-[11px] font-bold text-[#6e7a73] uppercase tracking-wider mb-2">
+                      Recommended Actions
+                    </div>
+                    <ul className="space-y-2">
+                      {activeTab.actions.map((action, i) => (
+                        <li key={i} className="flex items-start gap-2 text-data-sm text-[#456555]">
+                          <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#d4a373] shrink-0" />
+                          {action}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
           ) : (

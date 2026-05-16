@@ -29,9 +29,10 @@ type MetricRow struct {
 	Lineage    Lineage   `json:"lineage"`
 }
 
-// ResponseMetadata holds system-level metadata for the Chain of Trust.
+// ResponseMetadata holds system-level metadata for the Chain of Trust (Rule 03).
 type ResponseMetadata struct {
-	Engine     string `json:"engine"`
-	Confidence string `json:"confidence"` // High, Low (based on n > 30)
-	SQLRef     string `json:"sql_ref,omitempty"`
+	Engine       string `json:"engine"`
+	Confidence   string `json:"confidence"`     // High, Low (based on n > 30 rule)
+	SourceTable  string `json:"source_table"`   // BQ Table/View name
+	ExecutionSQL string `json:"execution_sql"` // The exact query used
 }

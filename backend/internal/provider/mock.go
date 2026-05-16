@@ -45,9 +45,10 @@ func (m *MockProvider) GetDailyTrends(ctx context.Context, days int) ([]models.M
 	}
 
 	meta := models.ResponseMetadata{
-		Engine:     "Decision-Tracer-Mock-v1",
-		Confidence: confidence,
-		SQLRef:     "GENERATED MOCK DATA",
+		Engine:       "Decision-Tracer-Mock-v1",
+		Confidence:   confidence,
+		SourceTable:  "mock_internal_table",
+		ExecutionSQL: "GENERATED MOCK DATA (AUTO-SYTHESIZED)",
 	}
 
 	return data, meta, nil
