@@ -5,73 +5,8 @@ import { KPICard } from "./components/KPICard";
 import { SegmentSelector } from "../../../src/components/dashboard/SegmentSelector";
 import { StockInsightButton } from "../../../src/components/dashboard/StockInsightButton";
 import { DateRangePicker } from "../../../src/components/dashboard/DateRangePicker";
-
-const kpiData = [
-  {
-    icon: "payments",
-    iconColorClass: "text-primary-container",
-    iconBgColorClass: "bg-primary-container/10",
-    label: "Total Revenue",
-    value: "$284,930",
-    trend: {
-      label: "12.5%",
-      icon: "trending_up",
-      colorClass: "text-primary-container", // Matches #87A996 in HTML
-      bgColorClass: "bg-primary-container/10",
-    },
-    chartBarClass: "bg-primary-container",
-    chartGradientClass: "from-primary-container/5",
-    chartData: [40, 60, 45, 80, 55, 95, 70],
-  },
-  {
-    icon: "shopping_bag",
-    iconColorClass: "text-tertiary",
-    iconBgColorClass: "bg-tertiary/10",
-    label: "Total Spend",
-    value: "$42,105",
-    trend: {
-      label: "2.1%",
-      icon: "trending_down",
-      colorClass: "text-tertiary",
-      bgColorClass: "bg-tertiary/20",
-    },
-    chartBarClass: "bg-tertiary",
-    chartGradientClass: "from-tertiary/5",
-    chartData: [80, 70, 75, 40, 35, 25, 30],
-  },
-  {
-    icon: "insights",
-    iconColorClass: "text-primary",
-    iconBgColorClass: "bg-primary/10",
-    label: "Average ROAS",
-    value: "6.77x",
-    trend: {
-      label: "Active",
-      icon: "bolt",
-      colorClass: "text-primary",
-      bgColorClass: "bg-primary/10",
-    },
-    chartBarClass: "bg-primary",
-    chartGradientClass: "from-primary/5",
-    chartData: [30, 40, 50, 60, 70, 85, 90],
-  },
-  {
-    icon: "shopping_cart",
-    iconColorClass: "text-on-tertiary-container",
-    iconBgColorClass: "bg-tertiary-container/20",
-    label: "Conversions",
-    value: "3,492",
-    trend: {
-      label: "412",
-      icon: "add",
-      colorClass: "text-on-tertiary-container",
-      bgColorClass: "bg-tertiary-container/20",
-    },
-    chartBarClass: "bg-tertiary-container",
-    chartGradientClass: "from-tertiary-container/10",
-    chartData: [45, 55, 40, 65, 50, 80, 70],
-  },
-];
+import { ROASMatrix } from "./components/ROASMatrix";
+import { fetchDashboardData } from "../../../src/lib/api";
 
 export default async function Home({
   searchParams,
@@ -83,9 +18,57 @@ export default async function Home({
   const isCompare = params.compare === "true";
   const showBadge = params.badge === "show";
 
+  const startDate = params.start_date as string | undefined;
+  const endDate = params.end_date as string | undefined;
+
+  console.log(`[Dashboard Debug] Fetching for dates: ${startDate} to ${endDate}`);
+
+  // Fetch real data from BigQuery (via API)
+  const dashboardData = await fetchDashboardData(startDate, endDate);
+
   if (pivotId && isCompare) {
     return <PivotLogDashboard pivotId={pivotId} showBadge={showBadge} />;
   }
+
+  // Base styles for KPIs (to be merged with dynamic data)
+  const kpiStyles = [
+    {
+      icon: "payments",
+      iconColorClass: "text-primary-container",
+      iconBgColorClass: "bg-primary-container/10",
+      label: "Total Revenue",
+      chartBarClass: "bg-primary-container",
+      chartGradientClass: "from-primary-container/5",
+      chartData: [40, 60, 45, 80, 55, 95, 70],
+    },
+    {
+      icon: "shopping_bag",
+      iconColorClass: "text-tertiary",
+      iconBgColorClass: "bg-tertiary/10",
+      label: "Total Spend",
+      chartBarClass: "bg-tertiary",
+      chartGradientClass: "from-tertiary/5",
+      chartData: [80, 70, 75, 40, 35, 25, 30],
+    },
+    {
+      icon: "insights",
+      iconColorClass: "text-primary",
+      iconBgColorClass: "bg-primary/10",
+      label: "Average ROAS",
+      chartBarClass: "bg-primary",
+      chartGradientClass: "from-primary/5",
+      chartData: [30, 40, 50, 60, 70, 85, 90],
+    },
+    {
+      icon: "shopping_cart",
+      iconColorClass: "text-on-tertiary-container",
+      iconBgColorClass: "bg-tertiary-container/20",
+      label: "Conversions",
+      chartBarClass: "bg-tertiary-container",
+      chartGradientClass: "from-tertiary-container/10",
+      chartData: [45, 55, 40, 65, 50, 80, 70],
+    },
+  ];
 
   return (
     <main className="p-xl max-w-[1400px]">
@@ -105,9 +88,22 @@ export default async function Home({
 
       {/* KPI Summary Bento */}
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg mb-xl">
-        {kpiData.map((kpi, idx) => (
-          <KPICard key={idx} {...kpi} />
-        ))}
+        {dashboardData.kpis.map((kpi, idx) => {
+          const style = kpiStyles[idx];
+          return (
+            <KPICard 
+              key={idx} 
+              {...style}
+              value={kpi.value}
+              trend={{
+                label: kpi.trendValue,
+                icon: kpi.trendIcon === "arrow_upward" ? "trending_up" : (kpi.trendIcon === "arrow_downward" ? "trending_down" : "remove"),
+                colorClass: kpi.trendTextClass,
+                bgColorClass: kpi.trendBgClass,
+              }}
+            />
+          );
+        })}
       </section>
 
       {/* Main Analytics Section (Funnel & AI) */}
@@ -312,6 +308,11 @@ export default async function Home({
           </div>
         </section>
       </div>
+
+      {/* Efficiency Matrix Heatmap */}
+      <section className="mb-xl">
+        <ROASMatrix data={dashboardData.matrix || []} />
+      </section>
 
       {/* Deep Dive Channel Table */}
       <section className="card-professional !p-0 overflow-hidden">

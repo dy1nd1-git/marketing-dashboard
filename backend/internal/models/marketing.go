@@ -27,3 +27,22 @@ type WeeklyROI struct {
 	AvgSpend   float64 `json:"avg_spend"`
 	NetROAS    float64 `json:"net_roas"`
 }
+
+type DashboardStats struct {
+	Revenue     float64 `json:"revenue"`
+	RevenueDiff float64 `json:"revenue_diff"`
+	Spend       float64 `json:"spend"`
+	SpendDiff   float64 `json:"spend_diff"`
+	ROAS        float64 `json:"roas"`
+	ROASDiff    float64 `json:"roas_diff"`
+	Conversions int     `json:"conversions"`
+	ConvDiff    float64 `json:"conv_diff"`
+}
+
+type ROASMatrixCell struct {
+	DayOfWeek int     `json:"day_of_week"` // 0-6 (Sun-Sat)
+	HourOfDay int     `json:"hour_of_day"` // 0-23
+	ROAS      float64 `json:"roas"`
+}
+
+type ROASMatrix []ROASMatrixCell

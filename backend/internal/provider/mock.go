@@ -61,3 +61,55 @@ func (m *MockProvider) GetWeeklyTrends(ctx context.Context, weeks int) ([]models
 	meta.Engine = "Decision-Tracer-Mock-Weekly-v1"
 	return data, meta, nil
 }
+
+func (m *MockProvider) GetDashboardStats(ctx context.Context, startDate, endDate string) (models.DashboardStats, error) {
+	// Create a stable seed from dates to ensure consistent results for the same range
+	seed := int64(0)
+	for _, c := range startDate + endDate {
+		seed += int64(c)
+	}
+	r := rand.New(rand.NewSource(seed))
+
+	baseRevenue := 100000.0 + r.Float64()*100000.0
+	baseSpend := 20000.0 + r.Float64()*30000.0
+	
+	return models.DashboardStats{
+		Revenue:     baseRevenue,
+		RevenueDiff: (r.Float64() * 30.0) - 10.0,
+		Spend:       baseSpend,
+		SpendDiff:   (r.Float64() * 20.0) - 10.0,
+		ROAS:        baseRevenue / baseSpend,
+		ROASDiff:    (r.Float64() * 15.0) - 5.0,
+		Conversions: 1000 + r.Intn(2000),
+		ConvDiff:    (r.Float64() * 10.0) - 5.0,
+	}, nil
+}
+
+func (m *MockProvider) GetROASMatrix(ctx context.Context, startDate, endDate string) (models.ROASMatrix, error) {
+	// Stable seed from dates
+	seed := int64(0)
+	for _, c := range startDate + endDate {
+		seed += int64(c) + 1 // Offset to differentiate from stats seed
+	}
+	r := rand.New(rand.NewSource(seed))
+
+	matrix := make(models.ROASMatrix, 0, 7*24)
+	for d := 0; d < 7; d++ {
+		for h := 0; h < 24; h++ {
+			roas := 1.5 + r.Float64()*4.0
+			// Make weekends and evenings higher ROAS for "mock realism"
+			if d >= 5 {
+				roas += 1.0
+			}
+			if h >= 18 || h <= 2 {
+				roas += 0.5
+			}
+			matrix = append(matrix, models.ROASMatrixCell{
+				DayOfWeek: d,
+				HourOfDay: h,
+				ROAS:      roas,
+			})
+		}
+	}
+	return matrix, nil
+}

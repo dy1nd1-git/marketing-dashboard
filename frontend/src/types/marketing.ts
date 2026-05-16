@@ -47,6 +47,12 @@ export interface ChannelPerformance {
   color: "indigo" | "orange" | "green" | "slate";
 }
 
+export interface ROASMatrixCell {
+  day_of_week: number;
+  hour_of_day: number;
+  roas: number;
+}
+
 export interface DashboardData {
   kpis: KPI[];
   funnel: FunnelLayerData[];
@@ -56,6 +62,7 @@ export interface DashboardData {
     title: string;
     description: string;
   };
+  matrix?: ROASMatrixCell[];
 }
 
 export interface PivotData {

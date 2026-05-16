@@ -9,4 +9,6 @@ import (
 type AnalyticsProvider interface {
 	GetDailyTrends(ctx context.Context, days int) ([]models.MetricRow, models.ResponseMetadata, error)
 	GetWeeklyTrends(ctx context.Context, weeks int) ([]models.MetricRow, models.ResponseMetadata, error)
+	GetDashboardStats(ctx context.Context, startDate, endDate string) (models.DashboardStats, error)
+	GetROASMatrix(ctx context.Context, startDate, endDate string) (models.ROASMatrix, error)
 }

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { MarketingData, DashboardData, PivotDetails } from "../types/marketing";
+import { MarketingData, DashboardData, PivotDetails, ROASMatrixCell } from "../types/marketing";
 
 export const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080",
@@ -195,12 +195,75 @@ export const fetchDashboardDataMock = async (): Promise<DashboardData> => {
   };
 };
 
-export const fetchDashboardData = async (): Promise<DashboardData> => {
+export interface BackendDashboardResponse {
+  stats: {
+    revenue: number;
+    revenue_diff: number;
+    spend: number;
+    spend_diff: number;
+    roas: number;
+    roas_diff: number;
+    conversions: number;
+    conv_diff: number;
+  };
+  matrix: ROASMatrixCell[];
+}
+
+export const fetchDashboardData = async (startDate?: string, endDate?: string): Promise<DashboardData> => {
   try {
-    const response = await apiClient.get<DashboardData>("/api/dashboard");
-    return response.data;
-  } catch {
-    console.warn("API Error: falling back to mock dashboard data");
+    const params = new URLSearchParams();
+    if (startDate) params.append("start_date", startDate);
+    if (endDate) params.append("end_date", endDate);
+
+    const queryString = params.toString();
+    const url = `/api/v1/marketing/dashboard${queryString ? `?${queryString}` : ""}`;
+    const response = await apiClient.get<BackendDashboardResponse>(url);
+    const { stats, matrix } = response.data;
+
+    // Get base mock data for static parts like funnel/insights
+    const mock = await fetchDashboardDataMock();
+
+    // Override mock KPIs with real stats from BigQuery
+    const kpis = [
+      {
+        ...mock.kpis[0],
+        value: `$${stats.revenue.toLocaleString()}`,
+        trendValue: `${stats.revenue_diff > 0 ? "+" : ""}${stats.revenue_diff.toFixed(1)}%`,
+        trendIcon: stats.revenue_diff >= 0 ? "arrow_upward" : "arrow_downward",
+        trendBgClass: stats.revenue_diff >= 0 ? "bg-secondary-container/20" : "bg-error-container/40",
+        trendTextClass: stats.revenue_diff >= 0 ? "text-on-secondary-container" : "text-on-error-container",
+      },
+      {
+        ...mock.kpis[1],
+        value: `$${stats.spend.toLocaleString()}`,
+        trendValue: `${stats.spend_diff > 0 ? "+" : ""}${stats.spend_diff.toFixed(1)}%`,
+        trendIcon: stats.spend_diff >= 0 ? "arrow_upward" : "arrow_downward",
+        trendBgClass: "bg-slate-100",
+        trendTextClass: "text-slate-600",
+      },
+      {
+        ...mock.kpis[2],
+        value: `${stats.roas.toFixed(2)}x`,
+        trendValue: `${stats.roas_diff > 0 ? "+" : ""}${stats.roas_diff.toFixed(1)}%`,
+        trendIcon: stats.roas_diff >= 0 ? "arrow_upward" : "arrow_downward",
+      },
+      {
+        ...mock.kpis[3],
+        value: stats.conversions.toLocaleString(),
+        trendValue: `${stats.conv_diff > 0 ? "+" : ""}${stats.conv_diff.toFixed(1)}%`,
+        trendIcon: stats.conv_diff >= 0 ? "arrow_upward" : "arrow_downward",
+        trendBgClass: stats.conv_diff >= 0 ? "bg-secondary-container/20" : "bg-error-container/40",
+        trendTextClass: stats.conv_diff >= 0 ? "text-on-secondary-container" : "text-on-error-container",
+      },
+    ];
+
+    return {
+      ...mock,
+      kpis,
+      matrix,
+    };
+  } catch (error) {
+    console.warn("API Error: falling back to mock dashboard data", error);
     return fetchDashboardDataMock();
   }
 };
