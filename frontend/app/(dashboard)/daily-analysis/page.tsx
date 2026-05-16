@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { LineageHUD } from "./components/LineageHUD";
 import { StockInsightButton } from "../../../src/components/dashboard/StockInsightButton";
+import { useMarketingContext } from "../../../src/context/MarketingContext";
+import { DateRangePicker } from "../../../src/components/dashboard/DateRangePicker";
 import {
   BarChart,
   Bar,
@@ -72,10 +74,9 @@ interface UnifiedMetric {
 
 export default function DailyDashboard() {
   const router = useRouter();
+  const { startDate, endDate } = useMarketingContext();
   const [dailyData, setDailyData] = useState<DailyCVR[]>([]);
   const [metadata, setMetadata] = useState<ResponseMetadata | null>(null);
-  const [startDate, setStartDate] = useState("2025-01-01");
-  const [endDate, setEndDate] = useState("2025-03-01");
   const [activeTab, setActiveTab] = useState<"ripples" | "flux" | "tides">(
     "ripples",
   );
@@ -384,27 +385,7 @@ export default function DailyDashboard() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3 mt-2 sm:mt-0">
-          {/* Dynamic Calendar Date Range Picker */}
-          <div className="inline-flex items-center gap-1.5 bg-surface-container-lowest px-2.5 py-1 rounded-lg border border-outline-variant/30 shadow-2xs font-body text-xs">
-            <span className="material-symbols-outlined text-[14px] text-on-surface-variant/70">
-              calendar_month
-            </span>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="bg-transparent border-none text-on-surface font-medium text-xs focus:outline-none cursor-pointer"
-              aria-label="Start Date"
-            />
-            <span className="text-on-surface-variant/40 font-bold mx-0.5">→</span>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="bg-transparent border-none text-on-surface font-medium text-xs focus:outline-none cursor-pointer"
-              aria-label="End Date"
-            />
-          </div>
+          <DateRangePicker />
           {/* Pure Query Origin Panel */}
           <LineageHUD
             telemetry={{

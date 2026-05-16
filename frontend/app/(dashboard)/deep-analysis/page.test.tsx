@@ -12,6 +12,9 @@ vi.mock("../../../src/context/MarketingContext", () => ({
   useMarketingContext: () => ({
     segment: "Overall",
     setSegment: vi.fn(),
+    startDate: "2026-05-01",
+    endDate: "2026-05-30",
+    setDateRange: vi.fn(),
     isPending: false,
   }),
 }));
