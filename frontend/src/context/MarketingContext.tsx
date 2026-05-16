@@ -30,8 +30,8 @@ export const MarketingProvider = ({ children }: { children: ReactNode }) => {
   thirtyDaysAgo.setDate(today.getDate() - 30);
   const defaultStart = thirtyDaysAgo.toISOString().split("T")[0];
 
-  const startDate = searchParams?.get("start") || defaultStart;
-  const endDate = searchParams?.get("end") || defaultEnd;
+  const startDate = searchParams?.get("start_date") || defaultStart;
+  const endDate = searchParams?.get("end_date") || defaultEnd;
 
   const updateParams = (updates: Record<string, string>) => {
     const current = new URLSearchParams(Array.from(searchParams?.entries() || []));
@@ -48,7 +48,7 @@ export const MarketingProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const setSegment = (newSegment: string) => updateParams({ segment: newSegment });
-  const setDateRange = (start: string, end: string) => updateParams({ start, end });
+  const setDateRange = (start_date: string, end_date: string) => updateParams({ start_date, end_date });
 
   return (
     <MarketingContext.Provider value={{ segment, setSegment, startDate, endDate, setDateRange, isPending }}>

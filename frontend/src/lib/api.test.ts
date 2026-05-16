@@ -48,12 +48,27 @@ describe("API Client Transformation & Formatting Engine (`src/lib/api.ts`)", () 
 
   describe("fetchDashboardData", () => {
     it("returns dashboard JSON payloads unchanged when HTTP OK", async () => {
-      const mockPayload = { kpis: [], funnel: [], insights: [], channels: [] };
-      vi.spyOn(apiClient, "get").mockResolvedValueOnce({ data: mockPayload });
+      const mockResponse = {
+      stats: {
+        revenue: 1000,
+        revenue_diff: 10,
+        spend: 500,
+        spend_diff: 5,
+        roas: 2.0,
+        roas_diff: 0,
+        conversions: 100,
+        conv_diff: 0,
+      },
+      matrix: [],
+      funnel: [],
+      channels: [],
+      insights: [],
+    };
+      vi.spyOn(apiClient, "get").mockResolvedValueOnce({ data: mockResponse });
 
       const data = await fetchDashboardData();
-      expect(apiClient.get).toHaveBeenCalledWith("/api/dashboard");
-      expect(data).toEqual(mockPayload);
+      expect(apiClient.get).toHaveBeenCalledWith("/api/v1/marketing/dashboard");
+      expect(data.kpis[0].value).toBe("$1,000");
     });
 
     it("returns fallback Organic Precision specs gracefully upon API rejection", async () => {
@@ -63,7 +78,8 @@ describe("API Client Transformation & Formatting Engine (`src/lib/api.ts`)", () 
       const expectedMock = await fetchDashboardDataMock();
 
       expect(consoleWarnSpy).toHaveBeenCalledWith(
-        "API Error: falling back to mock dashboard data"
+        "API Error: falling back to mock dashboard data",
+        expect.anything()
       );
       expect(data.kpis.length).toBe(4);
       expect(data.kpis[0].title).toBe("Revenue");

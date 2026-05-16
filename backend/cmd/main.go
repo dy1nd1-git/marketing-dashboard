@@ -117,6 +117,26 @@ func main() {
 				"metadata": meta,
 			})
 		})
+
+		v1.GET("/marketing/dashboard", func(c *gin.Context) {
+			startDate := c.Query("start_date")
+			endDate := c.Query("end_date")
+
+			// Default to last 30 days if not provided
+			if startDate == "" || endDate == "" {
+				now := time.Now()
+				start := now.AddDate(0, 0, -30)
+				startDate = start.Format("2006-01-02")
+				endDate = now.Format("2006-01-02")
+			}
+
+			data, err := p.GetDashboardData(c.Request.Context(), startDate, endDate)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+			c.JSON(http.StatusOK, data)
+		})
 	}
 
 	port := os.Getenv("PORT")
