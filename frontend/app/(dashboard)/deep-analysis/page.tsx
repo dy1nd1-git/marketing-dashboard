@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useMarketingContext } from "../../../src/context/MarketingContext";
 import { useInsightCart } from "../../../src/context/InsightCartContext";
+import { DateRangePicker } from "../../../src/components/dashboard/DateRangePicker";
 import {
   LineChart,
   Line,
@@ -30,7 +31,7 @@ interface AnalysisResult {
 
 function AnaliseContent() {
   const searchParams = useSearchParams();
-  const { segment } = useMarketingContext();
+  const { segment, startDate, endDate } = useMarketingContext();
   const { addInsight } = useInsightCart();
   const metric = searchParams?.get("metric") || "revenue";
 
@@ -74,7 +75,7 @@ function AnaliseContent() {
     setIsAnalyzing(true);
     try {
       console.log(`[AI Logic] Converting prompt to SQL: "${promptText}"`);
-      const mockSql = `SELECT date, metric_value FROM \`project.dataset.marketing_data\` WHERE metric = '${metric}' AND segment = '${segment}' AND date >= DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)`;
+      const mockSql = `SELECT date, metric_value FROM \`project.dataset.marketing_data\` WHERE metric = '${metric}' AND segment = '${segment}' AND date BETWEEN '${startDate}' AND '${endDate}'`;
 
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
@@ -152,7 +153,7 @@ function AnaliseContent() {
   return (
     <div className="p-10 pb-32 min-h-screen bg-background relative flex flex-col font-sans">
       {/* Header & Top Input Bar */}
-      <div className="mb-8 flex justify-between items-start gap-8">
+      <div className="mb-8 flex justify-between items-end gap-8">
         <div className="w-1/3">
           <div className="flex items-center gap-3 mb-2">
             <h1 className="text-[36px] font-semibold text-on-surface tracking-tight leading-none">
@@ -167,9 +168,10 @@ function AnaliseContent() {
           </p>
         </div>
 
-        {/* Top Input Bar */}
-        <div className="flex-1 max-w-[700px]">
-          <div className="flex items-center gap-4 bg-surface-container-lowest border border-outline-variant/40 rounded-full py-2 px-3 shadow-sm focus-within:ring-2 focus-within:ring-primary/20 transition-all focus-within:shadow-md">
+        {/* Top Input Bar with Date above it */}
+        <div className="flex-1 max-w-[700px] flex flex-col items-end gap-2">
+          <DateRangePicker />
+          <div className="w-full flex items-center gap-4 bg-surface-container-lowest border border-outline-variant/40 rounded-full py-2 px-3 shadow-sm focus-within:ring-2 focus-within:ring-primary/20 transition-all focus-within:shadow-md">
             <div className="pl-4 text-primary opacity-80">
               <svg
                 className="w-5 h-5"

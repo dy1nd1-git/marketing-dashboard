@@ -6,6 +6,9 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation";
 interface MarketingContextType {
   segment: string;
   setSegment: (segment: string) => void;
+  startDate: string;
+  endDate: string;
+  setDateRange: (start: string, end: string) => void;
   isPending: boolean;
 }
 
@@ -17,12 +20,24 @@ export const MarketingProvider = ({ children }: { children: ReactNode }) => {
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
 
-  // Purely derived state from URL parameters to avoid useEffect synchronization
+  // Purely derived state from URL parameters
   const segment = searchParams?.get("segment") || "Overall";
+  
+  // Default to last 30 days if not present
+  const today = new Date();
+  const defaultEnd = today.toISOString().split("T")[0];
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(today.getDate() - 30);
+  const defaultStart = thirtyDaysAgo.toISOString().split("T")[0];
 
-  const setSegment = (newSegment: string) => {
+  const startDate = searchParams?.get("start") || defaultStart;
+  const endDate = searchParams?.get("end") || defaultEnd;
+
+  const updateParams = (updates: Record<string, string>) => {
     const current = new URLSearchParams(Array.from(searchParams?.entries() || []));
-    current.set("segment", newSegment);
+    Object.entries(updates).forEach(([key, value]) => {
+      current.set(key, value);
+    });
     
     const search = current.toString();
     const query = search ? `?${search}` : "";
@@ -32,8 +47,11 @@ export const MarketingProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
+  const setSegment = (newSegment: string) => updateParams({ segment: newSegment });
+  const setDateRange = (start: string, end: string) => updateParams({ start, end });
+
   return (
-    <MarketingContext.Provider value={{ segment, setSegment, isPending }}>
+    <MarketingContext.Provider value={{ segment, setSegment, startDate, endDate, setDateRange, isPending }}>
       {children}
     </MarketingContext.Provider>
   );

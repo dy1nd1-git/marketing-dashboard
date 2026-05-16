@@ -4,6 +4,7 @@ import { PivotLogDashboard } from "./components/PivotLogDashboard";
 import { KPICard } from "./components/KPICard";
 import { SegmentSelector } from "../../../src/components/dashboard/SegmentSelector";
 import { StockInsightButton } from "../../../src/components/dashboard/StockInsightButton";
+import { DateRangePicker } from "../../../src/components/dashboard/DateRangePicker";
 
 const kpiData = [
   {
@@ -93,7 +94,9 @@ export default async function Home({
         <div className="flex flex-col gap-sm">
           <div className="flex justify-between items-end">
             <h2 className="font-h1 text-h1 text-on-surface">Exploration</h2>
-            <div className="flex gap-2">
+            <div className="flex gap-4 items-center">
+              <DateRangePicker />
+              <div className="h-8 w-px bg-surface-container" />
               <SegmentSelector />
             </div>
           </div>
