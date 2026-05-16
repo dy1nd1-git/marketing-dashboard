@@ -12,6 +12,37 @@ type MarketingStats struct {
 	Conversions  int     `json:"conversions"`
 }
 
+type FunnelStep struct {
+	Label      string  `json:"label"`
+	Value      string  `json:"value"`
+	Percentage int     `json:"percentage"`
+	SubLabel   string  `json:"subLabel"`
+	DropOff    int     `json:"dropOff,omitempty"`
+}
+
+type ChannelStats struct {
+	ID       string  `json:"id"`
+	Name     string  `json:"name"`
+	Category string  `json:"category"`
+	Spend    float64 `json:"spend"`
+	Revenue  float64 `json:"revenue"`
+	ROAS     float64 `json:"roas"`
+	Icon     string  `json:"icon"`
+}
+
+type DashboardInsight struct {
+	Title       string `json:"title"`
+	Description string `json:"description"`
+}
+
+type DashboardData struct {
+	Stats    DashboardStats     `json:"stats"`
+	Matrix   ROASMatrix         `json:"matrix"`
+	Funnel   []FunnelStep       `json:"funnel"`
+	Channels []ChannelStats     `json:"channels"`
+	Insights []DashboardInsight `json:"insights"`
+}
+
 type DailyCVR struct {
 	Date    string  `json:"date"`
 	Revenue float64 `json:"revenue"`

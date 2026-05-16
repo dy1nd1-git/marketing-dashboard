@@ -48,18 +48,27 @@ describe("API Client Transformation & Formatting Engine (`src/lib/api.ts`)", () 
 
   describe("fetchDashboardData", () => {
     it("returns dashboard JSON payloads unchanged when HTTP OK", async () => {
-      const mockPayload = { 
-        stats: { 
-          revenue: 100, revenue_diff: 0, spend: 50, spend_diff: 0, 
-          roas: 2, roas_diff: 0, conversions: 10, conv_diff: 0 
-        }, 
-        matrix: [] 
-      };
-      vi.spyOn(apiClient, "get").mockResolvedValueOnce({ data: mockPayload });
+      const mockResponse = {
+      stats: {
+        revenue: 1000,
+        revenue_diff: 10,
+        spend: 500,
+        spend_diff: 5,
+        roas: 2.0,
+        roas_diff: 0,
+        conversions: 100,
+        conv_diff: 0,
+      },
+      matrix: [],
+      funnel: [],
+      channels: [],
+      insights: [],
+    };
+      vi.spyOn(apiClient, "get").mockResolvedValueOnce({ data: mockResponse });
 
       const data = await fetchDashboardData();
       expect(apiClient.get).toHaveBeenCalledWith("/api/v1/marketing/dashboard");
-      expect(data.kpis[0].value).toBe("$100");
+      expect(data.kpis[0].value).toBe("$1,000");
     });
 
     it("returns fallback Organic Precision specs gracefully upon API rejection", async () => {

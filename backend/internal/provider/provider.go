@@ -7,8 +7,7 @@ import (
 
 // AnalyticsProvider defines the interface for fetching marketing data.
 type AnalyticsProvider interface {
+	GetDashboardData(ctx context.Context, startDate, endDate string) (models.DashboardData, error)
 	GetDailyTrends(ctx context.Context, days int) ([]models.MetricRow, models.ResponseMetadata, error)
 	GetWeeklyTrends(ctx context.Context, weeks int) ([]models.MetricRow, models.ResponseMetadata, error)
-	GetDashboardStats(ctx context.Context, startDate, endDate string) (models.DashboardStats, error)
-	GetROASMatrix(ctx context.Context, startDate, endDate string) (models.ROASMatrix, error)
 }

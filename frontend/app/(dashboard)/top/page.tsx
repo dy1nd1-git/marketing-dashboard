@@ -1,5 +1,4 @@
 import React from "react";
-import Image from "next/image";
 import { PivotLogDashboard } from "./components/PivotLogDashboard";
 import { KPICard } from "./components/KPICard";
 import { SegmentSelector } from "../../../src/components/dashboard/SegmentSelector";
@@ -141,144 +140,71 @@ export default async function Home({
           </div>
 
           <div className="space-y-md">
-            {/* Funnel Step 1 */}
-            <div className="relative">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-label text-on-surface">
-                  Awareness (Impressions)
-                </span>
-                <span className="font-data-sm text-outline">1.2M Users</span>
-              </div>
-              <div className="h-10 w-full bg-[#f5f4ee] rounded-full overflow-hidden">
-                <div className="h-full bg-primary-container w-full rounded-full flex items-center px-4">
-                  <span className="text-[10px] text-white font-bold tracking-tighter">
-                    100% BASELINE
+            {dashboardData.funnel.map((step, index) => (
+              <div key={step.label} className="relative">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-label text-on-surface">
+                    {step.label} ({step.subLabel})
                   </span>
+                  <span className="font-data-sm text-outline">{step.value} Users</span>
                 </div>
-              </div>
-            </div>
-
-            {/* Funnel Step 2 */}
-            <div className="relative">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-label text-on-surface">
-                  Consideration (Clicks)
-                </span>
-                <span className="font-data-sm text-outline">840K Users</span>
-              </div>
-              <div className="h-10 w-full bg-[#f5f4ee] rounded-full overflow-hidden">
-                <div className="h-full bg-primary-container/80 w-[70%] rounded-full flex items-center px-4">
-                  <span className="text-[10px] text-white font-bold tracking-tighter">
-                    70% RETENTION
-                  </span>
+                <div className="h-10 w-full bg-[#f5f4ee] rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-primary-container rounded-full flex items-center px-4 transition-all duration-1000 ease-out"
+                    style={{ width: `${step.percentage}%`, opacity: 1 - (index * 0.2) }}
+                  >
+                    <span className="text-[10px] text-white font-bold tracking-tighter">
+                      {step.percentage}% {step.subLabel.toUpperCase()}
+                    </span>
+                  </div>
                 </div>
+                {step.dropOff && (
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2 -mr-16 flex items-center text-secondary font-data-sm">
+                    <span className="material-symbols-outlined text-sm mr-1">
+                      arrow_drop_down
+                    </span>
+                    {step.dropOff}%
+                  </div>
+                )}
               </div>
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 -mr-16 flex items-center text-secondary font-data-sm">
-                <span className="material-symbols-outlined text-sm mr-1">
-                  arrow_drop_down
-                </span>
-                30%
-              </div>
-            </div>
-
-            {/* Funnel Step 3 */}
-            <div className="relative">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-label text-on-surface">
-                  Intent (Add to Cart)
-                </span>
-                <span className="font-data-sm text-outline">125K Users</span>
-              </div>
-              <div className="h-10 w-full bg-[#f5f4ee] rounded-full overflow-hidden">
-                <div className="h-full bg-primary-container/60 w-[45%] rounded-full flex items-center px-4">
-                  <span className="text-[10px] text-white font-bold tracking-tighter">
-                    45% OF CLICKS
-                  </span>
-                </div>
-              </div>
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 -mr-16 flex items-center text-secondary font-data-sm">
-                <span className="material-symbols-outlined text-sm mr-1">
-                  arrow_drop_down
-                </span>
-                25%
-              </div>
-            </div>
-
-            {/* Funnel Step 4 */}
-            <div className="relative">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-label text-on-surface">
-                  Purchase (Success)
-                </span>
-                <span className="font-data-sm text-outline">3.4K Users</span>
-              </div>
-              <div className="h-10 w-full bg-[#f5f4ee] rounded-full overflow-hidden">
-                <div className="h-full bg-primary-container/40 w-[15%] rounded-full flex items-center px-4">
-                  <span className="text-[10px] text-white font-bold tracking-tighter">
-                    2.7% CONV.
-                  </span>
-                </div>
-              </div>
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 -mr-16 flex items-center text-secondary font-data-sm">
-                <span className="material-symbols-outlined text-sm mr-1">
-                  arrow_drop_down
-                </span>
-                30%
-              </div>
-            </div>
+            ))}
           </div>
         </section>
 
         {/* AI Strategic Insight Bento Cluster */}
         <section className="lg:col-span-5 grid grid-cols-2 gap-md">
-          <div className="bg-white p-lg rounded-3xl shadow-[0_20px_30px_rgba(135,169,150,0.05)] col-span-1 relative group">
-            <div className="flex justify-between items-start mb-2">
-              <span className="material-symbols-outlined text-primary-container">
-                auto_awesome
-              </span>
-              <StockInsightButton
-                item={{
-                  title: "Strategic Top Success",
-                  type: "general",
-                  metricsSummary: "ROAS +14% via Paid Social",
-                  sourceRef: "AI Heuristics Engine v2.1",
-                  notes: "Paid social scaling increased ROAS by 14% this week.",
-                }}
-                variant="icon"
-                className="opacity-0 group-hover:opacity-100 transition-opacity"
-              />
+          {dashboardData.insights.map((insight, index) => (
+            <div 
+              key={insight.title} 
+              className={`p-lg rounded-3xl shadow-[0_20px_30px_rgba(135,169,150,0.05)] relative group ${
+                index === 0 ? "bg-white col-span-1" : "card-professional col-span-1 border-l-4 border-secondary/20"
+              }`}
+            >
+              <div className="flex justify-between items-start mb-2">
+                <span className={`material-symbols-outlined ${index === 0 ? "text-primary-container" : "text-secondary"}`}>
+                  {index === 0 ? "auto_awesome" : "lightbulb"}
+                </span>
+                <StockInsightButton
+                  item={{
+                    title: insight.title,
+                    type: "general",
+                    metricsSummary: insight.description,
+                    sourceRef: "AI Heuristics Engine v2.1",
+                    notes: insight.description,
+                  }}
+                  variant="icon"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                />
+              </div>
+              <h4 className="font-label text-sm text-on-surface mb-2">
+                {insight.title}
+              </h4>
+              <p className="text-xs text-outline leading-relaxed">
+                {insight.description}
+              </p>
             </div>
-            <h4 className="font-label text-sm text-on-surface mb-2">
-              Top Success
-            </h4>
-            <p className="text-xs text-outline leading-relaxed">
-              Paid social scaling increased ROAS by 14% this week.
-            </p>
-          </div>
-          <div className="card-professional col-span-1 border-l-4 border-secondary/20 relative group">
-            <div className="flex justify-between items-start mb-2">
-              <span className="material-symbols-outlined text-secondary">
-                lightbulb
-              </span>
-              <StockInsightButton
-                item={{
-                  title: "Tactical Opportunity",
-                  type: "general",
-                  metricsSummary: "SMS Intent 4x > Email",
-                  sourceRef: "AI Heuristics Engine v2.1",
-                  notes: "SMS retargeting shows 4x higher intent than email.",
-                }}
-                variant="icon"
-                className="opacity-0 group-hover:opacity-100 transition-opacity"
-              />
-            </div>
-            <h4 className="font-label text-sm text-on-surface mb-2">
-              Opportunity
-            </h4>
-            <p className="text-xs text-outline leading-relaxed">
-              SMS retargeting shows 4x higher intent than email.
-            </p>
-          </div>
+          ))}
+          
           <div className="card-professional col-span-2 text-white !bg-primary relative group">
             <div className="flex justify-between items-center mb-2">
               <div className="flex items-center gap-2">
@@ -356,129 +282,45 @@ export default async function Home({
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-50">
-              {/* Meta Ads Row */}
-              <tr className="hover:bg-stone-50/50 transition-colors group">
-                <td className="px-xl py-lg">
-                  <div className="flex items-center gap-md">
-                    <div className="w-10 h-10 rounded-full bg-primary-container/10 flex items-center justify-center">
-                      <Image
-                        alt="Meta Ads"
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCt3m5lFNyrN4AviSKvR9A3l5N1h3dTt9NwpOrdjZOL4XhtCaaIp6QqwE93KUvPuKpovNAXaPbJS7Ixxum64Nswq4qBXVqpbHZKlYL0SCXNN--78dcr6qbj5fkbqF3pGpiGuad57frekiXOVCdAi_2APTLAGtdpqjZfglKaNCAktmMqbmBqaEeih_znagBNsKoWbFUgHbxGha55ijIbJF_HgHH8jNJRwO-V-PbMPuby2l2HhMIijPdgn7HFI2q9zw0S2FOwc8J-X6pJ"
-                        width={24}
-                        height={24}
-                        className="w-6 h-6 rounded-md"
-                      />
+              {dashboardData.channels.map((channel) => (
+                <tr key={channel.id} className="hover:bg-stone-50/50 transition-colors group">
+                  <td className="px-xl py-lg">
+                    <div className="flex items-center gap-md">
+                      <div className="w-10 h-10 rounded-full bg-primary-container/10 flex items-center justify-center">
+                        <span className="font-label text-xs font-bold text-primary">{channel.icon}</span>
+                      </div>
+                      <div>
+                        <p className="font-label text-sm text-on-surface">
+                          {channel.name}
+                        </p>
+                        <p className="text-xs text-outline">{channel.category}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-label text-sm text-on-surface">
-                        Meta Ads
-                      </p>
-                      <p className="text-xs text-outline">Paid Social</p>
+                  </td>
+                  <td className="px-xl py-lg font-data text-on-surface-variant">
+                    ${channel.spend.toLocaleString()}
+                  </td>
+                  <td className="px-xl py-lg font-data text-on-surface-variant">
+                    ${channel.revenue.toLocaleString()}
+                  </td>
+                  <td className="px-xl py-lg">
+                    <div className="flex items-center gap-2">
+                      <div className="w-12 h-1.5 bg-stone-100 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-primary-container transition-all duration-1000 ease-out" 
+                          style={{ width: `${Math.min(channel.roas * 10, 100)}%` }}
+                        ></div>
+                      </div>
+                      <span className="font-data text-primary">{channel.roas.toFixed(2)}x</span>
                     </div>
-                  </div>
-                </td>
-                <td className="px-xl py-lg font-data text-on-surface-variant">
-                  $24,300
-                </td>
-                <td className="px-xl py-lg font-data text-on-surface-variant">
-                  $182,500
-                </td>
-                <td className="px-xl py-lg">
-                  <div className="flex items-center gap-2">
-                    <div className="w-12 h-1.5 bg-stone-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-primary-container w-[80%]"></div>
-                    </div>
-                    <span className="font-data text-primary">7.51x</span>
-                  </div>
-                </td>
-                <td className="px-xl py-lg text-right">
-                  <button className="px-md py-2 bg-[#F5F4EE] text-primary-container rounded-full text-xs font-label hover:bg-primary-container hover:text-white transition-all duration-300">
-                    Deep Dive
-                  </button>
-                </td>
-              </tr>
-              {/* Google Search Row */}
-              <tr className="hover:bg-stone-50/50 transition-colors group">
-                <td className="px-xl py-lg">
-                  <div className="flex items-center gap-md">
-                    <div className="w-10 h-10 rounded-full bg-primary-container/10 flex items-center justify-center">
-                      <Image
-                        alt="Google Search"
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGJuutBxxvWq2_sRo5TRfutzBA2M0i9r4CkfZP3SKzcW66q1qlSdqQ_v0oaiuMOvWPQCODZTAjM_Ah9Rfhk5zmpv0k1lWK_SHkSNoQyQ-TJvM6sh04ImwpXCj2FTIxEtNRWcGPqtEl3mnTh79S9LgyQN-TnIeXOOQvZpGoePjRJUQiaJgMwYQiWACWPbjxOOa5RqwoVFZ__GXEgdJWq7O0_01fc2oKrwq-SZYJiKvaXaD9CAQNuClL2LOZ7RbGqNDpj9Ph6_6p4tjq"
-                        width={24}
-                        height={24}
-                        className="w-6 h-6 rounded-md"
-                      />
-                    </div>
-                    <div>
-                      <p className="font-label text-sm text-on-surface">
-                        Google Search
-                      </p>
-                      <p className="text-xs text-outline">PPC</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-xl py-lg font-data-sm text-on-surface-variant">
-                  $12,100
-                </td>
-                <td className="px-xl py-lg font-data-sm text-on-surface-variant">
-                  $64,200
-                </td>
-                <td className="px-xl py-lg">
-                  <div className="flex items-center gap-2">
-                    <div className="w-12 h-1.5 bg-stone-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-primary-container/60 w-[55%]"></div>
-                    </div>
-                    <span className="font-data-sm text-primary">5.30x</span>
-                  </div>
-                </td>
-                <td className="px-xl py-lg text-right">
-                  <button className="px-md py-2 bg-[#F5F4EE] text-primary-container rounded-full text-xs font-label hover:bg-primary-container hover:text-white transition-all duration-300">
-                    Deep Dive
-                  </button>
-                </td>
-              </tr>
-              {/* TikTok Row */}
-              <tr className="hover:bg-stone-50/50 transition-colors group">
-                <td className="px-xl py-lg">
-                  <div className="flex items-center gap-md">
-                    <div className="w-10 h-10 rounded-full bg-primary-container/10 flex items-center justify-center">
-                      <Image
-                        alt="TikTok Spark"
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBoPj18iOrl-i2zmfsA9LCj8dFL7dmTWPHMWpXTRnNDiAmAidb9mXSxOl2G1jgCYEbPFBZyatzrArTfTWUv1r-j2Wvi13WfkH3l5KBBuzRF9yqHPqRwJJJZb63KOBU49s5CBaEfrrv8poQizvCZYQqCbLkSJ2PfPTYBfUdb0Ft5ReHDUo5RaiN53go6SvfYFLWFsJ2MkssCGhAE5548ySg7FsWRRTeuI7D0IJJmzuwekxwFceImCR5fehCCdn3bou-bsp4aFT5KVxFk"
-                        width={24}
-                        height={24}
-                        className="w-6 h-6 rounded-md"
-                      />
-                    </div>
-                    <div>
-                      <p className="font-label text-sm text-on-surface">
-                        TikTok Spark
-                      </p>
-                      <p className="text-xs text-outline">Social Commerce</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-xl py-lg font-data-sm text-on-surface-variant">
-                  $5,705
-                </td>
-                <td className="px-xl py-lg font-data-sm text-on-surface-variant">
-                  $38,230
-                </td>
-                <td className="px-xl py-lg">
-                  <div className="flex items-center gap-2">
-                    <div className="w-12 h-1.5 bg-stone-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-primary-container/80 w-[75%]"></div>
-                    </div>
-                    <span className="font-data-sm text-primary">6.70x</span>
-                  </div>
-                </td>
-                <td className="px-xl py-lg text-right">
-                  <button className="px-md py-2 bg-[#F5F4EE] text-primary-container rounded-full text-xs font-label hover:bg-primary-container hover:text-white transition-all duration-300">
-                    Deep Dive
-                  </button>
-                </td>
-              </tr>
+                  </td>
+                  <td className="px-xl py-lg text-right">
+                    <button className="px-md py-2 bg-[#F5F4EE] text-primary-container rounded-full text-xs font-label hover:bg-primary-container hover:text-white transition-all duration-300">
+                      Deep Dive
+                    </button>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

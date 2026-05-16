@@ -118,6 +118,44 @@ func (p *BigQueryProvider) GetWeeklyTrends(ctx context.Context, weeks int) ([]mo
 	return p.executeQuery(ctx, queryStr)
 }
 
+func (p *BigQueryProvider) GetDashboardData(ctx context.Context, startDate, endDate string) (models.DashboardData, error) {
+	stats, err := p.GetDashboardStats(ctx, startDate, endDate)
+	if err != nil {
+		return models.DashboardData{}, err
+	}
+	matrix, err := p.GetROASMatrix(ctx, startDate, endDate)
+	if err != nil {
+		return models.DashboardData{}, err
+	}
+
+	// For now, mock funnel/channels/insights until specific BQ tables are ready
+	// This ensures the frontend gets a consistent structure
+	funnel := []models.FunnelStep{
+		{Label: "Awareness", Value: "1.2M", Percentage: 100, SubLabel: "Baseline"},
+		{Label: "Consideration", Value: "840K", Percentage: 70, SubLabel: "Retention", DropOff: 30},
+		{Label: "Intent", Value: "125K", Percentage: 45, SubLabel: "Of Clicks", DropOff: 25},
+		{Label: "Purchase", Value: "3.4K", Percentage: 15, SubLabel: "Conv.", DropOff: 30},
+	}
+
+	channels := []models.ChannelStats{
+		{ID: "meta", Name: "Meta Ads", Category: "Paid Social", Spend: 24300, Revenue: 182500, ROAS: 7.51, Icon: "IG"},
+		{ID: "google", Name: "Google Search", Category: "PPC", Spend: 12100, Revenue: 64200, ROAS: 5.30, Icon: "GS"},
+	}
+
+	insights := []models.DashboardInsight{
+		{Title: "Strategic Success", Description: "Paid social scaling increased ROAS by 14%."},
+	}
+
+	return models.DashboardData{
+		Stats:    stats,
+		Matrix:   matrix,
+		Funnel:   funnel,
+		Channels: channels,
+		Insights: insights,
+	}, nil
+}
+
+// Keep individual methods for internal use if needed
 func (p *BigQueryProvider) GetDashboardStats(ctx context.Context, startDate, endDate string) (models.DashboardStats, error) {
 	// Standard schema aggregate query
 	queryStr := fmt.Sprintf(`

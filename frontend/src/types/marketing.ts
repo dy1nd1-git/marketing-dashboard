@@ -13,7 +13,7 @@ export interface KPI {
   trendValue: string;
   trendBgClass: string;
   trendTextClass: string;
-  barClasses: string[];
+  barClasses?: string[];
 }
 
 export interface FunnelLayerData {
@@ -53,16 +53,47 @@ export interface ROASMatrixCell {
   roas: number;
 }
 
+export interface FunnelStep {
+  label: string;
+  value: string;
+  percentage: number;
+  subLabel: string;
+  dropOff?: number;
+}
+
+export interface ChannelStats {
+  id: string;
+  name: string;
+  category: string;
+  spend: number;
+  revenue: number;
+  roas: number;
+  icon: string;
+}
+
+export interface DashboardInsight {
+  title: string;
+  description: string;
+}
+
+export interface DashboardStats {
+  revenue: number;
+  revenue_diff: number;
+  spend: number;
+  spend_diff: number;
+  roas: number;
+  roas_diff: number;
+  conversions: number;
+  conv_diff: number;
+}
+
 export interface DashboardData {
+  stats: DashboardStats;
   kpis: KPI[];
-  funnel: FunnelLayerData[];
-  insights: InsightData[];
-  channels: ChannelPerformance[];
-  liveInsight: {
-    title: string;
-    description: string;
-  };
-  matrix?: ROASMatrixCell[];
+  matrix: ROASMatrixCell[];
+  funnel: FunnelStep[];
+  channels: ChannelStats[];
+  insights: DashboardInsight[];
 }
 
 export interface PivotData {

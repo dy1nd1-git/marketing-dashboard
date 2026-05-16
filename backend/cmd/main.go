@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/dy1nd1-git/marketing-dashboard/backend/internal/handlers"
-	"github.com/dy1nd1-git/marketing-dashboard/backend/internal/models"
 	"github.com/dy1nd1-git/marketing-dashboard/backend/internal/provider"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -125,28 +124,18 @@ func main() {
 
 			// Default to last 30 days if not provided
 			if startDate == "" || endDate == "" {
-				end := time.Now()
-				start := end.AddDate(0, 0, -30)
+				now := time.Now()
+				start := now.AddDate(0, 0, -30)
 				startDate = start.Format("2006-01-02")
-				endDate = end.Format("2006-01-02")
+				endDate = now.Format("2006-01-02")
 			}
 
-			stats, err := p.GetDashboardStats(c.Request.Context(), startDate, endDate)
+			data, err := p.GetDashboardData(c.Request.Context(), startDate, endDate)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
-
-			matrix, err := p.GetROASMatrix(c.Request.Context(), startDate, endDate)
-			if err != nil {
-				log.Printf("Warning: failed to fetch ROAS matrix: %v", err)
-				matrix = models.ROASMatrix{} // Return empty matrix instead of failing
-			}
-
-			c.JSON(http.StatusOK, gin.H{
-				"stats":  stats,
-				"matrix": matrix,
-			})
+			c.JSON(http.StatusOK, data)
 		})
 	}
 
