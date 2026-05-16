@@ -140,7 +140,7 @@ export default async function Home({
           </div>
 
           <div className="space-y-md">
-            {dashboardData.funnel.map((step, index) => (
+            {(dashboardData.funnel || []).map((step, index) => (
               <div key={step.label} className="relative">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-label text-on-surface">
@@ -173,7 +173,7 @@ export default async function Home({
 
         {/* AI Strategic Insight Bento Cluster */}
         <section className="lg:col-span-5 grid grid-cols-2 gap-md">
-          {dashboardData.insights.map((insight, index) => (
+          {(dashboardData.insights || []).map((insight, index) => (
             <div 
               key={insight.title} 
               className={`p-lg rounded-3xl shadow-[0_20px_30px_rgba(135,169,150,0.05)] relative group ${
@@ -282,7 +282,7 @@ export default async function Home({
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-50">
-              {dashboardData.channels.map((channel) => (
+              {(dashboardData.channels || []).map((channel) => (
                 <tr key={channel.id} className="hover:bg-stone-50/50 transition-colors group">
                   <td className="px-xl py-lg">
                     <div className="flex items-center gap-md">

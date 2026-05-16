@@ -8,6 +8,7 @@ import {
   ChannelStats,
   DashboardInsight,
 } from "../types/marketing";
+import { z } from "zod";
 
 export const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080",
@@ -195,6 +196,23 @@ export interface BackendDashboardResponse {
   insights: DashboardInsight[];
 }
 
+const DashboardResponseSchema = z.object({
+  stats: z.object({
+    revenue: z.number(),
+    revenue_diff: z.number(),
+    spend: z.number(),
+    spend_diff: z.number(),
+    roas: z.number(),
+    roas_diff: z.number(),
+    conversions: z.number(),
+    conv_diff: z.number(),
+  }),
+  matrix: z.array(z.any()),
+  funnel: z.array(z.any()),
+  channels: z.array(z.any()),
+  insights: z.array(z.any()),
+});
+
 export const fetchDashboardData = async (
   startDate?: string,
   endDate?: string,
@@ -207,6 +225,14 @@ export const fetchDashboardData = async (
     const queryString = params.toString();
     const url = `/api/v1/marketing/dashboard${queryString ? `?${queryString}` : ""}`;
     const response = await apiClient.get<BackendDashboardResponse>(url);
+    
+    // Validate response data
+    const validation = DashboardResponseSchema.safeParse(response.data);
+    if (!validation.success) {
+      console.error("API Validation Failed:", validation.error.format());
+      throw new Error("Invalid API response structure");
+    }
+
     const { stats, matrix, funnel, channels, insights } = response.data;
 
     const kpis = [
