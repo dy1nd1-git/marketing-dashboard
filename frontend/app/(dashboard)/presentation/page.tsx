@@ -1,7 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useInsightCart, InsightItem } from "../../../src/context/InsightCartContext";
+import {
+  useInsightCart,
+  InsightItem,
+} from "../../../src/context/InsightCartContext";
 import {
   ResponsiveContainer,
   BarChart,
@@ -51,35 +54,42 @@ export default function PresentationDeckEngine() {
       subtitle: "Q1 Campaign Performance Strategic Horizons",
       theme: "light",
       nodes: [],
-      executiveNotes: "Overall spend efficiency remained highly robust through strategic pivot reallocations.",
+      executiveNotes:
+        "Overall spend efficiency remained highly robust through strategic pivot reallocations.",
     },
   ]);
 
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
-  const [activePanelTab, setActivePanelTab] = useState<"palette" | "inspector">("palette");
+  const [activePanelTab, setActivePanelTab] = useState<"palette" | "inspector">(
+    "palette",
+  );
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [isFullscreenMode, setIsFullscreenMode] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
-  // Restore deck configurations securely from persistent storage
+  // Defer initialization to client-side mount tick to safeguard against SSR hydration mismatches
   useEffect(() => {
     try {
       const stored = localStorage.getItem("mellow_slide_deck");
       if (stored) {
         const parsed = JSON.parse(stored);
         if (parsed && parsed.length > 0) {
-          // eslint-disable-next-line react-hooks/set-state-in-effect
-          setDeck(parsed);
+          const frame = requestAnimationFrame(() => {
+            setDeck(parsed);
+          });
+          return () => cancelAnimationFrame(frame);
         }
       }
     } catch {
       // Ignored gracefully
-    } finally {
-      // Ensure we mark as mounted AFTER state restoration attempts
-      setIsMounted(true);
     }
+
+    const frame = requestAnimationFrame(() => {
+      setIsMounted(true);
+    });
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   // Fullscreen slideshow keyboard controller hooks supporting arrow flips and direct escape closures
@@ -111,33 +121,45 @@ export default function PresentationDeckEngine() {
   const exportToCsv = () => {
     try {
       // 1. Prepare Headers
-      const headers = ["Slide Index", "Slide Title", "Artifact Title", "Type", "Metrics Summary", "Executive Notes"];
-      
+      const headers = [
+        "Slide Index",
+        "Slide Title",
+        "Artifact Title",
+        "Type",
+        "Metrics Summary",
+        "Executive Notes",
+      ];
+
       // 2. Map Data
-      const rows = deck.flatMap((slide, sIdx) => 
+      const rows = deck.flatMap((slide, sIdx) =>
         slide.nodes.map((node) => [
           sIdx + 1,
           `"${(slide.title || "Untitled Slide").replace(/"/g, '""')}"`,
           `"${node.item.title.replace(/"/g, '""')}"`,
           node.item.type,
           `"${(node.item.metricsSummary || "").replace(/"/g, '""')}"`,
-          `"${(slide.executiveNotes || "").replace(/"/g, '""')}"`
-        ])
+          `"${(slide.executiveNotes || "").replace(/"/g, '""')}"`,
+        ]),
       );
 
       // 3. Construct CSV String
       const csvContent = [
         headers.join(","),
-        ...rows.map(row => row.join(","))
+        ...rows.map((row) => row.join(",")),
       ].join("\n");
 
       // 4. Trigger Download with BOM for Excel UTF-8 support
-      const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const blob = new Blob(["\uFEFF" + csvContent], {
+        type: "text/csv;charset=utf-8;",
+      });
       const link = document.createElement("a");
       const url = URL.createObjectURL(blob);
       link.setAttribute("href", url);
-      link.setAttribute("download", `mellow_presentation_data_${new Date().toISOString().split('T')[0]}.csv`);
-      link.style.visibility = 'hidden';
+      link.setAttribute(
+        "download",
+        `mellow_presentation_data_${new Date().toISOString().split("T")[0]}.csv`,
+      );
+      link.style.visibility = "hidden";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -149,29 +171,35 @@ export default function PresentationDeckEngine() {
   // --- AI Analysis Orchestration (Phase 1: Data-Centric Reconstruction Prompt) ---
   const copyAiPrompt = () => {
     try {
-      const fullDeckBlueprint = deck.map((slide, sIdx) => {
-        const artifacts = slide.nodes.map((node, nIdx) => {
-          // Serialize the raw data for factual reconstruction
-          const rawDataString = node.item.chartPayload 
-            ? JSON.stringify(node.item.chartPayload, null, 2)
-            : "No raw payload available (Summary: " + (node.item.metricsSummary || "N/A") + ")";
+      const fullDeckBlueprint = deck
+        .map((slide, sIdx) => {
+          const artifacts = slide.nodes
+            .map((node, nIdx) => {
+              // Serialize the raw data for factual reconstruction
+              const rawDataString = node.item.chartPayload
+                ? JSON.stringify(node.item.chartPayload, null, 2)
+                : "No raw payload available (Summary: " +
+                  (node.item.metricsSummary || "N/A") +
+                  ")";
 
-          return `### Artifact ${nIdx + 1}: ${node.item.title}
+              return `### Artifact ${nIdx + 1}: ${node.item.title}
 - **Data Type**: ${node.item.type}
 - **Raw Analytical Data**:
 \`\`\`json
 ${rawDataString}
 \`\`\`
 `;
-        }).join("\n");
+            })
+            .join("\n");
 
-        return `## SLIDE ${sIdx + 1}: ${slide.title || "Untitled"}
+          return `## SLIDE ${sIdx + 1}: ${slide.title || "Untitled"}
 **Context/Subtitle**: ${slide.subtitle || "N/A"}
 **Strategic Notes**: ${slide.executiveNotes || "N/A"}
 
 ${artifacts}
 `;
-      }).join("\n\n---\n\n");
+        })
+        .join("\n\n---\n\n");
 
       const prompt = `
 # SYSTEM ROLE: Data Analyst & Presentation Logic Architect
@@ -258,7 +286,8 @@ Then, suggest a strategic summary for this deck based on the aggregated data pro
       subtitle: "Tactical Execution Timeline",
       theme: "light",
       nodes: [],
-      executiveNotes: "Provide contextual narrative supporting metric variance.",
+      executiveNotes:
+        "Provide contextual narrative supporting metric variance.",
       footerText: `ROI Analysis | ${new Date().toLocaleDateString()}`,
     };
     saveDeck([...deck, newSlide]);
@@ -305,7 +334,7 @@ Then, suggest a strategic summary for this deck based on the aggregated data pro
           nodes: slide.nodes.map((node) =>
             node.id === nodeId
               ? { ...node, item: { ...node.item, title: newTitle } }
-              : node
+              : node,
           ),
         };
       }
@@ -320,7 +349,9 @@ Then, suggest a strategic summary for this deck based on the aggregated data pro
         return {
           ...slide,
           nodes: slide.nodes.map((node) =>
-            node.id === nodeId ? { ...node, height: Math.max(120, Math.min(newHeight, 800)) } : node
+            node.id === nodeId
+              ? { ...node, height: Math.max(120, Math.min(newHeight, 800)) }
+              : node,
           ),
         };
       }
@@ -330,25 +361,39 @@ Then, suggest a strategic summary for this deck based on the aggregated data pro
   };
 
   // Dynamic Visual Rendering Engine producing rich native charts per item type
-  const renderNodeVisual = (item: InsightItem, isExportingMode: boolean = false, customHeight?: number) => {
+  const renderNodeVisual = (
+    item: InsightItem,
+    isExportingMode: boolean = false,
+    customHeight?: number,
+  ) => {
     // 優先ペイロードデータの抽出
-    const activeTrendData = item.chartPayload && item.chartPayload.length > 0 ? item.chartPayload : mockTrendData;
-    const activeFunnelData = item.chartPayload && item.chartPayload.length > 0 ? item.chartPayload : mockFunnelData;
+    const activeTrendData =
+      item.chartPayload && item.chartPayload.length > 0
+        ? item.chartPayload
+        : mockTrendData;
+    const activeFunnelData =
+      item.chartPayload && item.chartPayload.length > 0
+        ? item.chartPayload
+        : mockFunnelData;
 
     // Use custom height or default (increased for better fill)
     const displayH = customHeight || 400;
     // For export, we want to fill more of the 1280px slide width (minus padding)
-    const exportWidth = 1000; 
+    const exportWidth = 1000;
 
     // 0. ネイティブHTMLテーブル表示対応
-    if (item.type === "table" || item.title.toLowerCase().includes("matrix") || item.title.toLowerCase().includes("table")) {
+    if (
+      item.type === "table" ||
+      item.title.toLowerCase().includes("matrix") ||
+      item.title.toLowerCase().includes("table")
+    ) {
       const rowMatch = item.metricsSummary?.match(/\d+/);
       const targetRowCount = rowMatch ? parseInt(rowMatch[0], 10) : 18;
 
       const fallbackRows = Array.from({ length: targetRowCount }, (_, i) => {
         const weekNum = targetRowCount - i;
-        const rev = 12000 + (i * 430) % 6000;
-        const spd = 3000 + (i * 95) % 1500;
+        const rev = 12000 + ((i * 430) % 6000);
+        const spd = 3000 + ((i * 95) % 1500);
         return {
           Period: `Week ${weekNum} (2026)`,
           Revenue: `$${rev.toLocaleString()}`,
@@ -357,36 +402,68 @@ Then, suggest a strategic summary for this deck based on the aggregated data pro
         };
       });
 
-      const rows = item.chartPayload && item.chartPayload.length > 0
-        ? item.chartPayload
-        : fallbackRows;
+      const rows =
+        item.chartPayload && item.chartPayload.length > 0
+          ? item.chartPayload
+          : fallbackRows;
 
-      const headers = rows.length > 0 ? Object.keys(rows[0]) : ["Period", "Revenue", "Spend", "ROAS"];
+      const headers =
+        rows.length > 0
+          ? Object.keys(rows[0])
+          : ["Period", "Revenue", "Spend", "ROAS"];
 
       return (
-        <div 
+        <div
           className={`w-full overflow-x-auto my-3 border rounded-xl ${
-            isExportingMode ? "" : 
-            activeSlide.theme === "dark" ? "border-outline-variant/20 bg-stone-900/60" : "bg-white/60 border-outline-variant/20"
+            isExportingMode
+              ? ""
+              : activeSlide.theme === "dark"
+                ? "border-outline-variant/20 bg-stone-900/60"
+                : "bg-white/60 border-outline-variant/20"
           }`}
-          style={{ 
+          style={{
             minHeight: `${displayH}px`,
             height: isExportingMode ? "100%" : `${displayH}px`,
             width: isExportingMode ? `${exportWidth}px` : "100%",
-            border: isExportingMode ? "1px solid rgba(135,169,150,0.3)" : undefined,
-            backgroundColor: isExportingMode ? "rgba(255,255,255,0.6)" : undefined,
+            border: isExportingMode
+              ? "1px solid rgba(135,169,150,0.3)"
+              : undefined,
+            backgroundColor: isExportingMode
+              ? "rgba(255,255,255,0.6)"
+              : undefined,
             borderRadius: isExportingMode ? "12px" : undefined,
-            overflowX: "auto"
+            overflowX: "auto",
           }}
         >
-          <table className="w-full text-left border-collapse" style={{ width: "100%", fontSize: isExportingMode ? "14px" : "11px" }}>
+          <table
+            className="w-full text-left border-collapse"
+            style={{
+              width: "100%",
+              fontSize: isExportingMode ? "14px" : "11px",
+            }}
+          >
             <thead>
-              <tr style={{ 
-                borderBottom: "1px solid rgba(135,169,150,0.2)",
-                backgroundColor: isExportingMode ? "#F5F4EE" : (activeSlide.theme === "dark" ? "#2A2A2A" : "#FAFAFA")
-              }}>
+              <tr
+                style={{
+                  borderBottom: "1px solid rgba(135,169,150,0.2)",
+                  backgroundColor: isExportingMode
+                    ? "#F5F4EE"
+                    : activeSlide.theme === "dark"
+                      ? "#2A2A2A"
+                      : "#FAFAFA",
+                }}
+              >
                 {headers.map((h) => (
-                  <th key={h} style={{ padding: "12px", fontWeight: "bold", textTransform: "uppercase", fontSize: isExportingMode ? "12px" : "10px", color: "#87A996" }}>
+                  <th
+                    key={h}
+                    style={{
+                      padding: "12px",
+                      fontWeight: "bold",
+                      textTransform: "uppercase",
+                      fontSize: isExportingMode ? "12px" : "10px",
+                      color: "#87A996",
+                    }}
+                  >
                     {h}
                   </th>
                 ))}
@@ -394,12 +471,23 @@ Then, suggest a strategic summary for this deck based on the aggregated data pro
             </thead>
             <tbody>
               {rows.map((r, rIdx) => (
-                <tr key={rIdx} style={{ 
-                  borderBottom: "1px solid rgba(0,0,0,0.05)",
-                  backgroundColor: rIdx % 2 === 1 ? (activeSlide.theme === "dark" ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)") : "transparent"
-                }}>
+                <tr
+                  key={rIdx}
+                  style={{
+                    borderBottom: "1px solid rgba(0,0,0,0.05)",
+                    backgroundColor:
+                      rIdx % 2 === 1
+                        ? activeSlide.theme === "dark"
+                          ? "rgba(255,255,255,0.02)"
+                          : "rgba(0,0,0,0.02)"
+                        : "transparent",
+                  }}
+                >
                   {headers.map((h) => (
-                    <td key={h} style={{ padding: "12px", fontFamily: "monospace" }}>
+                    <td
+                      key={h}
+                      style={{ padding: "12px", fontFamily: "monospace" }}
+                    >
                       {String((r as Record<string, unknown>)[h] ?? "")}
                     </td>
                   ))}
@@ -414,10 +502,26 @@ Then, suggest a strategic summary for this deck based on the aggregated data pro
     // 1. Funnel Layout
     if (item.type === "funnel") {
       const firstEntry = activeFunnelData[0] || {};
-      const valKey = "val" in firstEntry ? "val" : "value" in firstEntry ? "value" : Object.keys(firstEntry).find(k => typeof firstEntry[k] === "number") || "val";
-      const nameKey = "name" in firstEntry ? "name" : "label" in firstEntry ? "label" : "step" in firstEntry ? "step" : "name";
+      const valKey =
+        "val" in firstEntry
+          ? "val"
+          : "value" in firstEntry
+            ? "value"
+            : Object.keys(firstEntry).find(
+                (k) => typeof firstEntry[k] === "number",
+              ) || "val";
+      const nameKey =
+        "name" in firstEntry
+          ? "name"
+          : "label" in firstEntry
+            ? "label"
+            : "step" in firstEntry
+              ? "step"
+              : "name";
 
-      const chartProps = isExportingMode ? { width: exportWidth, height: displayH } : {};
+      const chartProps = isExportingMode
+        ? { width: exportWidth, height: displayH }
+        : {};
 
       const chartContent = (
         <BarChart
@@ -426,7 +530,11 @@ Then, suggest a strategic summary for this deck based on the aggregated data pro
           layout="vertical"
           margin={{ top: 10, right: 30, bottom: 20, left: 40 }}
         >
-          <CartesianGrid strokeDasharray="3 3" horizontal={false} opacity={0.3} />
+          <CartesianGrid
+            strokeDasharray="3 3"
+            horizontal={false}
+            opacity={0.3}
+          />
           <XAxis type="number" tick={{ fontSize: 10, fill: "#87A996" }} />
           <YAxis
             dataKey={nameKey}
@@ -437,13 +545,20 @@ Then, suggest a strategic summary for this deck based on the aggregated data pro
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: activeSlide.theme === "dark" ? "#1E1E1E" : "#FFFFFF",
+              backgroundColor:
+                activeSlide.theme === "dark" ? "#1E1E1E" : "#FFFFFF",
               borderColor: "#87A996",
               borderRadius: "8px",
               fontSize: "11px",
             }}
           />
-          <Bar dataKey={valKey} fill="#87A996" radius={[0, 4, 4, 0]} barSize={displayH > 400 ? 24 : displayH < 200 ? 10 : 16} isAnimationActive={false}>
+          <Bar
+            dataKey={valKey}
+            fill="#87A996"
+            radius={[0, 4, 4, 0]}
+            barSize={displayH > 400 ? 24 : displayH < 200 ? 10 : 16}
+            isAnimationActive={false}
+          >
             {activeFunnelData.map((entry, index) => (
               <Cell key={`cell-${index}`} fillOpacity={1 - index * 0.12} />
             ))}
@@ -452,14 +567,21 @@ Then, suggest a strategic summary for this deck based on the aggregated data pro
       );
 
       return (
-        <div 
+        <div
           className="w-full my-3 block"
-          style={{ minHeight: `${displayH}px`, height: isExportingMode ? "100%" : `${displayH}px` }}
+          style={{
+            minHeight: `${displayH}px`,
+            height: isExportingMode ? "100%" : `${displayH}px`,
+          }}
         >
           {isExportingMode ? (
-            <div style={{ display: "flex", justifyContent: "center" }}>{chartContent}</div>
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              {chartContent}
+            </div>
           ) : !isMounted ? (
-            <div className="flex items-center justify-center h-full text-outline/20 text-[10px]">Loading Visualization...</div>
+            <div className="flex items-center justify-center h-full text-outline/20 text-[10px]">
+              Loading Visualization...
+            </div>
           ) : (
             <ResponsiveContainer width="100%" height="100%">
               {chartContent}
@@ -475,52 +597,85 @@ Then, suggest a strategic summary for this deck based on the aggregated data pro
       const highlightedValue = match ? match[0] : "High";
 
       const firstEntry = activeTrendData[0] || {};
-      const valKey = "v" in firstEntry ? "v" : "value" in firstEntry ? "value" : Object.keys(firstEntry).find(k => typeof firstEntry[k] === "number") || "v";
+      const valKey =
+        "v" in firstEntry
+          ? "v"
+          : "value" in firstEntry
+            ? "value"
+            : Object.keys(firstEntry).find(
+                (k) => typeof firstEntry[k] === "number",
+              ) || "v";
 
       const kpiH = Math.max(60, displayH / 2.5);
       const kpiW = kpiH * 2;
       const chartProps = isExportingMode ? { width: kpiW, height: kpiH } : {};
 
       const chartContent = (
-        <BarChart 
-          {...chartProps}
-          data={activeTrendData}
-        >
-          <Bar dataKey={valKey} fill="#87A996" radius={[2, 2, 0, 0]} isAnimationActive={false} />
+        <BarChart {...chartProps} data={activeTrendData}>
+          <Bar
+            dataKey={valKey}
+            fill="#87A996"
+            radius={[2, 2, 0, 0]}
+            isAnimationActive={false}
+          />
         </BarChart>
       );
 
       return (
-        <div 
-          style={{ 
+        <div
+          style={{
             minHeight: `${displayH}px`,
             height: isExportingMode ? "100%" : `${displayH}px`,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
             padding: displayH < 200 ? "10px" : "20px 40px",
-            backgroundColor: isExportingMode ? "rgba(135,169,150,0.1)" : undefined,
+            backgroundColor: isExportingMode
+              ? "rgba(135,169,150,0.1)"
+              : undefined,
             borderRadius: "16px",
-            border: isExportingMode ? "1px solid rgba(135,169,150,0.2)" : undefined,
-            margin: "12px 0"
+            border: isExportingMode
+              ? "1px solid rgba(135,169,150,0.2)"
+              : undefined,
+            margin: "12px 0",
           }}
-          className={isExportingMode ? "" : "bg-primary-container/10 rounded-xl border border-primary/10"}
+          className={
+            isExportingMode
+              ? ""
+              : "bg-primary-container/10 rounded-xl border border-primary/10"
+          }
         >
           <div>
-            <span style={{ fontSize: "10px", display: "block", textTransform: "uppercase", fontWeight: "bold", color: "#8E9199" }}>
+            <span
+              style={{
+                fontSize: "10px",
+                display: "block",
+                textTransform: "uppercase",
+                fontWeight: "bold",
+                color: "#8E9199",
+              }}
+            >
               Principal Metric
             </span>
-            <span style={{ 
-              fontSize: displayH < 200 ? "24px" : "48px", 
-              fontWeight: "bold", 
-              color: "#87A996",
-              letterSpacing: "-0.02em"
-            }}>
+            <span
+              style={{
+                fontSize: displayH < 200 ? "24px" : "48px",
+                fontWeight: "bold",
+                color: "#87A996",
+                letterSpacing: "-0.02em",
+              }}
+            >
               {highlightedValue}
             </span>
           </div>
-          <div 
-            style={{ width: `${kpiW}px`, height: `${kpiH}px`, display: "flex", alignItems: "center", justifyContent: "center" }}
+          <div
+            style={{
+              width: `${kpiW}px`,
+              height: `${kpiH}px`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
           >
             {isExportingMode ? (
               chartContent
@@ -538,19 +693,45 @@ Then, suggest a strategic summary for this deck based on the aggregated data pro
 
     // 3. Area Charts
     const firstEntry = activeTrendData[0] || {};
-    const valKey = "v" in firstEntry ? "v" : "value" in firstEntry ? "value" : "revenue" in firstEntry ? "revenue" : Object.keys(firstEntry).find(k => typeof firstEntry[k] === "number") || "v";
-    const xKey = "period" in firstEntry ? "period" : "date" in firstEntry ? "date" : "name" in firstEntry ? "name" : "label" in firstEntry ? "label" : Object.keys(firstEntry)[0] || "period";
+    const valKey =
+      "v" in firstEntry
+        ? "v"
+        : "value" in firstEntry
+          ? "value"
+          : "revenue" in firstEntry
+            ? "revenue"
+            : Object.keys(firstEntry).find(
+                (k) => typeof firstEntry[k] === "number",
+              ) || "v";
+    const xKey =
+      "period" in firstEntry
+        ? "period"
+        : "date" in firstEntry
+          ? "date"
+          : "name" in firstEntry
+            ? "name"
+            : "label" in firstEntry
+              ? "label"
+              : Object.keys(firstEntry)[0] || "period";
 
-    const chartProps = isExportingMode ? { width: exportWidth, height: displayH } : {};
+    const chartProps = isExportingMode
+      ? { width: exportWidth, height: displayH }
+      : {};
 
     const chartContent = (
-      <AreaChart 
+      <AreaChart
         {...chartProps}
-        data={activeTrendData} 
+        data={activeTrendData}
         margin={{ top: 10, right: 30, bottom: 20, left: 10 }}
       >
         <defs>
-          <linearGradient id={`gradient_${item.id}`} x1="0" y1="0" x2="0" y2="1">
+          <linearGradient
+            id={`gradient_${item.id}`}
+            x1="0"
+            y1="0"
+            x2="0"
+            y2="1"
+          >
             <stop offset="5%" stopColor="#87A996" stopOpacity={0.4} />
             <stop offset="95%" stopColor="#87A996" stopOpacity={0} />
           </linearGradient>
@@ -560,7 +741,8 @@ Then, suggest a strategic summary for this deck based on the aggregated data pro
         <YAxis tick={{ fontSize: 10, fill: "#87A996" }} />
         <Tooltip
           contentStyle={{
-            backgroundColor: activeSlide.theme === "dark" ? "#1E1E1E" : "#FFFFFF",
+            backgroundColor:
+              activeSlide.theme === "dark" ? "#1E1E1E" : "#FFFFFF",
             borderColor: "#87A996",
             borderRadius: "8px",
             fontSize: "11px",
@@ -579,14 +761,19 @@ Then, suggest a strategic summary for this deck based on the aggregated data pro
     );
 
     return (
-      <div 
+      <div
         className="w-full my-3 block"
-        style={{ minHeight: `${displayH}px`, height: isExportingMode ? "100%" : `${displayH}px` }}
+        style={{
+          minHeight: `${displayH}px`,
+          height: isExportingMode ? "100%" : `${displayH}px`,
+        }}
       >
         {isExportingMode ? (
           <div className="flex justify-center">{chartContent}</div>
         ) : !isMounted ? (
-          <div className="flex items-center justify-center h-full text-outline/20 text-[10px]">Loading Visualization...</div>
+          <div className="flex items-center justify-center h-full text-outline/20 text-[10px]">
+            Loading Visualization...
+          </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
             {chartContent}
@@ -595,6 +782,19 @@ Then, suggest a strategic summary for this deck based on the aggregated data pro
       </div>
     );
   };
+
+  if (!isMounted) {
+    return (
+      <div className="min-h-screen bg-surface-container-lowest flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-outline font-mono">
+            Initializing Presentation Engine...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <main className="max-w-[1600px] mx-auto p-2 sm:p-6 h-[calc(100vh-100px)] flex flex-col gap-4 print:p-0 print:m-0 print:h-auto print:block">
@@ -613,7 +813,8 @@ Then, suggest a strategic summary for this deck based on the aggregated data pro
             </span>
           </div>
           <p className="text-xs text-outline mt-0.5">
-            Drag analytics artifacts directly from your stock palette to compose tactical deck layers.
+            Drag analytics artifacts directly from your stock palette to compose
+            tactical deck layers.
           </p>
         </div>
 
@@ -623,16 +824,20 @@ Then, suggest a strategic summary for this deck based on the aggregated data pro
             onClick={copyAiPrompt}
             className="px-4 py-2 bg-secondary text-on-secondary rounded-xl text-xs font-label font-bold hover:shadow-md hover:scale-105 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm relative overflow-hidden group"
           >
-            <span className="material-symbols-outlined text-sm animate-pulse">auto_awesome</span>
+            <span className="material-symbols-outlined text-sm animate-pulse">
+              auto_awesome
+            </span>
             <span>Copy Deck Blueprint for AI</span>
             <div className="absolute inset-0 w-full h-full bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
           </button>
-          
+
           <button
             onClick={() => setIsFullscreenMode(true)}
             className="px-4 py-2 bg-primary text-on-primary rounded-xl text-xs font-label font-bold hover:shadow-md hover:scale-105 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm relative overflow-hidden group"
           >
-            <span className="material-symbols-outlined text-sm animate-pulse">slideshow</span>
+            <span className="material-symbols-outlined text-sm animate-pulse">
+              slideshow
+            </span>
             <span>Present Mode</span>
             {/* Absolute shimmering micro-animation strip */}
             <span className="absolute inset-0 w-full h-full bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
@@ -701,18 +906,22 @@ Then, suggest a strategic summary for this deck based on the aggregated data pro
       />
 
       {/* Print-only Dedicated Full Deck Stage Rendering */}
-      <PrintDeckEngine 
-        deck={deck} 
-        renderNodeVisual={renderNodeVisual} 
+      <PrintDeckEngine
+        deck={deck}
+        renderNodeVisual={renderNodeVisual}
         isExporting={isExporting}
       />
       {isExporting && (
-        <style dangerouslySetInnerHTML={{ __html: `
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
           .recharts-responsive-container {
             min-width: 1px !important;
             min-height: 1px !important;
           }
-        `}} />
+        `,
+          }}
+        />
       )}
     </main>
   );
