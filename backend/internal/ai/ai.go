@@ -13,5 +13,5 @@ type AnalysisResult struct {
 
 // AIEngine defines the contract for marketing data analysis
 type AIEngine interface {
-	Analyze(ctx context.Context, question string, data interface{}) (*AnalysisResult, error)
+	Analyze(ctx context.Context, question string, sourceTable string, data interface{}) (*AnalysisResult, error)
 }

@@ -33,11 +33,12 @@ func NewGeminiEngine(ctx context.Context, apiKey string) (*GeminiEngine, error) 
 	}, nil
 }
 
-func (e *GeminiEngine) Analyze(ctx context.Context, question string, data interface{}) (*AnalysisResult, error) {
+func (e *GeminiEngine) Analyze(ctx context.Context, question string, sourceTable string, data interface{}) (*AnalysisResult, error) {
 	prompt := fmt.Sprintf(`
 		You are a Senior Marketing Data Analyst for "Decision Tracer".
 		Your task is to analyze the provided marketing data and answer the user's question.
 
+		Target BigQuery Table: %s
 		Data Context (JSON): %v
 		User Question: %s
 
@@ -45,6 +46,7 @@ func (e *GeminiEngine) Analyze(ctx context.Context, question string, data interf
 		1. Be concise but insightful.
 		2. Identify any anomalies or significant trends in ROI/CVR.
 		3. Provide a specific BigQuery SQL snippet that could be used to deep-dive into the identified issue.
+		   CRITICAL RULE: You MUST use the exact table name "%s" in the FROM clause of your SQL query. DO NOT use placeholders like "your_project.your_dataset.your_table_name".
 		4. Suggest 2-3 concrete marketing actions.
 
 		Return the response in the following JSON schema:
@@ -53,7 +55,7 @@ func (e *GeminiEngine) Analyze(ctx context.Context, question string, data interf
 			"sql": "string (BigQuery SQL)",
 			"actions": ["string", "string"]
 		}
-	`, data, question)
+	`, sourceTable, data, question, sourceTable)
 
 	resp, err := e.model.GenerateContent(ctx, genai.Text(prompt))
 	if err != nil {

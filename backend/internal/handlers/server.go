@@ -64,7 +64,7 @@ func (s *Server) AnalyzeData(c *gin.Context) {
 		return
 	}
 
-	result, err := s.AI.Analyze(ctx, req.Question, data)
+	result, err := s.AI.Analyze(ctx, req.Question, meta.SourceTable, data)
 	if err != nil {
 		meta.ExecutionSQL = "ERROR_DURING_AI_GEN"
 		c.JSON(http.StatusOK, AnalyzeResponse{
