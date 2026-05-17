@@ -33,49 +33,10 @@ function AnaliseContent() {
   const { segment } = useMarketingContext();
   const { addInsight } = useInsightCart();
 
-  // Lazy state initializations to prevent cascading renders inside useEffect
-  const [tabs, setTabs] = useState<AnalysisResult[]>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("exploration_tabs");
-      if (saved) {
-        try {
-          return JSON.parse(saved);
-        } catch {
-          return [];
-        }
-      }
-    }
-    return [];
-  });
-
-  const [activeTabId, setActiveTabId] = useState<string | null>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("exploration_tabs");
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (parsed.length > 0) return parsed[0].id;
-        } catch {
-          return null;
-        }
-      }
-    }
-    return null;
-  });
-
-  const [cartItems, setCartItems] = useState<AnalysisResult[]>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("exploration_cart");
-      if (saved) {
-        try {
-          return JSON.parse(saved);
-        } catch {
-          return [];
-        }
-      }
-    }
-    return [];
-  });
+  // Defer initialization to client-side mount tick to prevent SSR hydration mismatches
+  const [tabs, setTabs] = useState<AnalysisResult[]>([]);
+  const [activeTabId, setActiveTabId] = useState<string | null>(null);
+  const [cartItems, setCartItems] = useState<AnalysisResult[]>([]);
 
   const [prompt, setPrompt] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -85,10 +46,34 @@ function AnaliseContent() {
   const [isSqlExpanded, setIsSqlExpanded] = useState(false);
   const [copiedSql, setCopiedSql] = useState(false);
 
-  // Initial load after mount
+  // Initial load after mount to securely restore localized states
   useEffect(() => {
-    const frame = requestAnimationFrame(() => setIsMounted(true));
-    return () => cancelAnimationFrame(frame);
+    const timer = setTimeout(() => {
+      try {
+        const savedTabs = localStorage.getItem("exploration_tabs");
+        if (savedTabs) {
+          const parsed = JSON.parse(savedTabs);
+          if (parsed && parsed.length > 0) {
+            setTabs(parsed);
+            setActiveTabId(parsed[0].id);
+          }
+        }
+
+        const savedCart = localStorage.getItem("exploration_cart");
+        if (savedCart) {
+          const parsed = JSON.parse(savedCart);
+          if (parsed && parsed.length > 0) {
+            setCartItems(parsed);
+          }
+        }
+      } catch {
+        // Ignored gracefully
+      }
+
+      setIsMounted(true);
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, []);
 
   // Save to LocalStorage on changes
@@ -123,16 +108,53 @@ function AnaliseContent() {
 
       const res = await response.json();
 
-      // Map backend response to frontend AnalysisResult
-      const chartData = res.data.map(
-        (d: { date: string; metric_value: number }) => ({
-          name: new Date(d.date).toLocaleDateString("en-US", {
+          // Map backend response to frontend AnalysisResult with robust value detection
+      const chartData = res.data.map((d: {
+        date?: string;
+        Date?: string;
+        cvr?: number;
+        CVR?: number;
+        roas?: number;
+        ROAS?: number;
+        spend?: number;
+        Spend?: number;
+        revenue?: number;
+        Revenue?: number;
+        traffic?: number;
+        Traffic?: number;
+        roi?: number;
+        ROI?: number;
+        metric_value?: number;
+      }) => {
+        const dateStr = d.date || d.Date || new Date().toISOString();
+        const lowerPrompt = promptText.toLowerCase();
+        
+        let val = 0;
+        if (lowerPrompt.includes("cvr") || lowerPrompt.includes("コンバージョン")) {
+          val = d.cvr !== undefined ? d.cvr : (d.CVR !== undefined ? d.CVR : 0);
+        } else if (lowerPrompt.includes("roas")) {
+          val = d.roas !== undefined ? d.roas : (d.ROAS !== undefined ? d.ROAS : 0);
+        } else if (lowerPrompt.includes("spend") || lowerPrompt.includes("広告費") || lowerPrompt.includes("コスト")) {
+          val = d.spend !== undefined ? d.spend : (d.Spend !== undefined ? d.Spend : 0);
+        } else if (lowerPrompt.includes("revenue") || lowerPrompt.includes("売上") || lowerPrompt.includes("収益")) {
+          val = d.revenue !== undefined ? d.revenue : (d.Revenue !== undefined ? d.Revenue : 0);
+        } else if (lowerPrompt.includes("traffic") || lowerPrompt.includes("トラフィック") || lowerPrompt.includes("セッション")) {
+          val = d.traffic !== undefined ? d.traffic : (d.Traffic !== undefined ? d.Traffic : 0);
+        } else if (lowerPrompt.includes("roi")) {
+          val = d.roi !== undefined ? d.roi : (d.ROI !== undefined ? d.ROI : 0);
+        } else {
+          // Robust chain mapping fallback to find any valid numeric property
+          val = d.roas || d.cvr || d.revenue || d.spend || d.traffic || d.roi || d.metric_value || 0;
+        }
+
+        return {
+          name: new Date(dateStr).toLocaleDateString("en-US", {
             month: "short",
             day: "numeric",
           }),
-          value: d.metric_value,
-        }),
-      );
+          value: val,
+        };
+      });
 
       const isComparison =
         promptText.includes("比較") || promptText.includes("割合");
@@ -189,6 +211,17 @@ function AnaliseContent() {
   };
 
   const activeTab = tabs.find((t) => t.id === activeTabId);
+
+  if (!isMounted) {
+    return (
+      <div className="p-10 pb-32 min-h-screen bg-background relative flex flex-col font-sans">
+        <div className="flex-1 flex flex-col items-center justify-center min-h-[500px]">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mb-4" />
+          <p className="text-sm text-outline font-mono">Initializing Sandbox Engine...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-10 pb-32 min-h-screen bg-background relative flex flex-col font-sans">

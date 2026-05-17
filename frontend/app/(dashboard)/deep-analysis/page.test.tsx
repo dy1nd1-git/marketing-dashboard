@@ -42,26 +42,26 @@ describe("AnaliseContent (Exploration Workspace)", () => {
     localStorage.clear();
   });
 
-  it("renders the exploration workspace header", () => {
+  it("renders the exploration workspace header", async () => {
     render(<AnaliseContent />);
     
     // Check header text
-    expect(screen.getByText("Exploration")).toBeDefined();
-    expect(screen.getByText(/Analyze and pivot your marketing data/i)).toBeDefined();
+    expect(await screen.findByText("Exploration")).toBeDefined();
+    expect(await screen.findByText(/Analyze and pivot your marketing data/i)).toBeDefined();
   });
 
-  it("renders the empty state when no tabs exist", () => {
+  it("renders the empty state when no tabs exist", async () => {
     render(<AnaliseContent />);
     
     // Check empty state message
-    expect(screen.getByText("No active analysis")).toBeDefined();
-    expect(screen.getByText(/Use the input bar above to query your marketing data/i)).toBeDefined();
+    expect(await screen.findByText("No active analysis")).toBeDefined();
+    expect(await screen.findByText(/Use the input bar above to query your marketing data/i)).toBeDefined();
   });
 
-  it("input field accepts text", () => {
+  it("input field accepts text", async () => {
     render(<AnaliseContent />);
     
-    const input = screen.getByPlaceholderText(/\/\/ \[INPUT\]: Try/i);
+    const input = await screen.findByPlaceholderText(/\/\/ \[INPUT\]: Try/i);
     fireEvent.change(input, { target: { value: "推移" } });
     
     expect((input as HTMLInputElement).value).toBe("推移");
