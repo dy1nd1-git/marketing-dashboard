@@ -116,8 +116,12 @@ export interface PivotDetails {
 
 export interface LineageTelemetry {
   source: string;
-  confidence: "High" | "Medium" | "Low";
+  confidence: string;
   engine?: string;
   timestamp?: string;
   zScore?: number;
+  sourceTable?: string;
+  executionSql?: string;
+  researchNotes?: string;
 }
+

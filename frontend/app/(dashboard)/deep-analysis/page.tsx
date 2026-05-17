@@ -33,16 +33,15 @@ function AnaliseContent() {
   const { segment } = useMarketingContext();
   const { addInsight } = useInsightCart();
 
-  const [prompt, setPrompt] = useState("");
-
+  // Lazy state initializations to prevent cascading renders inside useEffect
   const [tabs, setTabs] = useState<AnalysisResult[]>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("exploration_tabs");
       if (saved) {
         try {
           return JSON.parse(saved);
-        } catch (err) {
-          console.error("Failed to parse tabs", err);
+        } catch {
+          return [];
         }
       }
     }
@@ -55,7 +54,7 @@ function AnaliseContent() {
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          return parsed.length > 0 ? parsed[0].id : null;
+          if (parsed.length > 0) return parsed[0].id;
         } catch {
           return null;
         }
@@ -70,15 +69,27 @@ function AnaliseContent() {
       if (saved) {
         try {
           return JSON.parse(saved);
-        } catch (e) {
-          console.error("Failed to parse cart", e);
+        } catch {
+          return [];
         }
       }
     }
     return [];
   });
 
+  const [prompt, setPrompt] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Custom states for generative AI traceability & copy actions
+  const [isSqlExpanded, setIsSqlExpanded] = useState(false);
+  const [copiedSql, setCopiedSql] = useState(false);
+
+  // Initial load after mount
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setIsMounted(true));
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   // Save to LocalStorage on changes
   useEffect(() => {
@@ -88,6 +99,16 @@ function AnaliseContent() {
   useEffect(() => {
     localStorage.setItem("exploration_cart", JSON.stringify(cartItems));
   }, [cartItems]);
+
+  const handleCopySql = async (sqlText: string) => {
+    try {
+      await navigator.clipboard.writeText(sqlText);
+      setCopiedSql(true);
+      setTimeout(() => setCopiedSql(false), 2000);
+    } catch {
+      // Ignored
+    }
+  };
 
   async function executeAIGeneratedAnalysis(promptText: string) {
     setIsAnalyzing(true);
@@ -101,18 +122,26 @@ function AnaliseContent() {
       if (!response.ok) throw new Error("Failed to connect to analysis engine");
 
       const res = await response.json();
-      
-      // Map backend response to frontend AnalysisResult
-      const chartData = res.data.map((d: { date: string; metric_value: number }) => ({
-        name: new Date(d.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-        value: d.metric_value,
-      }));
 
-      const isComparison = promptText.includes("比較") || promptText.includes("割合");
-      
+      // Map backend response to frontend AnalysisResult
+      const chartData = res.data.map(
+        (d: { date: string; metric_value: number }) => ({
+          name: new Date(d.date).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          }),
+          value: d.metric_value,
+        }),
+      );
+
+      const isComparison =
+        promptText.includes("比較") || promptText.includes("割合");
+
       const realResult: AnalysisResult = {
         id: crypto.randomUUID(),
-        title: isComparison ? "AI Structural Comparison" : "AI Intelligence Trend",
+        title: isComparison
+          ? "AI Structural Comparison"
+          : "AI Intelligence Trend",
         prompt: promptText,
         sql: res.metadata?.execution_sql || "N/A",
         chartType: isComparison ? "bar" : "line",
@@ -127,7 +156,9 @@ function AnaliseContent() {
       setPrompt("");
     } catch (error) {
       console.error("Failed to execute analysis:", error);
-      alert("AI分析エンジンの呼び出しに失敗しました。バックエンドとAPIキーの設定を確認してください。");
+      alert(
+        "AI分析エンジンの呼び出しに失敗しました。バックエンドとAPIキーの設定を確認してください。",
+      );
     } finally {
       setIsAnalyzing(false);
     }
@@ -144,7 +175,10 @@ function AnaliseContent() {
       metricsSummary: `AI Prompt: "${analysisData.prompt}"`,
       sourceRef: `bq://exploration.ai.${analysisData.chartType}`,
       notes: analysisData.insight,
-      chartPayload: analysisData.data.map((d) => ({ name: d.name, value: d.value })),
+      chartPayload: analysisData.data.map((d) => ({
+        name: d.name,
+        value: d.value,
+      })),
     });
   };
 
@@ -225,6 +259,48 @@ function AnaliseContent() {
               )}
             </button>
           </div>
+
+          {/* Gentle Professional suggestion chips to trigger quick AI execution */}
+          <div className="w-full flex flex-wrap gap-1.5 justify-start mt-1 pl-2">
+            <span className="text-[10px] text-outline font-semibold tracking-wider uppercase self-center mr-1.5">
+              Suggestions:
+            </span>
+            <button
+              onClick={() => {
+                setPrompt(
+                  "過去30日間のコンバージョン率（CVR）の推移を分析せよ",
+                );
+                executeAIGeneratedAnalysis(
+                  "過去30日間のコンバージョン率（CVR）の推移を分析せよ",
+                );
+              }}
+              className="bg-[#FDFCF8] hover:bg-[#87A996]/10 text-[#456555] border border-[#87A996]/20 px-3 py-1 rounded-full text-[10px] font-medium cursor-pointer transition-all hover:scale-[1.01] hover:border-[#87A996]/50"
+            >
+              CVR Trend Analysis
+            </button>
+            <button
+              onClick={() => {
+                setPrompt("広告費と売上成長の相関関係を検証せよ");
+                executeAIGeneratedAnalysis(
+                  "広告費と売上成長の相関関係を検証せよ",
+                );
+              }}
+              className="bg-[#FDFCF8] hover:bg-[#87A996]/10 text-[#456555] border border-[#87A996]/20 px-3 py-1 rounded-full text-[10px] font-medium cursor-pointer transition-all hover:scale-[1.01] hover:border-[#87A996]/50"
+            >
+              Spend vs Revenue
+            </button>
+            <button
+              onClick={() => {
+                setPrompt("昨日のROAS急落の要因とアノマリーを特定せよ");
+                executeAIGeneratedAnalysis(
+                  "昨日のROAS急落の要因とアノマリーを特定せよ",
+                );
+              }}
+              className="bg-[#FDFCF8] hover:bg-[#87A996]/10 text-[#456555] border border-[#87A996]/20 px-3 py-1 rounded-full text-[10px] font-medium cursor-pointer transition-all hover:scale-[1.01] hover:border-[#87A996]/50"
+            >
+              ROAS Anomaly Detection
+            </button>
+          </div>
         </div>
       </div>
 
@@ -278,7 +354,31 @@ function AnaliseContent() {
           )}
 
           {/* Canvas Content */}
-          {activeTab ? (
+          {isAnalyzing ? (
+            <div className="bg-surface-container-lowest rounded-[20px] rounded-tl-none p-6 shadow-[0_10px_30px_rgba(135,169,150,0.05)] border border-outline-variant/30 flex flex-col gap-6 animate-pulse">
+              <div className="flex justify-between items-start">
+                <div className="w-1/3 space-y-2">
+                  <div className="h-4 bg-slate-100 rounded w-3/4"></div>
+                  <div className="h-3 bg-slate-100/60 rounded w-1/2"></div>
+                </div>
+                <div className="h-8 bg-slate-100 rounded-full w-24"></div>
+              </div>
+
+              {/* Chart Shimmer */}
+              <div className="h-[300px] w-full bg-[#FDFCF8] rounded-xl border border-slate-100 flex items-center justify-center">
+                <span className="text-[11px] font-bold text-[#87A996] tracking-widest uppercase">
+                  AI AGGREGATING PIPELINE TELEMETRY...
+                </span>
+              </div>
+
+              {/* Insight Box Shimmer */}
+              <div className="bg-[#f0f4f1]/50 border border-dashed border-[#d6e3db]/60 rounded-[16px] p-5 space-y-3">
+                <div className="h-4 bg-slate-200/50 rounded w-1/4"></div>
+                <div className="h-3 bg-slate-200/40 rounded w-full"></div>
+                <div className="h-3 bg-slate-200/40 rounded w-5/6"></div>
+              </div>
+            </div>
+          ) : activeTab ? (
             <div className="bg-surface-container-lowest rounded-[20px] rounded-tl-none p-6 shadow-[0_10px_30px_rgba(135,169,150,0.05)] border border-outline-variant/30 flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="flex justify-between items-start">
                 <div>
@@ -311,92 +411,98 @@ function AnaliseContent() {
               </div>
 
               {/* Dynamic Recharts */}
-              <div className="h-[300px] w-full mt-4">
-                <ResponsiveContainer width="100%" height="100%">
-                  {activeTab.chartType === "line" ? (
-                    <LineChart
-                      data={activeTab.data}
-                      margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-                    >
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        vertical={false}
-                        stroke="rgba(135,169,150,0.2)"
-                      />
-                      <XAxis
-                        dataKey="name"
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fontSize: 12, fill: "#6e7a73" }}
-                        dy={10}
-                      />
-                      <YAxis
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fontSize: 12, fill: "#6e7a73" }}
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          borderRadius: "12px",
-                          border: "none",
-                          boxShadow: "0 10px 20px rgba(0,0,0,0.05)",
-                        }}
-                        itemStyle={{ color: "#456555", fontWeight: 600 }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="value"
-                        stroke="#456555"
-                        strokeWidth={3}
-                        dot={{
-                          r: 4,
-                          fill: "#456555",
-                          strokeWidth: 2,
-                          stroke: "#fff",
-                        }}
-                        activeDot={{ r: 6 }}
-                      />
-                    </LineChart>
-                  ) : (
-                    <BarChart
-                      data={activeTab.data}
-                      margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-                    >
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        vertical={false}
-                        stroke="rgba(135,169,150,0.2)"
-                      />
-                      <XAxis
-                        dataKey="name"
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fontSize: 12, fill: "#6e7a73" }}
-                        dy={10}
-                      />
-                      <YAxis
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fontSize: 12, fill: "#6e7a73" }}
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          borderRadius: "12px",
-                          border: "none",
-                          boxShadow: "0 10px 20px rgba(0,0,0,0.05)",
-                        }}
-                        itemStyle={{ color: "#456555", fontWeight: 600 }}
-                        cursor={{ fill: "rgba(69,101,85,0.05)" }}
-                      />
-                      <Bar
-                        dataKey="value"
-                        fill="#456555"
-                        radius={[4, 4, 0, 0]}
-                        maxBarSize={60}
-                      />
-                    </BarChart>
-                  )}
-                </ResponsiveContainer>
+              <div className="h-[300px] w-full mt-4 flex items-center justify-center">
+                {!isMounted ? (
+                  <div className="text-outline/40 text-data-sm animate-pulse">
+                    Initializing visualization...
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    {activeTab.chartType === "line" ? (
+                      <LineChart
+                        data={activeTab.data}
+                        margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                      >
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          vertical={false}
+                          stroke="rgba(135,169,150,0.2)"
+                        />
+                        <XAxis
+                          dataKey="name"
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fontSize: 12, fill: "#6e7a73" }}
+                          dy={10}
+                        />
+                        <YAxis
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fontSize: 12, fill: "#6e7a73" }}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            borderRadius: "12px",
+                            border: "none",
+                            boxShadow: "0 10px 20px rgba(0,0,0,0.05)",
+                          }}
+                          itemStyle={{ color: "#456555", fontWeight: 600 }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="value"
+                          stroke="#456555"
+                          strokeWidth={3}
+                          dot={{
+                            r: 4,
+                            fill: "#456555",
+                            strokeWidth: 2,
+                            stroke: "#fff",
+                          }}
+                          activeDot={{ r: 6 }}
+                        />
+                      </LineChart>
+                    ) : (
+                      <BarChart
+                        data={activeTab.data}
+                        margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                      >
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          vertical={false}
+                          stroke="rgba(135,169,150,0.2)"
+                        />
+                        <XAxis
+                          dataKey="name"
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fontSize: 12, fill: "#6e7a73" }}
+                          dy={10}
+                        />
+                        <YAxis
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fontSize: 12, fill: "#6e7a73" }}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            borderRadius: "12px",
+                            border: "none",
+                            boxShadow: "0 10px 20px rgba(0,0,0,0.05)",
+                          }}
+                          itemStyle={{ color: "#456555", fontWeight: 600 }}
+                          cursor={{ fill: "rgba(69,101,85,0.05)" }}
+                        />
+                        <Bar
+                          dataKey="value"
+                          fill="#456555"
+                          radius={[4, 4, 0, 0]}
+                          maxBarSize={60}
+                        />
+                      </BarChart>
+                    )}
+                  </ResponsiveContainer>
+                )}
               </div>
 
               {/* AI Insight Box */}
@@ -422,7 +528,10 @@ function AnaliseContent() {
                     </div>
                     <ul className="space-y-2">
                       {activeTab.actions.map((action, i) => (
-                        <li key={i} className="flex items-start gap-2 text-data-sm text-[#456555]">
+                        <li
+                          key={i}
+                          className="flex items-start gap-2 text-data-sm text-[#456555]"
+                        >
                           <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#d4a373] shrink-0" />
                           {action}
                         </li>
@@ -431,6 +540,52 @@ function AnaliseContent() {
                   </div>
                 )}
               </div>
+
+              {/* Generated SQL Accordion: Decisions chain of trust traceability */}
+              {activeTab.sql && activeTab.sql !== "N/A" && (
+                <div className="border border-outline-variant/40 rounded-xl overflow-hidden mt-2">
+                  <button
+                    onClick={() => setIsSqlExpanded(!isSqlExpanded)}
+                    className="w-full px-4 py-3 bg-surface-container-low hover:bg-surface-container-low/75 flex items-center justify-between transition-colors text-left"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-xs text-[#87A996]">
+                        terminal
+                      </span>
+                      <span className="text-xs font-semibold text-on-surface-variant font-label">
+                        AI Generated Execution SQL
+                      </span>
+                    </div>
+                    <span className="material-symbols-outlined text-xs text-outline">
+                      {isSqlExpanded
+                        ? "keyboard_arrow_up"
+                        : "keyboard_arrow_down"}
+                    </span>
+                  </button>
+
+                  {isSqlExpanded && (
+                    <div className="bg-slate-900 p-4 relative flex flex-col font-mono text-[11px] border-t border-outline-variant/40">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-[9px] text-slate-400 font-mono tracking-wider">
+                          GENERATED BY GEMINI 1.5 FLASH
+                        </span>
+                        <button
+                          onClick={() => handleCopySql(activeTab.sql || "")}
+                          className="text-[9px] text-[#87A996] hover:text-[#769785] font-mono flex items-center gap-1 transition-colors cursor-pointer"
+                        >
+                          <span className="material-symbols-outlined text-[11px]">
+                            {copiedSql ? "check" : "content_copy"}
+                          </span>
+                          {copiedSql ? "COPIED" : "COPY SQL"}
+                        </button>
+                      </div>
+                      <pre className="text-emerald-400 leading-relaxed overflow-x-auto max-h-48 custom-scrollbar select-all whitespace-pre-wrap">
+                        <code>{activeTab.sql}</code>
+                      </pre>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ) : (
             // Empty State

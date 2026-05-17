@@ -21,8 +21,8 @@ func NewGeminiEngine(ctx context.Context, apiKey string) (*GeminiEngine, error) 
 		return nil, err
 	}
 
-	// Using gemini-1.5-flash for speed and cost-efficiency
-	model := client.GenerativeModel("gemini-1.5-flash")
+	// Using gemini-2.5-flash for speed and cost-efficiency
+	model := client.GenerativeModel("gemini-2.5-flash")
 	
 	// Ensure the model returns structured JSON
 	model.ResponseMIMEType = "application/json"

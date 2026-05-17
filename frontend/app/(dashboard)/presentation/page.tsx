@@ -61,6 +61,7 @@ export default function PresentationDeckEngine() {
   const [isFullscreenMode, setIsFullscreenMode] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   // Restore deck configurations securely from persistent storage
   useEffect(() => {
@@ -75,6 +76,9 @@ export default function PresentationDeckEngine() {
       }
     } catch {
       // Ignored gracefully
+    } finally {
+      // Ensure we mark as mounted AFTER state restoration attempts
+      setIsMounted(true);
     }
   }, []);
 
@@ -454,6 +458,8 @@ Then, suggest a strategic summary for this deck based on the aggregated data pro
         >
           {isExportingMode ? (
             <div style={{ display: "flex", justifyContent: "center" }}>{chartContent}</div>
+          ) : !isMounted ? (
+            <div className="flex items-center justify-center h-full text-outline/20 text-[10px]">Loading Visualization...</div>
           ) : (
             <ResponsiveContainer width="100%" height="100%">
               {chartContent}
@@ -518,6 +524,8 @@ Then, suggest a strategic summary for this deck based on the aggregated data pro
           >
             {isExportingMode ? (
               chartContent
+            ) : !isMounted ? (
+              <div className="text-outline/20 text-[8px]">Loading...</div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 {chartContent}
@@ -577,6 +585,8 @@ Then, suggest a strategic summary for this deck based on the aggregated data pro
       >
         {isExportingMode ? (
           <div className="flex justify-center">{chartContent}</div>
+        ) : !isMounted ? (
+          <div className="flex items-center justify-center h-full text-outline/20 text-[10px]">Loading Visualization...</div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
             {chartContent}
