@@ -18,7 +18,7 @@ export const SelectionHistoryPanel: React.FC<SelectionHistoryPanelProps> = ({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
       transition={{ duration: 0.25 }}
-      className="bg-surface-container-lowest rounded-2xl p-xl border border-outline-variant/30 shadow-sm flex flex-col gap-lg min-h-[600px]"
+      className="bg-surface-container-lowest rounded-2xl p-xl border border-outline-variant/30 shadow-sm flex flex-col gap-lg min-h-[450px]"
     >
       <div className="flex justify-between items-center pb-md border-b border-outline-variant/20">
         <div>
@@ -35,7 +35,7 @@ export const SelectionHistoryPanel: React.FC<SelectionHistoryPanelProps> = ({
         </span>
       </div>
 
-      <div className="flex-1 space-y-4 overflow-y-auto pr-2 max-h-[650px]">
+      <div className="flex-1 space-y-4 overflow-y-auto pr-2 max-h-[480px]">
         {historyLogs.map((log) => (
           <motion.div
             key={log.id}

@@ -785,7 +785,7 @@ function PresentationDeckEngine() {
       </section>
 
       {/* Main Builder Grid Layout */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-[500px] print:hidden">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-[380px] print:hidden">
         {/* Center Canvas Stage / Massively Expanded to 8 Columns on Left */}
         {/* Center Canvas Stage decoupled to optimized subcomponent */}
         <PresentationCanvasStage

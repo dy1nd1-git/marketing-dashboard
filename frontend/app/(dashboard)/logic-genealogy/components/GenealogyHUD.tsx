@@ -24,7 +24,7 @@ export const GenealogyHUD: React.FC<GenealogyHUDProps> = ({
   selectedNode,
 }) => {
   return (
-    <div className="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-2xl shadow-[0_8px_40px_rgba(69,101,85,0.06)] border border-outline-variant/30 relative overflow-hidden flex flex-col p-xl min-h-[650px]">
+    <div className="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-2xl shadow-[0_8px_40px_rgba(69,101,85,0.06)] border border-outline-variant/30 relative overflow-hidden flex flex-col p-xl min-h-[480px]">
       {/* Organic Background Dot Grid overlay */}
       <div
         className="absolute inset-0 pointer-events-none opacity-25"
@@ -59,7 +59,7 @@ export const GenealogyHUD: React.FC<GenealogyHUDProps> = ({
       </div>
 
       {/* Embedded Mathematical SVG Canvas rendering layer */}
-      <div className="relative flex-1 w-full my-auto min-h-[400px] overflow-x-auto overflow-y-hidden custom-scrollbar">
+      <div className="relative flex-1 w-full my-auto min-h-[300px] overflow-x-auto overflow-y-hidden custom-scrollbar">
         <svg
           className="absolute inset-0 w-full h-full min-w-[1000px] overflow-visible z-0"
           viewBox="0 0 1000 600"

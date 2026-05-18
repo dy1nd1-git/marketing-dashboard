@@ -165,9 +165,19 @@ export default async function Home({
                   <span className="text-label text-on-surface">
                     {step.label} ({step.subLabel})
                   </span>
-                  <span className="font-data-sm text-outline">
-                    {step.value} Users
-                  </span>
+                  <div className="flex items-center gap-3">
+                    {step.dropOff && (
+                      <div className="flex items-center text-secondary font-data-sm">
+                        <span className="material-symbols-outlined text-sm mr-0.5">
+                          arrow_drop_down
+                        </span>
+                        {step.dropOff}%
+                      </div>
+                    )}
+                    <span className="font-data-sm text-outline">
+                      {step.value} Users
+                    </span>
+                  </div>
                 </div>
                 <div className="h-10 w-full bg-[#f5f4ee] rounded-full overflow-hidden">
                   <div
@@ -182,14 +192,6 @@ export default async function Home({
                     </span>
                   </div>
                 </div>
-                {step.dropOff && (
-                  <div className="absolute right-0 top-1/2 -translate-y-1/2 -mr-16 flex items-center text-secondary font-data-sm">
-                    <span className="material-symbols-outlined text-sm mr-1">
-                      arrow_drop_down
-                    </span>
-                    {step.dropOff}%
-                  </div>
-                )}
               </div>
             ))}
           </div>
