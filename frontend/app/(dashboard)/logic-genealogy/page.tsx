@@ -214,25 +214,24 @@ export default function LogicCanvasPage() {
   return (
     <div className="p-xl flex flex-col gap-xl max-w-[1500px] mx-auto min-h-screen">
       {/* Top Controls & Navigation Shell */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-md pb-sm border-b border-outline-variant/30">
-        <div className="flex items-center gap-md">
-          <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-sm">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-md pb-6 border-b border-outline-variant/30">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-sm shrink-0">
             <span className="material-symbols-outlined text-primary text-[28px]">
               account_tree
             </span>
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="font-h1 text-h1 text-on-surface leading-tight">
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-[36px] font-semibold text-on-surface tracking-tight leading-none">
                 Logic Genealogy
               </h1>
-              <span className="px-2.5 py-0.5 rounded-full bg-primary-container/20 text-primary font-label text-[11px] uppercase tracking-wider">
+              <span className="px-3 py-1 bg-primary-container/20 text-primary rounded-full text-xs font-medium tracking-wide">
                 {segment}
               </span>
             </div>
-            <p className="font-label text-label text-outline">
-              Trace statistical evidence and approve predictive strategy
-              workflows.
+            <p className="text-body-md text-outline">
+              Trace statistical evidence and approve predictive strategy workflows.
             </p>
           </div>
         </div>

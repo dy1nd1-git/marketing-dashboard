@@ -20,7 +20,9 @@ export default async function Home({
   const startDate = params.start_date as string | undefined;
   const endDate = params.end_date as string | undefined;
 
-  console.log(`[Dashboard Debug] Fetching for dates: ${startDate} to ${endDate}`);
+  console.log(
+    `[Dashboard Debug] Fetching for dates: ${startDate} to ${endDate}`,
+  );
 
   // Fetch real data from BigQuery (via API)
   const dashboardData = await fetchDashboardData(startDate, endDate);
@@ -73,16 +75,27 @@ export default async function Home({
   return (
     <main className="p-xl max-w-[1400px]">
       {/* Header & Breadcrumbs Section */}
-      <section className="mb-xl">
-        <div className="flex flex-col gap-sm">
-          <div className="flex justify-between items-end">
-            <h2 className="font-h1 text-h1 text-on-surface">Exploration</h2>
-            <div className="flex gap-4 items-center">
-              <DateRangePicker />
-              <div className="h-8 w-px bg-surface-container" />
-              <SegmentSelector />
-            </div>
+      <section className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-4 border-b border-outline-variant/20 print:hidden mb-xl">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <span className="material-symbols-outlined text-primary text-3xl shrink-0">
+              Home
+            </span>
+            <h1 className="text-[36px] font-semibold text-on-surface tracking-tight leading-none shrink-0">
+              Top
+            </h1>
+            <span className="px-3 py-1 bg-primary-container/20 text-primary rounded-full text-xs font-medium tracking-wide shrink-0">
+              Overall
+            </span>
           </div>
+          <p className="text-body-md text-outline">
+            Overview of total marketing performance and ROI insights.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 self-end sm:self-auto print:hidden">
+          <DateRangePicker />
+          <div className="h-8 w-px bg-outline-variant/20 hidden sm:block" />
+          <SegmentSelector />
         </div>
       </section>
 
@@ -91,13 +104,18 @@ export default async function Home({
         {dashboardData.kpis.map((kpi, idx) => {
           const style = kpiStyles[idx];
           return (
-            <KPICard 
-              key={idx} 
+            <KPICard
+              key={idx}
               {...style}
               value={kpi.value}
               trend={{
                 label: kpi.trendValue,
-                icon: kpi.trendIcon === "arrow_upward" ? "trending_up" : (kpi.trendIcon === "arrow_downward" ? "trending_down" : "remove"),
+                icon:
+                  kpi.trendIcon === "arrow_upward"
+                    ? "trending_up"
+                    : kpi.trendIcon === "arrow_downward"
+                      ? "trending_down"
+                      : "remove",
                 colorClass: kpi.trendTextClass,
                 bgColorClass: kpi.trendBgClass,
               }}
@@ -147,12 +165,17 @@ export default async function Home({
                   <span className="text-label text-on-surface">
                     {step.label} ({step.subLabel})
                   </span>
-                  <span className="font-data-sm text-outline">{step.value} Users</span>
+                  <span className="font-data-sm text-outline">
+                    {step.value} Users
+                  </span>
                 </div>
                 <div className="h-10 w-full bg-[#f5f4ee] rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className="h-full bg-primary-container rounded-full flex items-center px-4 transition-all duration-1000 ease-out"
-                    style={{ width: `${step.percentage}%`, opacity: 1 - (index * 0.2) }}
+                    style={{
+                      width: `${step.percentage}%`,
+                      opacity: 1 - index * 0.2,
+                    }}
                   >
                     <span className="text-[10px] text-white font-bold tracking-tighter">
                       {step.percentage}% {step.subLabel.toUpperCase()}
@@ -175,14 +198,18 @@ export default async function Home({
         {/* AI Strategic Insight Bento Cluster */}
         <section className="lg:col-span-5 grid grid-cols-2 gap-md">
           {(dashboardData.insights || []).map((insight, index) => (
-            <div 
-              key={insight.title} 
+            <div
+              key={insight.title}
               className={`p-lg rounded-3xl shadow-[0_20px_30px_rgba(135,169,150,0.05)] relative group ${
-                index === 0 ? "bg-white col-span-1" : "card-professional col-span-1 border-l-4 border-secondary/20"
+                index === 0
+                  ? "bg-white col-span-1"
+                  : "card-professional col-span-1 border-l-4 border-secondary/20"
               }`}
             >
               <div className="flex justify-between items-start mb-2">
-                <span className={`material-symbols-outlined ${index === 0 ? "text-primary-container" : "text-secondary"}`}>
+                <span
+                  className={`material-symbols-outlined ${index === 0 ? "text-primary-container" : "text-secondary"}`}
+                >
                   {index === 0 ? "auto_awesome" : "lightbulb"}
                 </span>
                 <StockInsightButton
@@ -205,7 +232,7 @@ export default async function Home({
               </p>
             </div>
           ))}
-          
+
           <div className="card-professional col-span-2 text-white !bg-primary relative group">
             <div className="flex justify-between items-center mb-2">
               <div className="flex items-center gap-2">
@@ -284,17 +311,24 @@ export default async function Home({
             </thead>
             <tbody className="divide-y divide-stone-50">
               {(dashboardData.channels || []).map((channel) => (
-                <tr key={channel.id} className="hover:bg-stone-50/50 transition-colors group">
+                <tr
+                  key={channel.id}
+                  className="hover:bg-stone-50/50 transition-colors group"
+                >
                   <td className="px-xl py-lg">
                     <div className="flex items-center gap-md">
                       <div className="w-10 h-10 rounded-full bg-primary-container/10 flex items-center justify-center">
-                        <span className="font-label text-xs font-bold text-primary">{channel.icon}</span>
+                        <span className="font-label text-xs font-bold text-primary">
+                          {channel.icon}
+                        </span>
                       </div>
                       <div>
                         <p className="font-label text-sm text-on-surface">
                           {channel.name}
                         </p>
-                        <p className="text-xs text-outline">{channel.category}</p>
+                        <p className="text-xs text-outline">
+                          {channel.category}
+                        </p>
                       </div>
                     </div>
                   </td>
@@ -307,12 +341,16 @@ export default async function Home({
                   <td className="px-xl py-lg">
                     <div className="flex items-center gap-2">
                       <div className="w-12 h-1.5 bg-stone-100 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-primary-container transition-all duration-1000 ease-out" 
-                          style={{ width: `${Math.min(channel.roas * 10, 100)}%` }}
+                        <div
+                          className="h-full bg-primary-container transition-all duration-1000 ease-out"
+                          style={{
+                            width: `${Math.min(channel.roas * 10, 100)}%`,
+                          }}
                         ></div>
                       </div>
-                      <span className="font-data text-primary">{channel.roas.toFixed(2)}x</span>
+                      <span className="font-data text-primary">
+                        {channel.roas.toFixed(2)}x
+                      </span>
                     </div>
                   </td>
                   <td className="px-xl py-lg text-right">

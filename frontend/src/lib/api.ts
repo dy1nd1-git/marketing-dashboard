@@ -12,9 +12,11 @@ import {
 import { z } from "zod";
 
 export const getServerApiUrl = (): string => {
+  // サーバー側（windowがない環境）のときは、安全な「API_BASE_URL」を最優先で見る
   if (typeof window === "undefined") {
-    return process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
+    return process.env.API_BASE_URL || "http://localhost:8080";
   }
+  // ブラウザ側のときは、公開用の「NEXT_PUBLIC_API_BASE_URL」を見る
   return process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
 };
 
@@ -234,7 +236,7 @@ export const fetchDashboardData = async (
     const response = await fetch(url);
     if (!response.ok) throw new Error("Failed to fetch dashboard data");
     const data: BackendDashboardResponse = await response.json();
-    
+
     // Validate response data
     const validation = DashboardResponseSchema.safeParse(data);
     if (!validation.success) {
@@ -365,13 +367,16 @@ export const fetchDailyCVR = async (
     const queryString = params.toString();
     const baseUrl = getServerApiUrl();
     const url = `${baseUrl}/api/v1/marketing/daily-cvr${queryString ? `?${queryString}` : ""}`;
-    
+
     const response = await fetch(url);
     if (!response.ok) throw new Error("Failed to fetch daily CVR");
-    
+
     return await response.json();
   } catch (error) {
     console.error("Failed to fetch marketing telemetry:", error);
-    return { data: [], metadata: { engine: "Decision-Tracer-BQ-Fallback-v1", confidence: "Low" } };
+    return {
+      data: [],
+      metadata: { engine: "Decision-Tracer-BQ-Fallback-v1", confidence: "Low" },
+    };
   }
 };
