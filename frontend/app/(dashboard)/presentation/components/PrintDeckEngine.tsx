@@ -28,7 +28,7 @@ export const PrintDeckEngine: React.FC<PrintDeckEngineProps> = ({
         backgroundColor: "transparent",
       }}
     >
-      {deck.map((slide: SlidePage, index: number) => (
+      {isExporting && deck.map((slide: SlidePage, index: number) => (
         <div
           key={`print_slide_${slide.id}`}
           id={`print-slide-container-${index}`}

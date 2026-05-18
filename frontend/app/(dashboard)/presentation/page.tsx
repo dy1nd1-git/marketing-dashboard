@@ -81,6 +81,14 @@ function PresentationDeckEngine() {
   const [isFullscreenMode, setIsFullscreenMode] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsMounted(true);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Fullscreen slideshow keyboard controller hooks supporting arrow flips and direct escape closures
   useEffect(() => {
@@ -568,8 +576,12 @@ Then, suggest a strategic summary for this deck based on the aggregated data pro
             <div style={{ display: "flex", justifyContent: "center" }}>
               {chartContent}
             </div>
+          ) : !isMounted ? (
+            <div className="flex items-center justify-center h-full text-outline/20 text-[10px]">
+              Loading Visualization...
+            </div>
           ) : (
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height={displayH} minWidth={0}>
               {chartContent}
             </ResponsiveContainer>
           )}
@@ -665,8 +677,10 @@ Then, suggest a strategic summary for this deck based on the aggregated data pro
           >
             {isExportingMode ? (
               chartContent
+            ) : !isMounted ? (
+              <div className="text-outline/20 text-[8px]">Loading...</div>
             ) : (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height={kpiH} minWidth={0}>
                 {chartContent}
               </ResponsiveContainer>
             )}
@@ -754,8 +768,12 @@ Then, suggest a strategic summary for this deck based on the aggregated data pro
       >
         {isExportingMode ? (
           <div className="flex justify-center">{chartContent}</div>
+        ) : !isMounted ? (
+          <div className="flex items-center justify-center h-full text-outline/20 text-[10px]">
+            Loading Visualization...
+          </div>
         ) : (
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height={displayH} minWidth={0}>
             {chartContent}
           </ResponsiveContainer>
         )}
