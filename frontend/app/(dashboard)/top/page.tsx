@@ -364,12 +364,6 @@ export default async function Home({
           </table>
         </div>
       </section>
-
-      {/* FAB Action (Contextual) */}
-      <button className="fixed bottom-10 right-10 z-50 bg-primary-container text-white p-5 rounded-full shadow-2xl shadow-primary-container/40 soft-pulse flex items-center gap-3">
-        <span className="material-symbols-outlined">smart_toy</span>
-        <span className="font-label">Ask Strategist</span>
-      </button>
     </main>
   );
 }
