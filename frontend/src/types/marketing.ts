@@ -125,3 +125,28 @@ export interface LineageTelemetry {
   researchNotes?: string;
 }
 
+export interface Lineage {
+  source: string;
+  query_id?: string;
+  sql_ref?: string;
+  timestamp?: string;
+}
+
+export interface DailyCVR {
+  date: string;
+  revenue: number;
+  spend: number;
+  roas: number;
+  ctr: number;
+  cvr: number;
+  is_anomaly?: boolean;
+  z_score?: number;
+  lineage?: Lineage;
+}
+
+export interface ResponseMetadata {
+  engine: string;
+  confidence: string;
+  sql_ref?: string;
+}
+

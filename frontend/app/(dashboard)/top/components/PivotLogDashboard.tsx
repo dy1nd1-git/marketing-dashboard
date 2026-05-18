@@ -1,42 +1,18 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { fetchPivotData } from "../../../../src/lib/api";
+import React from "react";
 import { PivotDetails } from "../../../../src/types/marketing";
 import { PivotChart } from "./PivotChart";
 
 interface PivotLogDashboardProps {
-  pivotId: string;
+  data: PivotDetails;
   showBadge: boolean;
 }
 
 export const PivotLogDashboard: React.FC<PivotLogDashboardProps> = ({
-  pivotId,
+  data,
   showBadge,
 }) => {
-  const [data, setData] = useState<PivotDetails | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      const pivotData = await fetchPivotData(pivotId);
-      setData(pivotData);
-      setLoading(false);
-    };
-    loadData();
-  }, [pivotId]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#2F2F2F] flex items-center justify-center">
-        <div className="text-[#50C878] animate-pulse">
-          Loading Pivot Data...
-        </div>
-      </div>
-    );
-  }
-
   if (!data) return null;
 
   return (

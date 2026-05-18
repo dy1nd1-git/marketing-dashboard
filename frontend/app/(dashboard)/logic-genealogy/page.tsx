@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useTransition } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMarketingContext } from "../../../src/context/MarketingContext";
-import { HistoryLogItem, StrategyNode } from "./components/types";
+import { HistoryLogItem, StrategyNode } from "../../../src/types/genealogy";
 import { SelectionHistoryPanel } from "./components/SelectionHistoryPanel";
 import { DocumentPanel } from "./components/DocumentPanel";
 import { EvidencePanel } from "./components/EvidencePanel";
@@ -109,9 +109,9 @@ const INITIAL_DEMO_HISTORY: HistoryLogItem[] = [
 
 export default function LogicCanvasPage() {
   const { segment } = useMarketingContext();
-  const [activeTab, setActiveTab] = useState<"Genealogy" | "Document" | "History">(
-    "Genealogy"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "Genealogy" | "Document" | "History"
+  >("Genealogy");
   const [selectedNodeId, setSelectedNodeId] = useState<string>("node-rec-1");
   const [historyLogs, setHistoryLogs] = useState<HistoryLogItem[]>([]);
   const [isApproving, setIsApproving] = useState<boolean>(false);
@@ -129,7 +129,7 @@ export default function LogicCanvasPage() {
           setHistoryLogs(INITIAL_DEMO_HISTORY);
           localStorage.setItem(
             "logic_canvas_history",
-            JSON.stringify(INITIAL_DEMO_HISTORY)
+            JSON.stringify(INITIAL_DEMO_HISTORY),
           );
         }
       }, 0);
@@ -160,10 +160,7 @@ export default function LogicCanvasPage() {
         };
         const updated = [newLog, ...prev];
         try {
-          localStorage.setItem(
-            "logic_canvas_history",
-            JSON.stringify(updated)
-          );
+          localStorage.setItem("logic_canvas_history", JSON.stringify(updated));
         } catch (e) {
           console.error("Failed saving log", e);
         }
@@ -203,7 +200,7 @@ export default function LogicCanvasPage() {
           try {
             localStorage.setItem(
               "logic_canvas_history",
-              JSON.stringify(updated)
+              JSON.stringify(updated),
             );
           } catch (e) {
             console.error("Storage error", e);
@@ -234,7 +231,8 @@ export default function LogicCanvasPage() {
               </span>
             </div>
             <p className="font-label text-label text-outline">
-              Trace statistical evidence and approve predictive strategy workflows.
+              Trace statistical evidence and approve predictive strategy
+              workflows.
             </p>
           </div>
         </div>
@@ -312,7 +310,7 @@ export default function LogicCanvasPage() {
           <button
             onClick={() => {
               alert(
-                `Saved strategy context for "${selectedNode.label}" to persistent Insight Cart.`
+                `Saved strategy context for "${selectedNode.label}" to persistent Insight Cart.`,
               );
             }}
             className="flex-1 sm:flex-none px-6 py-3 rounded-xl border border-[#D4A373] text-[#D4A373] font-label text-label hover:bg-[#D4A373]/5 transition-colors uppercase tracking-wider text-center"

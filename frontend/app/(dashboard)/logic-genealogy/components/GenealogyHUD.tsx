@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { StrategyNode } from "./types";
+import { StrategyNode } from "../../../../src/types/genealogy";
 
 interface GenealogyHUDProps {
   STRATEGY_NODES: StrategyNode[];
@@ -67,13 +67,7 @@ export const GenealogyHUD: React.FC<GenealogyHUDProps> = ({
         >
           <defs>
             {/* Shadow Filter for Nodes */}
-            <filter
-              id="node-glow"
-              x="-20%"
-              y="-20%"
-              width="140%"
-              height="140%"
-            >
+            <filter id="node-glow" x="-20%" y="-20%" width="140%" height="140%">
               <feDropShadow
                 dx="0"
                 dy="4"

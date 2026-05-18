@@ -1,6 +1,6 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import DailyDashboard from "./page";
+import { DailyAnalysisClient } from "./components/DailyAnalysisClient";
 
 // Mock next/navigation
 const pushMock = vi.fn();
@@ -14,7 +14,7 @@ vi.mock("next/navigation", () => ({
 vi.mock("../../../src/context/InsightCartContext", () => ({
   useInsightCart: () => ({
     items: [],
-    addItem: vi.fn(),
+    addInsight: vi.fn(),
     removeItem: vi.fn(),
     clearCart: vi.fn(),
   }),
@@ -56,28 +56,20 @@ const mockDailyResponse = {
   ],
 };
 
-describe("DailyDashboard (Subaquatic Observatory & Tactical Grids)", () => {
+describe("DailyAnalysisClient (Subaquatic Observatory & Tactical Grids)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-
-    // Mock global fetch
-    global.fetch = vi.fn(async (input: RequestInfo | URL) => {
-      const urlStr = typeof input === "string" ? input : ("url" in input ? (input as Request).url : input.toString());
-      if (urlStr.includes("daily-cvr")) {
-        return {
-          json: async () => mockDailyResponse,
-        } as Response;
-      }
-      return { json: async () => ({}) } as Response;
-    });
   });
 
   it("renders dashboard grid layout initially", async () => {
-    render(<DailyDashboard />);
+    render(
+      <DailyAnalysisClient
+        initialData={mockDailyResponse.data}
+        initialMetadata={mockDailyResponse.metadata}
+      />
+    );
 
-    await waitFor(() => {
-      expect(screen.getByText("Subaquatic Observatory")).toBeDefined();
-    });
+    expect(screen.getByText("Subaquatic Observatory")).toBeDefined();
 
     // 確認: 3列のタイトルが表示されていること
     expect(screen.getByText("Daily Tactical")).toBeDefined();
@@ -86,11 +78,12 @@ describe("DailyDashboard (Subaquatic Observatory & Tactical Grids)", () => {
   });
 
   it("applies Static Red anomaly styling correctly to threshold-exceeding rows", async () => {
-    render(<DailyDashboard />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Subaquatic Observatory")).toBeDefined();
-    });
+    render(
+      <DailyAnalysisClient
+        initialData={mockDailyResponse.data}
+        initialMetadata={mockDailyResponse.metadata}
+      />
+    );
 
     // Verify row with ROAS 9.00 has custom styling assigned
     const anomalyCell = screen.getByText("9.00").closest("td");
@@ -99,11 +92,12 @@ describe("DailyDashboard (Subaquatic Observatory & Tactical Grids)", () => {
   });
 
   it("triggers deep dive route pivoting upon anomaly row interaction", async () => {
-    render(<DailyDashboard />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Subaquatic Observatory")).toBeDefined();
-    });
+    render(
+      <DailyAnalysisClient
+        initialData={mockDailyResponse.data}
+        initialMetadata={mockDailyResponse.metadata}
+      />
+    );
 
     const anomalyRow = screen.getByText("9.00").closest("tr");
     expect(anomalyRow).toBeDefined();

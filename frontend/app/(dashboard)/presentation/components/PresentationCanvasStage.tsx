@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { SlidePage } from "./types";
+import { SlidePage } from "../../../../src/types/presentation";
 import { InsightItem } from "../../../../src/context/InsightCartContext";
 
 interface PresentationCanvasStageProps {
@@ -12,7 +12,11 @@ interface PresentationCanvasStageProps {
   handleDrop: (e: React.DragEvent) => void;
   updateNodeTitle: (nodeId: string, newTitle: string) => void;
   removeNodeFromActiveSlide: (nodeId: string) => void;
-  renderNodeVisual: (item: InsightItem, isExporting?: boolean, height?: number) => React.ReactNode;
+  renderNodeVisual: (
+    item: InsightItem,
+    isExporting?: boolean,
+    height?: number,
+  ) => React.ReactNode;
   selectedNodeId: string | null;
   setSelectedNodeId: (id: string | null) => void;
   updateNodeHeight: (nodeId: string, height: number) => void;
@@ -41,7 +45,11 @@ export const PresentationCanvasStage: React.FC<
   const [startY, setStartY] = useState(0);
   const [startHeight, setStartHeight] = useState(0);
 
-  const handleResizeStart = (e: React.MouseEvent, nodeId: string, currentHeight: number) => {
+  const handleResizeStart = (
+    e: React.MouseEvent,
+    nodeId: string,
+    currentHeight: number,
+  ) => {
     e.preventDefault();
     e.stopPropagation();
     setResizingNodeId(nodeId);
@@ -129,8 +137,8 @@ export const PresentationCanvasStage: React.FC<
           activeSlide.theme === "dark"
             ? "bg-[#1E1E1E] text-white border-stone-700"
             : activeSlide.theme === "mellow"
-            ? "bg-[#F5F4EE] text-on-surface border-[#87A996]/40"
-            : "bg-white text-on-surface border-outline-variant/40"
+              ? "bg-[#F5F4EE] text-on-surface border-[#87A996]/40"
+              : "bg-white text-on-surface border-outline-variant/40"
         } shadow-lg custom-scrollbar`}
       >
         {/* Absolute watermark indicator */}
@@ -182,21 +190,25 @@ export const PresentationCanvasStage: React.FC<
                     selectedNodeId === node.id
                       ? "ring-2 ring-primary border-primary shadow-lg bg-primary/5"
                       : activeSlide.theme === "dark"
-                      ? "bg-stone-900 border-stone-800 text-stone-200"
-                      : "bg-surface-container-lowest border-outline-variant/40 text-on-surface"
+                        ? "bg-stone-900 border-stone-800 text-stone-200"
+                        : "bg-surface-container-lowest border-outline-variant/40 text-on-surface"
                   } hover:shadow-md`}
                 >
                   <div>
                     <div className="flex items-center justify-between mb-2 gap-2">
                       <div className="flex items-center gap-1.5 flex-1 min-w-0">
                         <span className="material-symbols-outlined text-sm text-primary shrink-0">
-                          {node.item.type === "table" ? "table_chart" : "analytics"}
+                          {node.item.type === "table"
+                            ? "table_chart"
+                            : "analytics"}
                         </span>
                         <input
                           type="text"
                           value={node.item.title}
                           onClick={(e) => e.stopPropagation()}
-                          onChange={(e) => updateNodeTitle(node.id, e.target.value)}
+                          onChange={(e) =>
+                            updateNodeTitle(node.id, e.target.value)
+                          }
                           className="font-label font-bold bg-transparent border-b border-transparent hover:border-outline-variant/40 focus:border-primary outline-none truncate w-full transition-colors text-base"
                           placeholder="Visual Title..."
                         />
@@ -205,7 +217,8 @@ export const PresentationCanvasStage: React.FC<
                         onClick={(e) => {
                           e.stopPropagation();
                           removeNodeFromActiveSlide(node.id);
-                          if (selectedNodeId === node.id) setSelectedNodeId(null);
+                          if (selectedNodeId === node.id)
+                            setSelectedNodeId(null);
                         }}
                         className="p-1 text-outline hover:text-error transition-colors rounded shrink-0 relative z-10"
                         aria-label="Remove node"
@@ -221,7 +234,9 @@ export const PresentationCanvasStage: React.FC<
 
                   {/* Manual Resize Handle */}
                   <div
-                    onMouseDown={(e) => handleResizeStart(e, node.id, node.height || 280)}
+                    onMouseDown={(e) =>
+                      handleResizeStart(e, node.id, node.height || 280)
+                    }
                     className={`absolute bottom-0 left-0 right-0 h-4 cursor-ns-resize flex items-center justify-center group/handle transition-colors hover:bg-primary/10 rounded-b-xl ${
                       resizingNodeId === node.id ? "bg-primary/20" : ""
                     }`}

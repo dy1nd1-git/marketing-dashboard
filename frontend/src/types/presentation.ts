@@ -1,4 +1,4 @@
-import { InsightItem } from "../../../../src/context/InsightCartContext";
+import { InsightItem } from "../context/InsightCartContext";
 
 export interface SlideNode {
   id: string;

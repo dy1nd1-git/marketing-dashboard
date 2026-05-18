@@ -19,12 +19,13 @@ import {
   CartesianGrid,
 } from "recharts";
 
-import { SlideNode, SlidePage } from "./components/types";
+import { SlideNode, SlidePage } from "../../../src/types/presentation";
 import { PresentationSidebar } from "./components/PresentationSidebar";
 import { FullscreenPresentationModal } from "./components/FullscreenPresentationModal";
 import { ExportGuidanceModal } from "./components/ExportGuidanceModal";
 import { PrintDeckEngine } from "./components/PrintDeckEngine";
 import { PresentationCanvasStage } from "./components/PresentationCanvasStage";
+import { generateAiPrompt } from "./utils/promptGenerator";
 
 // Sparklines mockup telemetry bounds enabling rich graphical visual feedback
 const mockTrendData = [
@@ -169,57 +170,7 @@ function PresentationDeckEngine() {
   // --- AI Analysis Orchestration (Phase 1: Data-Centric Reconstruction Prompt) ---
   const copyAiPrompt = () => {
     try {
-      const fullDeckBlueprint = deck
-        .map((slide, sIdx) => {
-          const artifacts = slide.nodes
-            .map((node, nIdx) => {
-              // Serialize the raw data for factual reconstruction
-              const rawDataString = node.item.chartPayload
-                ? JSON.stringify(node.item.chartPayload, null, 2)
-                : "No raw payload available (Summary: " +
-                  (node.item.metricsSummary || "N/A") +
-                  ")";
-
-              return `### Artifact ${nIdx + 1}: ${node.item.title}
-- **Data Type**: ${node.item.type}
-- **Raw Analytical Data**:
-\`\`\`json
-${rawDataString}
-\`\`\`
-`;
-            })
-            .join("\n");
-
-          return `## SLIDE ${sIdx + 1}: ${slide.title || "Untitled"}
-**Context/Subtitle**: ${slide.subtitle || "N/A"}
-**Strategic Notes**: ${slide.executiveNotes || "N/A"}
-
-${artifacts}
-`;
-        })
-        .join("\n\n---\n\n");
-
-      const prompt = `
-# SYSTEM ROLE: Data Analyst & Presentation Logic Architect
-# TASK: Generate a data-driven presentation based on the following metrics.
-
-You are provided with the logical structure and raw data for a marketing ROI deck. 
-Focus exclusively on the data accuracy and the strategic narrative. 
-
-# DATA HIERARCHY:
-
-${fullDeckBlueprint}
-
-# RECONSTRUCTION GUIDELINES:
-1. **Data Accuracy**: Use the provided JSON payloads to represent the metrics exactly as they appear in the source.
-2. **Logical Sequence**: Maintain the slide and artifact order to preserve the narrative flow.
-3. **Note Integration**: Use the "Strategic Notes" to inform the insights or summaries for each slide.
-
-# FINAL OUTPUT REQUEST:
-Confirm that you have received all ${deck.length} slides and the associated data. 
-Then, suggest a strategic summary for this deck based on the aggregated data provided.
-`.trim();
-
+      const prompt = generateAiPrompt(deck);
       navigator.clipboard.writeText(prompt);
       alert(`Data Blueprint (${deck.length} slides) copied!`);
     } catch (error) {

@@ -5,7 +5,7 @@ import { SegmentSelector } from "../../../src/components/dashboard/SegmentSelect
 import { StockInsightButton } from "../../../src/components/dashboard/StockInsightButton";
 import { DateRangePicker } from "../../../src/components/dashboard/DateRangePicker";
 import { ROASMatrix } from "./components/ROASMatrix";
-import { fetchDashboardData } from "../../../src/lib/api";
+import { fetchDashboardData, fetchPivotData } from "../../../src/lib/api";
 
 export default async function Home({
   searchParams,
@@ -26,7 +26,8 @@ export default async function Home({
   const dashboardData = await fetchDashboardData(startDate, endDate);
 
   if (pivotId && isCompare) {
-    return <PivotLogDashboard pivotId={pivotId} showBadge={showBadge} />;
+    const pivotData = await fetchPivotData(pivotId);
+    return <PivotLogDashboard data={pivotData} showBadge={showBadge} />;
   }
 
   // Base styles for KPIs (to be merged with dynamic data)

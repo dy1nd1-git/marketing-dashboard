@@ -1,4 +1,3 @@
-import axios from "axios";
 import {
   MarketingData,
   DashboardData,
@@ -7,12 +6,17 @@ import {
   FunnelStep,
   ChannelStats,
   DashboardInsight,
+  DailyCVR,
+  ResponseMetadata,
 } from "../types/marketing";
 import { z } from "zod";
 
-export const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080",
-});
+export const getServerApiUrl = (): string => {
+  if (typeof window === "undefined") {
+    return process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
+  }
+  return process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
+};
 
 export const fetchMarketingDataMock = async (): Promise<MarketingData[]> => {
   return [
@@ -25,8 +29,10 @@ export const fetchMarketingDataMock = async (): Promise<MarketingData[]> => {
 
 export const fetchMarketingData = async (): Promise<MarketingData[]> => {
   try {
-    const response = await apiClient.get<MarketingData[]>("/api/marketing");
-    return response.data;
+    const baseUrl = getServerApiUrl();
+    const response = await fetch(`${baseUrl}/api/marketing`);
+    if (!response.ok) throw new Error("Failed to fetch marketing data");
+    return await response.json();
   } catch {
     console.warn("API Error: falling back to mock data");
     return fetchMarketingDataMock();
@@ -223,17 +229,20 @@ export const fetchDashboardData = async (
     if (endDate) params.append("end_date", endDate);
 
     const queryString = params.toString();
-    const url = `/api/v1/marketing/dashboard${queryString ? `?${queryString}` : ""}`;
-    const response = await apiClient.get<BackendDashboardResponse>(url);
+    const baseUrl = getServerApiUrl();
+    const url = `${baseUrl}/api/v1/marketing/dashboard${queryString ? `?${queryString}` : ""}`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Failed to fetch dashboard data");
+    const data: BackendDashboardResponse = await response.json();
     
     // Validate response data
-    const validation = DashboardResponseSchema.safeParse(response.data);
+    const validation = DashboardResponseSchema.safeParse(data);
     if (!validation.success) {
       console.error("API Validation Failed:", validation.error.format());
       throw new Error("Invalid API response structure");
     }
 
-    const { stats, matrix, funnel, channels, insights } = response.data;
+    const { stats, matrix, funnel, channels, insights } = data;
 
     const kpis = [
       {
@@ -334,10 +343,35 @@ export const fetchPivotDataMock = async (id: string): Promise<PivotDetails> => {
 
 export const fetchPivotData = async (id: string): Promise<PivotDetails> => {
   try {
-    const response = await apiClient.get<PivotDetails>(`/api/pivot/${id}`);
-    return response.data;
+    const baseUrl = getServerApiUrl();
+    const response = await fetch(`${baseUrl}/api/pivot/${id}`);
+    if (!response.ok) throw new Error("Failed to fetch pivot data");
+    return await response.json();
   } catch {
     console.warn("API Error: falling back to mock pivot data");
     return fetchPivotDataMock(id);
+  }
+};
+
+export const fetchDailyCVR = async (
+  startDate?: string,
+  endDate?: string,
+): Promise<{ data: DailyCVR[]; metadata: ResponseMetadata }> => {
+  try {
+    const params = new URLSearchParams();
+    if (startDate) params.append("start_date", startDate);
+    if (endDate) params.append("end_date", endDate);
+
+    const queryString = params.toString();
+    const baseUrl = getServerApiUrl();
+    const url = `${baseUrl}/api/v1/marketing/daily-cvr${queryString ? `?${queryString}` : ""}`;
+    
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Failed to fetch daily CVR");
+    
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to fetch marketing telemetry:", error);
+    return { data: [], metadata: { engine: "Decision-Tracer-BQ-Fallback-v1", confidence: "Low" } };
   }
 };
