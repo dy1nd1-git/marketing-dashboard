@@ -12,3 +12,6 @@ server.exe
 
 # OS files
 .DS_Store
+
+# Samples
+sample.go
