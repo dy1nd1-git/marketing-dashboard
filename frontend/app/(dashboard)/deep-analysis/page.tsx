@@ -180,7 +180,7 @@ function AnaliseContent() {
         <div className="flex justify-between items-center gap-8">
           <div className="flex-1 flex items-center gap-3">
             <span className="material-symbols-outlined text-primary text-[32px] shrink-0">
-              insights
+              troubleshoot
             </span>
             <h1 className="text-[36px] font-semibold text-on-surface tracking-tight leading-none shrink-0">
               Deep Analysis

@@ -346,7 +346,7 @@ export function DailyAnalysisClient({
         <div>
           <div className="flex items-center gap-3 mb-2">
             <span className="material-symbols-outlined text-primary text-[32px] shrink-0">
-              query_stats
+              insert_chart
             </span>
             <h1 className="text-[36px] font-semibold text-on-surface tracking-tight leading-none shrink-0">
               Daily Analysis

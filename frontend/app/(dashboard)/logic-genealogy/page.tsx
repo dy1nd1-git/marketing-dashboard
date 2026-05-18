@@ -214,26 +214,22 @@ export default function LogicCanvasPage() {
   return (
     <div className="p-xl flex flex-col gap-xl max-w-[1500px] mx-auto min-h-screen">
       {/* Top Controls & Navigation Shell */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-md pb-6 border-b border-outline-variant/30">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-sm shrink-0">
-            <span className="material-symbols-outlined text-primary text-[28px]">
+      <section className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-4 border-b border-outline-variant/20 print:hidden mb-6">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <span className="material-symbols-outlined text-primary text-3xl shrink-0">
               account_tree
             </span>
+            <h1 className="text-[36px] font-semibold text-on-surface tracking-tight leading-none shrink-0">
+              Logic Genealogy
+            </h1>
+            <span className="px-3 py-1 bg-primary-container/20 text-primary rounded-full text-xs font-medium tracking-wide shrink-0">
+              {segment}
+            </span>
           </div>
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-[36px] font-semibold text-on-surface tracking-tight leading-none">
-                Logic Genealogy
-              </h1>
-              <span className="px-3 py-1 bg-primary-container/20 text-primary rounded-full text-xs font-medium tracking-wide">
-                {segment}
-              </span>
-            </div>
-            <p className="text-body-md text-outline">
-              Trace statistical evidence and approve predictive strategy workflows.
-            </p>
-          </div>
+          <p className="text-body-md text-outline">
+            Trace statistical evidence and approve predictive strategy workflows.
+          </p>
         </div>
 
         {/* Dynamic Mode Switcher */}
@@ -267,7 +263,7 @@ export default function LogicCanvasPage() {
             );
           })}
         </div>
-      </div>
+      </section>
 
       {/* Main Responsive Render Area */}
       <AnimatePresence mode="wait">
