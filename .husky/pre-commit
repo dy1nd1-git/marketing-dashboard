@@ -1,0 +1,4 @@
+cd frontend
+echo "🔍 Running pre-commit checks from frontend context..."
+npm run type-check || { echo "❌ TypeScript Error: コミットを中断しました。"; exit 1; }
+npx lint-staged

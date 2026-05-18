@@ -1,0 +1,17 @@
+# Environment Variables
+.env
+.env.local
+
+# Binaries
+main
+server
+server.exe
+*.exe
+*.test
+*.prof
+
+# OS files
+.DS_Store
+
+# Samples
+sample.go

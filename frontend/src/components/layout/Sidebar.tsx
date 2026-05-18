@@ -16,15 +16,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const pathname = usePathname();
 
   const navItems = [
-    { name: "Top", path: "/", icon: "home" },
-    { name: "Daily Analysis", path: "/daily-analise", icon: "insert_chart" },
-    { name: "Deep Analysis", path: "/analise", icon: "troubleshoot" },
-    { name: "Logic Canvas", path: "/logic-canvas", icon: "account_tree" },
+    { name: "Top", path: "/top", icon: "home" },
+    { name: "Daily Analysis", path: "/daily-analysis", icon: "insert_chart" },
+    { name: "Deep Analysis", path: "/deep-analysis", icon: "troubleshoot" },
+    { name: "Logic Genealogy", path: "/logic-genealogy", icon: "account_tree" },
+    { name: "Presentation Master", path: "/presentation", icon: "co_present" },
   ];
 
   return (
     <aside
-      className={`fixed left-0 top-0 h-full flex flex-col transition-all duration-300 border-r border-surface-container bg-surface z-50 ${isCollapsed ? "w-20" : "w-[300px]"}`}
+      className={`fixed left-0 top-0 h-full flex flex-col transition-all duration-300 border-r border-surface-container bg-surface z-50 print:hidden ${isCollapsed ? "w-20" : "w-[300px]"}`}
     >
       {/* Brand Logo Section */}
       <div

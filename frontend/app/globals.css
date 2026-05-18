@@ -130,3 +130,11 @@
   font-family: var(--font-data);
   font-size: 13px;
 }
+
+/* DESIGN SYSTEM STATIC RED ANOMALY STYLING */
+.anomaly-glow {
+  color: #E57373 !important;
+  box-shadow: inset 4px 0 0 0 #E57373, 0 4px 12px rgba(229, 115, 115, 0.15) !important;
+  background-color: rgba(229, 115, 115, 0.05) !important;
+}
+

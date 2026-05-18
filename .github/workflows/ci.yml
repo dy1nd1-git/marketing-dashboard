@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
   pull_request:
-    branches: [main]
+    branches: [main, dev]
 
 jobs:
   frontend-test:
@@ -19,6 +19,7 @@ jobs:
           node-version: "20"
       - run: npm install
       - run: npm run build
+      - run: npm run test
 
   backend-test:
     runs-on: ubuntu-latest

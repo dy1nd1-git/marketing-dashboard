@@ -24,6 +24,11 @@ go.sum (※必要に応じて残してください)
 
 # OS/System files
 .DS_Store
+.antigravity/
 Thumbs.db
 .vscode/
 .idea/
+scripts/
+
+# Scratch/Temporary files
+scratch/

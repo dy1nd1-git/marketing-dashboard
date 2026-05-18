@@ -1,9 +1,22 @@
-import axios from "axios";
-import { MarketingData, DashboardData, PivotDetails } from "../types/marketing";
+import {
+  MarketingData,
+  DashboardData,
+  PivotDetails,
+  ROASMatrixCell,
+  FunnelStep,
+  ChannelStats,
+  DashboardInsight,
+  DailyCVR,
+  ResponseMetadata,
+} from "../types/marketing";
+import { z } from "zod";
 
-export const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080",
-});
+export const getServerApiUrl = (): string => {
+  if (typeof window === "undefined") {
+    return process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
+  }
+  return process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
+};
 
 export const fetchMarketingDataMock = async (): Promise<MarketingData[]> => {
   return [
@@ -16,8 +29,10 @@ export const fetchMarketingDataMock = async (): Promise<MarketingData[]> => {
 
 export const fetchMarketingData = async (): Promise<MarketingData[]> => {
   try {
-    const response = await apiClient.get<MarketingData[]>("/api/marketing");
-    return response.data;
+    const baseUrl = getServerApiUrl();
+    const response = await fetch(`${baseUrl}/api/marketing`);
+    if (!response.ok) throw new Error("Failed to fetch marketing data");
+    return await response.json();
   } catch {
     console.warn("API Error: falling back to mock data");
     return fetchMarketingDataMock();
@@ -90,117 +105,204 @@ export const fetchDashboardDataMock = async (): Promise<DashboardData> => {
     ],
     funnel: [
       {
-        label: "Impressions",
+        label: "Awareness",
         value: "1.2M",
-        metricLabel: "Reach",
-        metricValue: "100%",
-        colorClassMain: "bg-indigo-50/50",
-        colorClassHover: "group-hover:bg-indigo-50",
-        widthClass: "w-full",
-        textMainClass: "text-slate-700",
-        textSubClass: "text-slate-400",
+        percentage: 100,
+        subLabel: "Baseline",
       },
       {
-        label: "Clicks",
-        value: "48,200",
-        metricLabel: "CTR",
-        metricValue: "4.0%",
-        dropValue: "96% Drop",
-        colorClassMain: "bg-indigo-100",
-        colorClassHover: "group-hover:bg-indigo-200",
-        widthClass: "w-[85%]",
-        textMainClass: "text-slate-700",
-        textSubClass: "text-slate-400",
+        label: "Consideration",
+        value: "840K",
+        percentage: 70,
+        subLabel: "Retention",
+        dropOff: 30,
       },
       {
-        label: "Cart Add",
-        value: "4,120",
-        metricLabel: "Intent",
-        metricValue: "8.5%",
-        dropValue: "91% Drop",
-        colorClassMain: "bg-indigo-400/80",
-        colorClassHover: "group-hover:bg-indigo-400",
-        widthClass: "w-[60%]",
-        textMainClass: "text-white",
-        textSubClass: "text-white/70",
+        label: "Intent",
+        value: "125K",
+        percentage: 45,
+        subLabel: "Clicks",
+        dropOff: 25,
       },
       {
         label: "Purchase",
-        value: "1,894",
-        metricLabel: "Conv.",
-        metricValue: "46%",
-        colorClassMain: "bg-indigo-600 shadow-lg shadow-indigo-200",
-        colorClassHover: "group-hover:bg-indigo-700",
-        widthClass: "w-[30%]",
-        textMainClass: "text-white",
-        textSubClass: "text-white/70",
-      },
-    ],
-    insights: [
-      {
-        type: "success",
-        title: "What went well",
-        description: "Brand awareness campaigns on Instagram saw a 12% lift in search volume. Efficient ROAS growth in Tier 2 cities.",
-        icon: "stars",
-      },
-      {
-        type: "warning",
-        title: "Improvements",
-        description: "High cart abandonment (91%) on mobile devices. Checkout latency is affecting completion rates.",
-        icon: "warning",
-      },
-      {
-        type: "info",
-        title: "Root Cause Analysis",
-        description: "Mobile API bottleneck discovered in the 'Spring Sale' landing pages during peak traffic hours (6PM-9PM).",
-        icon: "search",
+        value: "3.4K",
+        percentage: 15,
+        subLabel: "Conv.",
+        dropOff: 30,
       },
     ],
     channels: [
       {
-        id: "ig",
-        name: "Instagram Ads",
-        category: "Social Media",
-        spend: "$12,450",
-        revenue: "$68,200",
-        roas: "5.48x",
-        icon: "IG",
-        color: "indigo",
+        id: "1",
+        name: "Meta Ads",
+        category: "Paid Social",
+        spend: 24300,
+        revenue: 182500,
+        roas: 7.51,
+        icon: "M",
       },
       {
-        id: "gs",
+        id: "2",
         name: "Google Search",
-        category: "Paid Search",
-        spend: "$18,200",
-        revenue: "$52,140",
-        roas: "2.86x",
-        icon: "GS",
-        color: "slate",
+        category: "PPC",
+        spend: 12100,
+        revenue: 64200,
+        roas: 5.3,
+        icon: "G",
       },
       {
-        id: "em",
-        name: "Email Marketing",
-        category: "Retention",
-        spend: "$2,550",
-        revenue: "$21,044",
-        roas: "8.25x",
-        icon: "EM",
-        color: "green",
+        id: "3",
+        name: "TikTok Spark",
+        category: "Social",
+        spend: 8500,
+        revenue: 42000,
+        roas: 4.94,
+        icon: "T",
       },
     ],
-    liveInsight: {
-      title: "Live Insight",
-      description: "Spring Sale conversion up 4% today",
+    insights: [
+      {
+        title: "Top Success",
+        description: "Paid social scaling increased ROAS by 14% this week.",
+      },
+      {
+        title: "Opportunity",
+        description: "SMS retargeting shows 4x higher intent than email.",
+      },
+    ],
+    stats: {
+      revenue: 142384,
+      revenue_diff: 12.4,
+      spend: 34200,
+      spend_diff: 0.5,
+      roas: 4.16,
+      roas_diff: 2.1,
+      conversions: 3400,
+      conv_diff: 5.2,
     },
+    matrix: [],
   };
 };
 
-export const fetchDashboardData = async (): Promise<DashboardData> => {
+export interface BackendDashboardResponse {
+  stats: {
+    revenue: number;
+    revenue_diff: number;
+    spend: number;
+    spend_diff: number;
+    roas: number;
+    roas_diff: number;
+    conversions: number;
+    conv_diff: number;
+  };
+  matrix: ROASMatrixCell[];
+  funnel: FunnelStep[];
+  channels: ChannelStats[];
+  insights: DashboardInsight[];
+}
+
+const DashboardResponseSchema = z.object({
+  stats: z.object({
+    revenue: z.number(),
+    revenue_diff: z.number(),
+    spend: z.number(),
+    spend_diff: z.number(),
+    roas: z.number(),
+    roas_diff: z.number(),
+    conversions: z.number(),
+    conv_diff: z.number(),
+  }),
+  matrix: z.array(z.any()),
+  funnel: z.array(z.any()),
+  channels: z.array(z.any()),
+  insights: z.array(z.any()),
+});
+
+export const fetchDashboardData = async (
+  startDate?: string,
+  endDate?: string,
+): Promise<DashboardData> => {
   try {
-    const response = await apiClient.get<DashboardData>("/api/dashboard");
-    return response.data;
-  } catch {
-    console.warn("API Error: falling back to mock dashboard data");
+    const params = new URLSearchParams();
+    if (startDate) params.append("start_date", startDate);
+    if (endDate) params.append("end_date", endDate);
+
+    const queryString = params.toString();
+    const baseUrl = getServerApiUrl();
+    const url = `${baseUrl}/api/v1/marketing/dashboard${queryString ? `?${queryString}` : ""}`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Failed to fetch dashboard data");
+    const data: BackendDashboardResponse = await response.json();
+    
+    // Validate response data
+    const validation = DashboardResponseSchema.safeParse(data);
+    if (!validation.success) {
+      console.error("API Validation Failed:", validation.error.format());
+      throw new Error("Invalid API response structure");
+    }
+
+    const { stats, matrix, funnel, channels, insights } = data;
+
+    const kpis = [
+      {
+        title: "Revenue",
+        value: `$${stats.revenue.toLocaleString()}`,
+        trendIcon: stats.revenue_diff >= 0 ? "arrow_upward" : "arrow_downward",
+        trendValue: `${Math.abs(stats.revenue_diff).toFixed(1)}%`,
+        trendBgClass:
+          stats.revenue_diff >= 0
+            ? "bg-secondary-container/20"
+            : "bg-error-container/40",
+        trendTextClass:
+          stats.revenue_diff >= 0
+            ? "text-on-secondary-container"
+            : "text-on-error-container",
+      },
+      {
+        title: "Spend",
+        value: `$${stats.spend.toLocaleString()}`,
+        trendIcon: stats.spend_diff >= 0 ? "arrow_upward" : "arrow_downward",
+        trendValue: `${Math.abs(stats.spend_diff).toFixed(1)}%`,
+        trendBgClass:
+          stats.spend_diff >= 0 ? "bg-slate-100" : "bg-secondary-container/20",
+        trendTextClass: "text-on-surface-variant",
+      },
+      {
+        title: "ROAS",
+        value: `${stats.roas.toFixed(2)}x`,
+        trendIcon: stats.roas_diff >= 0 ? "arrow_upward" : "arrow_downward",
+        trendValue: `${Math.abs(stats.roas_diff).toFixed(1)}%`,
+        trendBgClass:
+          stats.roas_diff >= 0 ? "bg-primary/10" : "bg-error-container/40",
+        trendTextClass: "text-primary",
+      },
+      {
+        title: "Conversions",
+        value: stats.conversions.toLocaleString(),
+        trendIcon: stats.conv_diff >= 0 ? "arrow_upward" : "arrow_downward",
+        trendValue: `${Math.abs(stats.conv_diff).toFixed(1)}%`,
+        trendBgClass:
+          stats.conv_diff >= 0
+            ? "bg-secondary-container/20"
+            : "bg-error-container/40",
+        trendTextClass:
+          stats.conv_diff >= 0
+            ? "text-on-secondary-container"
+            : "text-on-error-container",
+      },
+    ];
+
+    return {
+      stats: stats as DashboardData["stats"],
+      kpis,
+      matrix,
+      funnel,
+      channels,
+      insights,
+    };
+  } catch (error) {
+    console.warn("API Error: falling back to mock dashboard data", error);
     return fetchDashboardDataMock();
   }
 };
@@ -211,13 +313,15 @@ export const fetchPivotDataMock = async (id: string): Promise<PivotDetails> => {
     pivotDate: "2026-04-15",
     status: "achieved", // or "deviated"
     memo: {
-      intent: "CPA高騰に対し、LPのファーストビューを改善し、動画フォーマットの配信比率を上げた。",
+      intent:
+        "CPA高騰に対し、LPのファーストビューを改善し、動画フォーマットの配信比率を上げた。",
       diagnosis: [
         "CPA: 予測 ¥5,000 → 実績 ¥3,800 (-24%)",
         "ROAS: 予測 250% → 実績 310% (+60pt)",
-        "掲載順位: 平均2.4位維持"
+        "掲載順位: 平均2.4位維持",
       ],
-      conclusion: "クリエイティブ変更によりCPA抑制に成功し、ROASも大幅に改善した。"
+      conclusion:
+        "クリエイティブ変更によりCPA抑制に成功し、ROASも大幅に改善した。",
     },
     timeline: [
       { date: "2026-04-10", actual: 12000, predicted: 12000 },
@@ -239,10 +343,35 @@ export const fetchPivotDataMock = async (id: string): Promise<PivotDetails> => {
 
 export const fetchPivotData = async (id: string): Promise<PivotDetails> => {
   try {
-    const response = await apiClient.get<PivotDetails>(`/api/pivot/${id}`);
-    return response.data;
+    const baseUrl = getServerApiUrl();
+    const response = await fetch(`${baseUrl}/api/pivot/${id}`);
+    if (!response.ok) throw new Error("Failed to fetch pivot data");
+    return await response.json();
   } catch {
     console.warn("API Error: falling back to mock pivot data");
     return fetchPivotDataMock(id);
+  }
+};
+
+export const fetchDailyCVR = async (
+  startDate?: string,
+  endDate?: string,
+): Promise<{ data: DailyCVR[]; metadata: ResponseMetadata }> => {
+  try {
+    const params = new URLSearchParams();
+    if (startDate) params.append("start_date", startDate);
+    if (endDate) params.append("end_date", endDate);
+
+    const queryString = params.toString();
+    const baseUrl = getServerApiUrl();
+    const url = `${baseUrl}/api/v1/marketing/daily-cvr${queryString ? `?${queryString}` : ""}`;
+    
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Failed to fetch daily CVR");
+    
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to fetch marketing telemetry:", error);
+    return { data: [], metadata: { engine: "Decision-Tracer-BQ-Fallback-v1", confidence: "Low" } };
   }
 };
