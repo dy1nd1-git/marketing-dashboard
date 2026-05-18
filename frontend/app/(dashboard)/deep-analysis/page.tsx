@@ -212,7 +212,11 @@ function AnaliseContent() {
               placeholder="// [INPUT]: Try '推移' or '比較'..."
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+                  handleAnalyze();
+                }
+              }}
             />
             <button
               className="bg-primary text-on-primary hover:opacity-90 w-10 h-10 flex items-center justify-center rounded-full shadow-sm disabled:opacity-50 transition-all hover:scale-[1.02] shrink-0"
