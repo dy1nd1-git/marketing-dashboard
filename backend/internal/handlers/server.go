@@ -3,21 +3,23 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"os"
 
+	"github.com/dy1nd1-git/marketing-dashboard/backend/internal/ai"
 	"github.com/dy1nd1-git/marketing-dashboard/backend/internal/models"
 	"github.com/dy1nd1-git/marketing-dashboard/backend/internal/provider"
 	"github.com/gin-gonic/gin"
-	"github.com/google/generative-ai-go/genai"
-	"google.golang.org/api/option"
 )
 
 type Server struct {
 	Provider provider.AnalyticsProvider
+	AI       ai.AIEngine
 }
 
-func NewServer(p provider.AnalyticsProvider) *Server {
-	return &Server{Provider: p}
+func NewServer(p provider.AnalyticsProvider, a ai.AIEngine) *Server {
+	return &Server{
+		Provider: p,
+		AI:       a,
+	}
 }
 
 type AnalyzeRequest struct {
@@ -27,7 +29,7 @@ type AnalyzeRequest struct {
 type AnalyzeResponse struct {
 	Data     interface{}             `json:"data"`
 	Analysis string                  `json:"analysis"`
-	SQL      string                  `json:"sql,omitempty"`
+	Actions  []string                `json:"actions,omitempty"`
 	Metadata models.ResponseMetadata `json:"metadata"`
 }
 
@@ -46,47 +48,42 @@ func (s *Server) AnalyzeData(c *gin.Context) {
 		return
 	}
 
-	// 2. AI Analysis (Gemini)
-	apiKey := os.Getenv("GEMINI_API_KEY")
-	if apiKey == "" {
+	// Ensure source_table and execution_sql are set in the base metadata
+	if meta.SourceTable == "" {
+		meta.SourceTable = "events_*" // Default or actual from provider
+	}
+
+	// 2. AI Analysis
+	if s.AI == nil {
+		meta.ExecutionSQL = "SELECT * FROM analytics_events WHERE ..." // Example
 		c.JSON(http.StatusOK, AnalyzeResponse{
 			Data:     data,
-			Analysis: "AI analysis is currently unavailable (GEMINI_API_KEY not set). Showing raw data trends.",
-			SQL:      "SELECT * FROM marketing_data WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)",
+			Analysis: "AI engine is not configured (GEMINI_API_KEY missing).",
 			Metadata: meta,
 		})
 		return
 	}
 
-	client, err := genai.NewClient(ctx, option.WithAPIKey(apiKey))
+	result, err := s.AI.Analyze(ctx, req.Question, meta.SourceTable, data)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	defer client.Close()
-
-	model := client.GenerativeModel("gemini-1.5-flash")
-	
-	prompt := fmt.Sprintf(`
-		You are a marketing data analyst for "Decision Tracer". 
-		Analyze the following data: %v. 
-		User Question: %s. 
-		
-		Return a JSON object with:
-		1. "analysis": A summary of the insight.
-		2. "sql": The BigQuery SQL that would extract this specific insight.
-	`, data, req.Question)
-
-	resp, err := model.GenerateContent(ctx, genai.Text(prompt))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		meta.ExecutionSQL = "ERROR_DURING_AI_GEN"
+		c.JSON(http.StatusOK, AnalyzeResponse{
+			Data:     data,
+			Analysis: fmt.Sprintf("AI analysis failed: %v. Raw data is still available below.", err),
+			Metadata: meta,
+		})
 		return
 	}
 
+	// Update metadata with AI-generated lineage
+	meta.ExecutionSQL = result.SQL
+	meta.Engine = "Gemini-1.5-Flash"
+
+	// 3. Return Structured Response
 	c.JSON(http.StatusOK, AnalyzeResponse{
 		Data:     data,
-		Analysis: fmt.Sprintf("%v", resp.Candidates[0].Content.Parts[0]),
-		SQL:      "SELECT ...",
+		Analysis: result.Analysis,
+		Actions:  result.Actions,
 		Metadata: meta,
 	})
 }

@@ -342,9 +342,10 @@ func (p *BigQueryProvider) executeQuery(ctx context.Context, queryStr string) ([
 	}
 
 	meta := models.ResponseMetadata{
-		Engine:     "Decision-Tracer-BQ-v1",
-		Confidence: confidence,
-		SQLRef:     queryStr,
+		Engine:       "Decision-Tracer-BQ-v1",
+		Confidence:   confidence,
+		SourceTable:  fmt.Sprintf("%s.%s.%s", p.projectID, p.datasetID, p.tableID),
+		ExecutionSQL: queryStr,
 	}
 
 	return rows, meta, nil

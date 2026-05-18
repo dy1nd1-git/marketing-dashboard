@@ -51,22 +51,22 @@ describe("Presentation Master Deck Engine Telemetry Integrations", () => {
     localStorage.clear();
   });
 
-  it("renders presentation master initial frame without errors", () => {
+  it("renders presentation master initial frame without errors", async () => {
     render(<PresentationDeckEngine />);
-    expect(screen.getAllByText("Presentation Master")[0]).toBeInTheDocument();
+    expect(await screen.findByText("Presentation Master")).toBeInTheDocument();
     expect(screen.getAllByText("Mellow Marketing ROI Review")[0]).toBeInTheDocument();
   });
 
-  it("triggers new layout slide state mutations successfully", () => {
+  it("triggers new layout slide state mutations successfully", async () => {
     render(<PresentationDeckEngine />);
-    const addBtn = screen.getByText("Add");
+    const addBtn = await screen.findByText("Add");
     fireEvent.click(addBtn);
     expect(screen.getAllByText(/Strategic Focus Area 2/i)[0]).toBeInTheDocument();
   });
 
-  it("populates export guidance orchestration options reliably", () => {
+  it("populates export guidance orchestration options reliably", async () => {
     render(<PresentationDeckEngine />);
-    const exportTriggerBtn = screen.getByText("Export Deck");
+    const exportTriggerBtn = await screen.findByText("Export Deck");
     fireEvent.click(exportTriggerBtn);
     expect(screen.getAllByText("Export Deck Horizon")[0]).toBeInTheDocument();
     expect(screen.getAllByText("フルスクリーンPDFを出力")[0]).toBeInTheDocument();

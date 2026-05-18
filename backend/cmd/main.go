@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/dy1nd1-git/marketing-dashboard/backend/internal/ai"
 	"github.com/dy1nd1-git/marketing-dashboard/backend/internal/handlers"
 	"github.com/dy1nd1-git/marketing-dashboard/backend/internal/provider"
 	"github.com/gin-contrib/cors"
@@ -23,7 +24,20 @@ func main() {
 
 	ctx := context.Background()
 
-	// Initialize Provider (Default to Mock, switch to BQ if env vars are set)
+	// 1. Initialize AI Engine
+	var aiEngine ai.AIEngine
+	geminiKey := os.Getenv("GEMINI_API_KEY")
+	if geminiKey != "" {
+		ge, err := ai.NewGeminiEngine(ctx, geminiKey)
+		if err != nil {
+			log.Printf("Failed to init Gemini engine: %v", err)
+		} else {
+			aiEngine = ge
+			log.Println("Initialized Gemini AI engine")
+		}
+	}
+
+	// 2. Initialize Provider (Default to Mock, switch to BQ if env vars are set)
 	var p provider.AnalyticsProvider = &provider.MockProvider{}
 	
 	projectID := os.Getenv("BQ_PROJECT_ID")
@@ -41,7 +55,7 @@ func main() {
 		}
 	}
 
-	srv := handlers.NewServer(p)
+	srv := handlers.NewServer(p, aiEngine)
 
 	// Setup Gin Router
 	r := gin.Default()

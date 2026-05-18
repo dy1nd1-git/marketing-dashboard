@@ -3,6 +3,7 @@
 .env.local
 
 # Binaries
+main
 server
 server.exe
 *.exe
