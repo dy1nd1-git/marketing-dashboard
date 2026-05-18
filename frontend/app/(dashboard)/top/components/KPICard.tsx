@@ -29,7 +29,7 @@ export const KPICard: React.FC<KPICardProps> = ({
   chartData,
 }) => {
   return (
-    <div className="card-professional flex flex-col justify-between soft-pulse min-h-[220px]">
+    <div className="card-professional flex flex-col justify-between soft-pulse min-h-[170px]">
       <div className="flex justify-between items-start mb-lg">
         {/* Icon - Using solid container colors from globals.css */}
         <div

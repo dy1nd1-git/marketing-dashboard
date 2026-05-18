@@ -7,10 +7,18 @@ import { StrategyNode } from "../../../../src/types/genealogy";
 
 interface EvidencePanelProps {
   selectedNode: StrategyNode;
+  onApprove: () => void;
+  isApproving: boolean;
+  optimisticApproved: boolean;
+  onAddToCart: () => void;
 }
 
 export const EvidencePanel: React.FC<EvidencePanelProps> = ({
   selectedNode,
+  onApprove,
+  isApproving,
+  optimisticApproved,
+  onAddToCart,
 }) => {
   return (
     <div className="col-span-12 lg:col-span-4 flex flex-col gap-lg">
@@ -53,7 +61,7 @@ export const EvidencePanel: React.FC<EvidencePanelProps> = ({
         </p>
 
         {/* Decorative Premium Graphic Overlay Image */}
-        <div className="w-full h-36 bg-surface-container-low rounded-xl overflow-hidden relative mb-2 border border-outline-variant/20">
+        <div className="w-full h-36 bg-surface-container-low rounded-xl overflow-hidden relative mb-4 border border-outline-variant/20">
           <Image
             alt="Strategy Narrative Matrix"
             className="mix-blend-multiply opacity-75 object-cover"
@@ -66,6 +74,39 @@ export const EvidencePanel: React.FC<EvidencePanelProps> = ({
               Projected Metric Yield: ROI {selectedNode.roi}
             </span>
           </div>
+        </div>
+
+        {/* Execution Actions inside AI Strategic Card */}
+        <div className="flex items-center gap-3 mt-2 w-full">
+          <button
+            onClick={onAddToCart}
+            className="flex-1 px-4 py-2.5 rounded-xl border border-[#D4A373] text-[#D4A373] font-label text-xs hover:bg-[#D4A373]/5 transition-colors uppercase tracking-wider text-center font-bold"
+          >
+            Add to Cart
+          </button>
+          <button
+            onClick={onApprove}
+            disabled={isApproving || optimisticApproved}
+            className={`flex-1 px-4 py-2.5 rounded-xl font-label text-xs uppercase tracking-wider shadow-sm transition-all duration-300 flex items-center justify-center gap-2 font-bold ${
+              optimisticApproved
+                ? "bg-primary-container text-white cursor-default"
+                : "bg-primary text-on-primary hover:shadow-md hover:scale-[1.01]"
+            } ${isApproving ? "opacity-75 cursor-wait" : ""}`}
+          >
+            {isApproving ? (
+              <>
+                <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Executing...
+              </>
+            ) : optimisticApproved ? (
+              <>
+                <span className="material-symbols-outlined text-sm">check</span>
+                Approved
+              </>
+            ) : (
+              "Approve Action"
+            )}
+          </button>
         </div>
       </motion.div>
 

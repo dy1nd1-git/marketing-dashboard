@@ -128,7 +128,9 @@ function AnaliseContent() {
     } catch (error) {
       console.error("Failed to execute analysis:", error);
       alert(
-        error instanceof Error ? error.message : "AI分析エンジンの呼び出しに失敗しました。バックエンドとAPIキーの設定を確認してください。"
+        error instanceof Error
+          ? error.message
+          : "AI分析エンジンの呼び出しに失敗しました。バックエンドとAPIキーの設定を確認してください。",
       );
     } finally {
       setIsAnalyzing(false);
@@ -164,9 +166,11 @@ function AnaliseContent() {
   if (!isMounted) {
     return (
       <div className="p-10 pb-32 min-h-screen bg-background relative flex flex-col font-sans">
-        <div className="flex-1 flex flex-col items-center justify-center min-h-[500px]">
+        <div className="flex-1 flex flex-col items-center justify-center min-h-[380px]">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-          <p className="text-sm text-outline font-mono">Initializing Sandbox Engine...</p>
+          <p className="text-sm text-outline font-mono">
+            Initializing Sandbox Engine...
+          </p>
         </div>
       </div>
     );
@@ -212,7 +216,11 @@ function AnaliseContent() {
               placeholder="// [INPUT]: Try '推移' or '比較'..."
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+                  handleAnalyze();
+                }
+              }}
             />
             <button
               className="bg-primary text-on-primary hover:opacity-90 w-10 h-10 flex items-center justify-center rounded-full shadow-sm disabled:opacity-50 transition-all hover:scale-[1.02] shrink-0"
@@ -293,9 +301,9 @@ function AnaliseContent() {
         </div>
       </div>
 
-      <div className="flex gap-8 flex-1 items-start">
+      <div className="flex gap-8 flex-1">
         {/* Left Area: Dynamic Canvas */}
-        <div className="flex-1 flex flex-col gap-6">
+        <div className="flex-1 min-w-0 flex flex-col gap-6">
           {/* Tabs UI */}
           {tabs.length > 0 && (
             <div className="flex gap-2 border-b border-outline-variant/30 pb-2 overflow-x-auto scrollbar-hide">
@@ -354,7 +362,7 @@ function AnaliseContent() {
               </div>
 
               {/* Chart Shimmer */}
-              <div className="h-[300px] w-full bg-[#FDFCF8] rounded-xl border border-slate-100 flex items-center justify-center">
+              <div className="h-[650px] w-full bg-[#FDFCF8] rounded-xl border border-slate-100 flex items-center justify-center">
                 <span className="text-[11px] font-bold text-[#87A996] tracking-widest uppercase">
                   AI AGGREGATING PIPELINE TELEMETRY...
                 </span>
@@ -400,7 +408,7 @@ function AnaliseContent() {
               </div>
 
               {/* Dynamic Recharts */}
-              <div className="h-[300px] w-full mt-4 flex items-center justify-center">
+              <div className="h-[650px] w-full mt-4 flex items-center justify-center">
                 {!isMounted ? (
                   <div className="text-outline/40 text-data-sm animate-pulse">
                     Initializing visualization...
@@ -578,8 +586,8 @@ function AnaliseContent() {
             </div>
           ) : (
             // Empty State
-            <div className="bg-surface-container-lowest rounded-[20px] p-12 shadow-sm border border-outline-variant/30 flex flex-col items-center justify-center text-center h-[500px]">
-              <div className="w-20 h-20 bg-[#f0f4f1] rounded-full flex items-center justify-center mb-6">
+            <div className="w-full bg-surface-container-lowest rounded-[20px] p-8 shadow-sm border border-outline-variant/30 flex flex-col items-center justify-center text-center h-full min-h-[480px]">
+              <div className="w-20 h-20 bg-[#f0f4f1] rounded-full flex items-center justify-center mb-6 shrink-0">
                 <svg
                   className="w-10 h-10 text-primary opacity-50"
                   fill="none"
@@ -594,10 +602,10 @@ function AnaliseContent() {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-on-surface mb-2">
+              <h3 className="text-xl font-semibold text-on-surface mb-2 tracking-tight">
                 No active analysis
               </h3>
-              <p className="text-outline text-data-sm max-w-md">
+              <p className="text-outline text-data-sm w-full text-center leading-relaxed whitespace-normal">
                 Use the input bar above to query your marketing data. E.g.
                 &quot;推移&quot; or &quot;比較&quot;.
               </p>
@@ -606,7 +614,7 @@ function AnaliseContent() {
         </div>
 
         {/* Right Area: Insight Cart */}
-        <div className="w-80 bg-surface-container-low/50 rounded-[24px] p-6 h-full min-h-[600px] border border-outline-variant/20 shadow-inner flex flex-col">
+        <div className="w-80 bg-surface-container-low/50 rounded-[24px] p-6 h-full min-h-[480px] border border-outline-variant/20 shadow-inner flex flex-col">
           <div className="flex items-center gap-3 mb-6 px-2">
             <svg
               className="w-5 h-5 text-outline"
