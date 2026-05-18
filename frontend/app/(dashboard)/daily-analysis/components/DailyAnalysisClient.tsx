@@ -267,7 +267,7 @@ export function DailyAnalysisClient({
         </div>
       </header>
 
-      <div className="flex-1 overflow-auto rounded-xl border border-surface-container-highest relative max-h-[480px] shadow-2xs">
+      <div className="flex-1 overflow-auto rounded-xl border border-surface-container-highest relative max-h-[350px] shadow-2xs">
         <table className="w-full text-left border-collapse font-body text-xs">
           <thead>
             <tr className="border-b border-surface-container-highest bg-surface-container-lowest text-on-surface-variant select-none">
@@ -410,7 +410,7 @@ export function DailyAnalysisClient({
       </nav>
 
       {/* Main Visual Display Grid */}
-      <div className="flex flex-col gap-lg items-stretch min-h-[500px]">
+      <div className="flex flex-col gap-lg items-stretch min-h-[380px]">
         {activeTab === "ripples" && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-lg items-start w-full">
             {renderMetricTable(
@@ -485,8 +485,8 @@ export function DailyAnalysisClient({
                 />
               </div>
             </header>
-            <div className="w-full h-[400px]">
-              <ResponsiveContainer width="100%" height="100%" minHeight={400}>
+            <div className="w-full h-[300px]">
+              <ResponsiveContainer width="100%" height="100%" minHeight={300}>
                 <BarChart data={channelFluxData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-outline-variant)" />
                   <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fill: "var(--color-outline)", fontSize: 12 }} />
@@ -543,8 +543,8 @@ export function DailyAnalysisClient({
                 />
               </div>
             </header>
-            <div className="w-full h-[400px]">
-              <ResponsiveContainer width="100%" height="100%" minHeight={400}>
+            <div className="w-full h-[300px]">
+              <ResponsiveContainer width="100%" height="100%" minHeight={300}>
                 <AreaChart data={audienceTidesData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                   <defs>
                     <linearGradient id="colorReturning" x1="0" y1="0" x2="0" y2="1">
