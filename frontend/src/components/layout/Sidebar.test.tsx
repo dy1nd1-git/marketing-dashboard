@@ -27,7 +27,9 @@ describe("Sidebar Layout Navigation Suite", () => {
     render(<Sidebar isCollapsed={false} />);
 
     // usePathname mock targets '/presentation', injecting strict layout indicator variables
-    const presentationLink = screen.getByText("Presentation Master").closest("a");
+    const presentationLink = screen
+      .getByText("Presentation Master")
+      .closest("a");
     expect(presentationLink?.className).toContain("bg-primary-container/30");
     expect(presentationLink?.className).toContain("border-primary");
   });

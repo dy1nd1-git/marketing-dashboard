@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { mapToChartData } from "./utils/metrics";
 import { useMarketingContext } from "../../../src/context/MarketingContext";
 import { useInsightCart } from "../../../src/context/InsightCartContext";
-import { executeAnalysisAction } from "../../../src/actions/aiAnalysis";
+import { executeAnalysisAction } from "../../../src/lib/aiAnalysis";
 import { DateRangePicker } from "../../../src/components/dashboard/DateRangePicker";
 import {
   LineChart,
@@ -174,26 +174,23 @@ function AnaliseContent() {
 
   return (
     <div className="p-10 pb-32 min-h-screen bg-background relative flex flex-col font-sans">
-      {/* Header & Top Input Bar */}
-      <div className="mb-8 flex justify-between items-end gap-8">
-        <div className="w-1/3">
-          <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-[36px] font-semibold text-on-surface tracking-tight leading-none">
-              Exploration
+      {/* Header & Top Input Bar - Standardized Parallel Row */}
+      <div className="mb-8 flex flex-col gap-4">
+        {/* Row 1: Title with Icon & Input Bar */}
+        <div className="flex justify-between items-center gap-8">
+          <div className="flex-1 flex items-center gap-3">
+            <span className="material-symbols-outlined text-primary text-[32px] shrink-0">
+              troubleshoot
+            </span>
+            <h1 className="text-[36px] font-semibold text-on-surface tracking-tight leading-none shrink-0">
+              Deep Analysis
             </h1>
-            <span className="px-3 py-1 bg-primary-container/20 text-primary rounded-full text-xs font-medium tracking-wide">
+            <span className="px-3 py-1 bg-primary-container/20 text-primary rounded-full text-xs font-medium tracking-wide shrink-0">
               {segment}
             </span>
           </div>
-          <p className="text-body-md text-outline">
-            Analyze and pivot your marketing data.
-          </p>
-        </div>
 
-        {/* Top Input Bar with Date above it */}
-        <div className="flex-1 max-w-[700px] flex flex-col items-end gap-2">
-          <DateRangePicker />
-          <div className="w-full flex items-center gap-4 bg-surface-container-lowest border border-outline-variant/40 rounded-full py-2 px-3 shadow-sm focus-within:ring-2 focus-within:ring-primary/20 transition-all focus-within:shadow-md">
+          <div className="flex-1 max-w-[700px] flex items-center gap-4 bg-surface-container-lowest border border-outline-variant/40 rounded-full py-2 px-3 shadow-sm focus-within:ring-2 focus-within:ring-primary/20 transition-all focus-within:shadow-md">
             <div className="pl-4 text-primary opacity-80">
               <svg
                 className="w-5 h-5"
@@ -241,47 +238,57 @@ function AnaliseContent() {
               )}
             </button>
           </div>
+        </div>
 
-          {/* Gentle Professional suggestion chips to trigger quick AI execution */}
-          <div className="w-full flex flex-wrap gap-1.5 justify-start mt-1 pl-2">
-            <span className="text-[10px] text-outline font-semibold tracking-wider uppercase self-center mr-1.5">
-              Suggestions:
-            </span>
-            <button
-              onClick={() => {
-                setPrompt(
-                  "過去30日間のコンバージョン率（CVR）の推移を分析せよ",
-                );
-                executeAIGeneratedAnalysis(
-                  "過去30日間のコンバージョン率（CVR）の推移を分析せよ",
-                );
-              }}
-              className="bg-[#FDFCF8] hover:bg-[#87A996]/10 text-[#456555] border border-[#87A996]/20 px-3 py-1 rounded-full text-[10px] font-medium cursor-pointer transition-all hover:scale-[1.01] hover:border-[#87A996]/50"
-            >
-              CVR Trend Analysis
-            </button>
-            <button
-              onClick={() => {
-                setPrompt("広告費と売上成長の相関関係を検証せよ");
-                executeAIGeneratedAnalysis(
-                  "広告費と売上成長の相関関係を検証せよ",
-                );
-              }}
-              className="bg-[#FDFCF8] hover:bg-[#87A996]/10 text-[#456555] border border-[#87A996]/20 px-3 py-1 rounded-full text-[10px] font-medium cursor-pointer transition-all hover:scale-[1.01] hover:border-[#87A996]/50"
-            >
-              Spend vs Revenue
-            </button>
-            <button
-              onClick={() => {
-                setPrompt("昨日のROAS急落の要因とアノマリーを特定せよ");
-                executeAIGeneratedAnalysis(
-                  "昨日のROAS急落の要因とアノマリーを特定せよ",
-                );
-              }}
-              className="bg-[#FDFCF8] hover:bg-[#87A996]/10 text-[#456555] border border-[#87A996]/20 px-3 py-1 rounded-full text-[10px] font-medium cursor-pointer transition-all hover:scale-[1.01] hover:border-[#87A996]/50"
-            >
-              ROAS Anomaly Detection
-            </button>
+        {/* Row 2: Subtitle & Suggestions + DatePicker */}
+        <div className="flex justify-between items-center gap-8">
+          <p className="text-body-md text-outline flex-1">
+            Analyze and pivot your marketing data.
+          </p>
+          <div className="flex-1 max-w-[700px] flex flex-wrap sm:flex-nowrap justify-between items-center gap-3 pl-2">
+            <div className="flex flex-wrap gap-1.5 justify-start">
+              <span className="text-[10px] text-outline font-semibold tracking-wider uppercase self-center mr-1.5">
+                Suggestions:
+              </span>
+              <button
+                onClick={() => {
+                  setPrompt(
+                    "過去30日間のコンバージョン率（CVR）の推移を分析せよ",
+                  );
+                  executeAIGeneratedAnalysis(
+                    "過去30日間のコンバージョン率（CVR）の推移を分析せよ",
+                  );
+                }}
+                className="bg-[#FDFCF8] hover:bg-[#87A996]/10 text-[#456555] border border-[#87A996]/20 px-3 py-1 rounded-full text-[10px] font-medium cursor-pointer transition-all hover:scale-[1.01] hover:border-[#87A996]/50"
+              >
+                CVR Trend Analysis
+              </button>
+              <button
+                onClick={() => {
+                  setPrompt("広告費と売上成長の相関関係を検証せよ");
+                  executeAIGeneratedAnalysis(
+                    "広告費と売上成長の相関関係を検証せよ",
+                  );
+                }}
+                className="bg-[#FDFCF8] hover:bg-[#87A996]/10 text-[#456555] border border-[#87A996]/20 px-3 py-1 rounded-full text-[10px] font-medium cursor-pointer transition-all hover:scale-[1.01] hover:border-[#87A996]/50"
+              >
+                Spend vs Revenue
+              </button>
+              <button
+                onClick={() => {
+                  setPrompt("昨日のROAS急落の要因とアノマリーを特定せよ");
+                  executeAIGeneratedAnalysis(
+                    "昨日のROAS急落の要因とアノマリーを特定せよ",
+                  );
+                }}
+                className="bg-[#FDFCF8] hover:bg-[#87A996]/10 text-[#456555] border border-[#87A996]/20 px-3 py-1 rounded-full text-[10px] font-medium cursor-pointer transition-all hover:scale-[1.01] hover:border-[#87A996]/50"
+              >
+                ROAS Anomaly Detection
+              </button>
+            </div>
+            <div className="shrink-0 self-center">
+              <DateRangePicker />
+            </div>
           </div>
         </div>
       </div>

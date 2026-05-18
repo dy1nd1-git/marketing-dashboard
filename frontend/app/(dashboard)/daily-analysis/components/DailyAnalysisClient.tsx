@@ -6,6 +6,7 @@ import { LineageHUD } from "./LineageHUD";
 import { StockInsightButton } from "../../../../src/components/dashboard/StockInsightButton";
 import { DateRangePicker } from "../../../../src/components/dashboard/DateRangePicker";
 import { DailyCVR, ResponseMetadata } from "../../../../src/types/marketing";
+import { useMarketingContext } from "../../../../src/context/MarketingContext";
 import {
   BarChart,
   Bar,
@@ -57,6 +58,7 @@ export function DailyAnalysisClient({
   initialMetadata,
 }: DailyAnalysisClientProps) {
   const router = useRouter();
+  const { segment } = useMarketingContext();
   const dailyData = initialData;
   const metadata = initialMetadata;
   const [activeTab, setActiveTab] = useState<"ripples" | "flux" | "tides">(
@@ -339,13 +341,21 @@ export function DailyAnalysisClient({
 
   return (
     <div className="p-xl max-w-[1500px] space-y-xl mx-auto">
-      {/* Header section: Ultra-clean and modern Layout */}
-      <header className="mb-xl flex flex-col sm:flex-row sm:justify-between items-start sm:items-end gap-4">
+      {/* Header section: Universal Aesthetic Layout */}
+      <header className="mb-8 flex flex-col sm:flex-row sm:justify-between items-start sm:items-end gap-4">
         <div>
-          <h1 className="font-h1 text-h1 text-on-surface tracking-tight">
-            Subaquatic Observatory
-          </h1>
-          <p className="text-on-surface-variant font-body-md text-body-md mt-1">
+          <div className="flex items-center gap-3 mb-2">
+            <span className="material-symbols-outlined text-primary text-[32px] shrink-0">
+              insert_chart
+            </span>
+            <h1 className="text-[36px] font-semibold text-on-surface tracking-tight leading-none shrink-0">
+              Daily Analysis
+            </h1>
+            <span className="px-3 py-1 bg-primary-container/20 text-primary rounded-full text-xs font-medium tracking-wide shrink-0">
+              {segment}
+            </span>
+          </div>
+          <p className="text-body-md text-outline">
             Marketing telemetry bounded by strict pipeline scope
           </p>
         </div>

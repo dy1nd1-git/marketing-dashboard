@@ -46,7 +46,7 @@ describe("AnaliseContent (Exploration Workspace)", () => {
     render(<AnaliseContent />);
     
     // Check header text
-    expect(await screen.findByText("Exploration")).toBeDefined();
+    expect(await screen.findByText("Deep Analysis")).toBeDefined();
     expect(await screen.findByText(/Analyze and pivot your marketing data/i)).toBeDefined();
   });
 

@@ -19,15 +19,22 @@ export const PivotLogDashboard: React.FC<PivotLogDashboardProps> = ({
     <div className="min-h-screen bg-[#2F2F2F] text-slate-200">
       <div className="max-w-6xl mx-auto px-6 py-12 space-y-8">
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-700 pb-6">
+        <section className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-4 border-b border-outline-variant/20 print:hidden">
           <div>
-            <h1 className="text-3xl font-light text-white tracking-tight mb-2">
-              Decision Tracer{" "}
-              <span className="font-semibold text-slate-400 ml-2">
-                Pivot Log
+            <div className="flex items-center gap-3 mb-2">
+              <span className="material-symbols-outlined text-primary text-3xl shrink-0">
+                explore
               </span>
-            </h1>
-            <p className="text-sm text-slate-400">
+              <h1 className="text-[36px] font-semibold text-on-surface tracking-tight leading-none shrink-0">
+                Exploration
+              </h1>
+              {showBadge && (
+                <span className="px-3 py-1 bg-primary-container/20 text-primary rounded-full text-xs font-medium tracking-wide shrink-0">
+                  Overall
+                </span>
+              )}
+            </div>
+            <p className="text-body-md text-outline">
               Analysis Mode: Comparing predictions vs actuals since{" "}
               <span className="font-mono text-slate-300">{data.pivotDate}</span>
             </p>
@@ -47,7 +54,7 @@ export const PivotLogDashboard: React.FC<PivotLogDashboardProps> = ({
               )}
             </div>
           )}
-        </div>
+        </section>
 
         {/* Chart Section */}
         <div className="bg-[#242424] border border-slate-800 rounded-xl p-6 shadow-2xl">
