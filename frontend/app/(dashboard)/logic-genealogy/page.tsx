@@ -290,55 +290,20 @@ export default function LogicCanvasPage() {
               setSelectedNodeId={setSelectedNodeId}
               selectedNode={selectedNode}
             />
-            <EvidencePanel selectedNode={selectedNode} />
+            <EvidencePanel
+              selectedNode={selectedNode}
+              onApprove={handleApproveAction}
+              isApproving={isApproving}
+              optimisticApproved={optimisticApproved}
+              onAddToCart={() => {
+                alert(
+                  `Saved strategy context for "${selectedNode.label}" to persistent Insight Cart.`,
+                );
+              }}
+            />
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Persistent Execution Footer Panel */}
-      <footer className="mt-auto bg-[#FDFCF8]/95 dark:bg-stone-950/95 backdrop-blur-md px-8 py-5 border border-outline-variant/30 shadow-[0_-10px_40px_rgba(0,0,0,0.04)] rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-md relative z-30">
-        <div className="font-label text-[11px] font-bold uppercase tracking-widest text-primary">
-          © 2026 Logic Genealogy Organic Precision
-        </div>
-
-        <div className="flex items-center gap-4 w-full sm:w-auto justify-end">
-          <button
-            onClick={() => {
-              alert(
-                `Saved strategy context for "${selectedNode.label}" to persistent Insight Cart.`,
-              );
-            }}
-            className="flex-1 sm:flex-none px-6 py-3 rounded-xl border border-[#D4A373] text-[#D4A373] font-label text-label hover:bg-[#D4A373]/5 transition-colors uppercase tracking-wider text-center"
-          >
-            Add to Cart
-          </button>
-          <button
-            onClick={handleApproveAction}
-            disabled={isApproving || optimisticApproved}
-            className={`flex-1 sm:flex-none px-8 py-3 rounded-xl font-label text-label uppercase tracking-wider shadow-md transition-all duration-300 flex items-center justify-center gap-2 ${
-              optimisticApproved
-                ? "bg-primary-container text-white cursor-default"
-                : "bg-primary text-on-primary hover:shadow-lg hover:scale-[1.02]"
-            } ${isApproving ? "opacity-75 cursor-wait" : ""}`}
-          >
-            {isApproving ? (
-              <>
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Executing...
-              </>
-            ) : optimisticApproved ? (
-              <>
-                <span className="material-symbols-outlined text-[18px]">
-                  done
-                </span>
-                Action Approved
-              </>
-            ) : (
-              "Approve Action"
-            )}
-          </button>
-        </div>
-      </footer>
     </div>
   );
 }

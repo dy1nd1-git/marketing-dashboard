@@ -133,7 +133,7 @@ export const PresentationCanvasStage: React.FC<
         onDragOver={handleDragOver}
         onDrop={handleDrop}
         onClick={() => setSelectedNodeId(null)}
-        className={`w-full aspect-[16/9] min-h-[480px] max-h-[720px] rounded-xl transition-all flex flex-col p-6 relative overflow-y-auto border-2 border-dashed ${
+        className={`w-full aspect-[16/9] min-h-[360px] max-h-[720px] rounded-xl transition-all flex flex-col p-6 relative overflow-y-auto border-2 border-dashed ${
           activeSlide.theme === "dark"
             ? "bg-[#1E1E1E] text-white border-stone-700"
             : activeSlide.theme === "mellow"
@@ -169,7 +169,7 @@ export const PresentationCanvasStage: React.FC<
         {/* Placed Nodes Grid */}
         <div className="flex-1 flex flex-col gap-6 content-start">
           {activeSlide.nodes.length === 0 ? (
-            <div className="col-span-full h-full min-h-[160px] flex flex-col items-center justify-center text-center border-2 border-dashed border-outline-variant/20 rounded-xl p-4">
+            <div className="col-span-full h-full min-h-[120px] flex flex-col items-center justify-center text-center border-2 border-dashed border-outline-variant/20 rounded-xl p-4">
               <span className="material-symbols-outlined text-3xl text-primary animate-bounce mb-1 opacity-60">
                 input
               </span>
