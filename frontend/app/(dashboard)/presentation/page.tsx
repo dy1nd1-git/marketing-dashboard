@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import {
   useInsightCart,
   InsightItem,
@@ -43,21 +44,34 @@ const mockFunnelData = [
   { name: "Buy", val: 15 },
 ];
 
-export default function PresentationDeckEngine() {
+function PresentationDeckEngine() {
   const { items: cartItems } = useInsightCart();
 
-  // Master deck initialization holding array of editable layout frames
-  const [deck, setDeck] = useState<SlidePage[]>([
-    {
-      id: "slide_initial",
-      title: "Mellow Marketing ROI Review",
-      subtitle: "Q1 Campaign Performance Strategic Horizons",
-      theme: "light",
-      nodes: [],
-      executiveNotes:
-        "Overall spend efficiency remained highly robust through strategic pivot reallocations.",
-    },
-  ]);
+  // Master deck initialization using Lazy Initial State to reconstruct deck from localStorage
+  const [deck, setDeck] = useState<SlidePage[]>(() => {
+    try {
+      if (typeof window !== "undefined") {
+        const stored = localStorage.getItem("mellow_slide_deck");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed && parsed.length > 0) return parsed;
+        }
+      }
+    } catch {
+      // Ignored gracefully
+    }
+    return [
+      {
+        id: "slide_initial",
+        title: "Mellow Marketing ROI Review",
+        subtitle: "Q1 Campaign Performance Strategic Horizons",
+        theme: "light",
+        nodes: [],
+        executiveNotes:
+          "Overall spend efficiency remained highly robust through strategic pivot reallocations.",
+      },
+    ];
+  });
 
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const [activePanelTab, setActivePanelTab] = useState<"palette" | "inspector">(
@@ -67,30 +81,6 @@ export default function PresentationDeckEngine() {
   const [isFullscreenMode, setIsFullscreenMode] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-
-  // Defer initialization to client-side mount tick to safeguard against SSR hydration mismatches
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("mellow_slide_deck");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed && parsed.length > 0) {
-          const frame = requestAnimationFrame(() => {
-            setDeck(parsed);
-          });
-          return () => cancelAnimationFrame(frame);
-        }
-      }
-    } catch {
-      // Ignored gracefully
-    }
-
-    const frame = requestAnimationFrame(() => {
-      setIsMounted(true);
-    });
-    return () => cancelAnimationFrame(frame);
-  }, []);
 
   // Fullscreen slideshow keyboard controller hooks supporting arrow flips and direct escape closures
   useEffect(() => {
@@ -578,10 +568,6 @@ Then, suggest a strategic summary for this deck based on the aggregated data pro
             <div style={{ display: "flex", justifyContent: "center" }}>
               {chartContent}
             </div>
-          ) : !isMounted ? (
-            <div className="flex items-center justify-center h-full text-outline/20 text-[10px]">
-              Loading Visualization...
-            </div>
           ) : (
             <ResponsiveContainer width="100%" height="100%">
               {chartContent}
@@ -679,8 +665,6 @@ Then, suggest a strategic summary for this deck based on the aggregated data pro
           >
             {isExportingMode ? (
               chartContent
-            ) : !isMounted ? (
-              <div className="text-outline/20 text-[8px]">Loading...</div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 {chartContent}
@@ -770,10 +754,6 @@ Then, suggest a strategic summary for this deck based on the aggregated data pro
       >
         {isExportingMode ? (
           <div className="flex justify-center">{chartContent}</div>
-        ) : !isMounted ? (
-          <div className="flex items-center justify-center h-full text-outline/20 text-[10px]">
-            Loading Visualization...
-          </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
             {chartContent}
@@ -782,19 +762,6 @@ Then, suggest a strategic summary for this deck based on the aggregated data pro
       </div>
     );
   };
-
-  if (!isMounted) {
-    return (
-      <div className="min-h-screen bg-surface-container-lowest flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-outline font-mono">
-            Initializing Presentation Engine...
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <main className="max-w-[1600px] mx-auto p-2 sm:p-6 h-[calc(100vh-100px)] flex flex-col gap-4 print:p-0 print:m-0 print:h-auto print:block">
@@ -926,3 +893,7 @@ Then, suggest a strategic summary for this deck based on the aggregated data pro
     </main>
   );
 }
+
+export default dynamic(() => Promise.resolve(PresentationDeckEngine), {
+  ssr: false,
+});
