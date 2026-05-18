@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import html2canvas from "html2canvas";
 import pptxgen from "pptxgenjs";
-import { SlidePage } from "./types";
+import { SlidePage } from "../../../../src/types/presentation";
 
 interface ExportGuidanceModalProps {
   isExportModalOpen: boolean;
@@ -34,7 +34,8 @@ export const ExportGuidanceModal: React.FC<ExportGuidanceModalProps> = ({
     setProgress(0);
     setIsExporting(true);
 
-    const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+    const wait = (ms: number) =>
+      new Promise((resolve) => setTimeout(resolve, ms));
 
     try {
       const pptx = new pptxgen();
@@ -43,15 +44,15 @@ export const ExportGuidanceModal: React.FC<ExportGuidanceModalProps> = ({
 
       // PowerPoint export requires the elements to be visible for capture.
       // We increased the wait time to ensure all charts have finished their initial paint.
-      await wait(1500); 
+      await wait(1500);
 
       for (let i = 0; i < deck.length; i++) {
         const slideId = `print-slide-container-${i}`;
         const element = document.getElementById(slideId);
-        
+
         if (element) {
           setProgress(Math.round(((i + 0.2) / deck.length) * 100));
-          
+
           if (document.fonts) {
             await document.fonts.ready;
           }
@@ -65,7 +66,7 @@ export const ExportGuidanceModal: React.FC<ExportGuidanceModalProps> = ({
             width: 1280,
             height: 720,
             onclone: (clonedDoc) => {
-              // THE ULTIMATE FIX: 
+              // THE ULTIMATE FIX:
               // We remove all style/link tags that might contain the unsupported "lab()" function.
               // Since PrintDeckEngine now uses HEX colors and inline styles, it will still render correctly.
               const styles = clonedDoc.getElementsByTagName("style");
@@ -78,7 +79,7 @@ export const ExportGuidanceModal: React.FC<ExportGuidanceModalProps> = ({
                   links[j].remove();
                 }
               }
-              
+
               // Ensure the element itself is visible in the clone
               const clonedElement = clonedDoc.getElementById(slideId);
               if (clonedElement) {
@@ -86,7 +87,7 @@ export const ExportGuidanceModal: React.FC<ExportGuidanceModalProps> = ({
                 clonedElement.style.position = "static";
                 clonedElement.style.left = "0";
               }
-            }
+            },
           });
 
           const dataUrl = canvas.toDataURL("image/png");
@@ -99,24 +100,29 @@ export const ExportGuidanceModal: React.FC<ExportGuidanceModalProps> = ({
             w: "100%",
             h: "100%",
           });
-          
+
           setProgress(Math.round(((i + 1) / deck.length) * 100));
         }
       }
 
       setProgress(100);
-      await pptx.writeFile({ fileName: `Marketing_Deck_${new Date().toISOString().slice(0, 10)}.pptx` });
+      await pptx.writeFile({
+        fileName: `Marketing_Deck_${new Date().toISOString().slice(0, 10)}.pptx`,
+      });
       setIsExportModalOpen(false);
     } catch (error) {
       console.error("PPTX Generation Failed:", error);
-      alert(`PowerPointの書き出しに失敗しました。PDFエクスポートをお試しください。\nError: ${error instanceof Error ? error.message : String(error)}`);
+      alert(
+        `PowerPointの書き出しに失敗しました。PDFエクスポートをお試しください。\nError: ${error instanceof Error ? error.message : String(error)}`,
+      );
     } finally {
       setIsGenerating(false);
       setIsExporting(false);
     }
   };
 
-  if (!mounted || typeof window === "undefined" || !isExportModalOpen) return null;
+  if (!mounted || typeof window === "undefined" || !isExportModalOpen)
+    return null;
 
   return createPortal(
     <div className="fixed inset-0 z-[120] bg-stone-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200 select-none print:hidden">
@@ -126,7 +132,12 @@ export const ExportGuidanceModal: React.FC<ExportGuidanceModalProps> = ({
       */}
       <div
         className="bg-white dark:bg-[#1E1F25] border border-slate-200 dark:border-slate-800 rounded-3xl p-10 shadow-2xl flex flex-col gap-8 relative overflow-hidden text-left transition-all"
-        style={{ width: "100%", maxWidth: "800px", minWidth: "680px", boxSizing: "border-box" }}
+        style={{
+          width: "100%",
+          maxWidth: "800px",
+          minWidth: "680px",
+          boxSizing: "border-box",
+        }}
         role="dialog"
         aria-modal="true"
         aria-label="Export Guidance Workflow"
@@ -153,7 +164,9 @@ export const ExportGuidanceModal: React.FC<ExportGuidanceModalProps> = ({
             aria-label="Close guidance"
             className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
           >
-            <span className="material-symbols-outlined text-base block">close</span>
+            <span className="material-symbols-outlined text-base block">
+              close
+            </span>
           </button>
         </div>
 
@@ -163,18 +176,39 @@ export const ExportGuidanceModal: React.FC<ExportGuidanceModalProps> = ({
           </p>
           <ol className="text-xs font-body text-slate-600 dark:text-slate-400 space-y-2 list-decimal list-inside">
             <li>
-              下の <span className="font-bold text-primary">「フルスクリーンPDFを出力」</span> ボタンをクリックします。
+              下の{" "}
+              <span className="font-bold text-primary">
+                「フルスクリーンPDFを出力」
+              </span>{" "}
+              ボタンをクリックします。
             </li>
             <li>
               開いたブラウザの印刷設定にて以下を指定してください：
               <ul className="list-disc list-inside pl-4 mt-1 space-y-0.5 text-slate-800 dark:text-slate-200 font-mono text-[11px]">
-                <li>送信先: <span className="font-bold text-primary">PDFとして保存</span></li>
-                <li>レイアウト: <span className="font-bold text-primary">横方向 (Landscape)</span></li>
-                <li>オプション: <span className="font-bold text-primary">背景のグラフィックにチェック</span></li>
+                <li>
+                  送信先:{" "}
+                  <span className="font-bold text-primary">PDFとして保存</span>
+                </li>
+                <li>
+                  レイアウト:{" "}
+                  <span className="font-bold text-primary">
+                    横方向 (Landscape)
+                  </span>
+                </li>
+                <li>
+                  オプション:{" "}
+                  <span className="font-bold text-primary">
+                    背景のグラフィックにチェック
+                  </span>
+                </li>
               </ul>
             </li>
             <li>
-              保存した高品質PDFファイルを、<span className="font-bold">Google スライドの「ファイル ＞ スライドをインポート」</span>からアップロードするか、PowerPointに配置することで、ベクター画質でそのままご活用いただけます。
+              保存した高品質PDFファイルを、
+              <span className="font-bold">
+                Google スライドの「ファイル ＞ スライドをインポート」
+              </span>
+              からアップロードするか、PowerPointに配置することで、ベクター画質でそのままご活用いただけます。
             </li>
           </ol>
         </div>
@@ -190,7 +224,7 @@ export const ExportGuidanceModal: React.FC<ExportGuidanceModalProps> = ({
               </span>
             </div>
             <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-              <div 
+              <div
                 className="h-full bg-primary transition-all duration-300 ease-out"
                 style={{ width: `${progress}%` }}
               />
@@ -206,7 +240,7 @@ export const ExportGuidanceModal: React.FC<ExportGuidanceModalProps> = ({
           >
             キャンセル
           </button>
-          
+
           <div className="flex items-center gap-3 flex-nowrap shrink-0">
             <button
               onClick={generatePPTX}
@@ -252,6 +286,6 @@ export const ExportGuidanceModal: React.FC<ExportGuidanceModalProps> = ({
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 };

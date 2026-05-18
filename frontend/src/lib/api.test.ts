@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
-  apiClient,
   fetchMarketingData,
   fetchDashboardData,
   fetchPivotData,
+  fetchDailyCVR,
   fetchMarketingDataMock,
   fetchDashboardDataMock,
   fetchPivotDataMock,
@@ -11,6 +11,7 @@ import {
 
 describe("API Client Transformation & Formatting Engine (`src/lib/api.ts`)", () => {
   let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
+  const originalFetch = global.fetch;
 
   beforeEach(() => {
     // Keep test console clean during intentional fallback error testing
@@ -18,6 +19,7 @@ describe("API Client Transformation & Formatting Engine (`src/lib/api.ts`)", () 
   });
 
   afterEach(() => {
+    global.fetch = originalFetch;
     vi.restoreAllMocks();
   });
 
@@ -26,15 +28,18 @@ describe("API Client Transformation & Formatting Engine (`src/lib/api.ts`)", () 
       const mockResponse = [
         { id: "101", date: "2026-05-01", spend: 500, revenue: 1500, roas: 3.0 },
       ];
-      vi.spyOn(apiClient, "get").mockResolvedValueOnce({ data: mockResponse });
+      global.fetch = vi.fn().mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse,
+      } as Response);
 
       const data = await fetchMarketingData();
-      expect(apiClient.get).toHaveBeenCalledWith("/api/marketing");
+      expect(global.fetch).toHaveBeenCalledWith("http://localhost:8080/api/marketing");
       expect(data).toEqual(mockResponse);
     });
 
     it("falls back gracefully to robust mock formatting when API throws", async () => {
-      vi.spyOn(apiClient, "get").mockRejectedValueOnce(new Error("Network Error"));
+      global.fetch = vi.fn().mockRejectedValueOnce(new Error("Network Error"));
 
       const data = await fetchMarketingData();
       const expectedMock = await fetchMarketingDataMock();
@@ -49,30 +54,33 @@ describe("API Client Transformation & Formatting Engine (`src/lib/api.ts`)", () 
   describe("fetchDashboardData", () => {
     it("returns dashboard JSON payloads unchanged when HTTP OK", async () => {
       const mockResponse = {
-      stats: {
-        revenue: 1000,
-        revenue_diff: 10,
-        spend: 500,
-        spend_diff: 5,
-        roas: 2.0,
-        roas_diff: 0,
-        conversions: 100,
-        conv_diff: 0,
-      },
-      matrix: [],
-      funnel: [],
-      channels: [],
-      insights: [],
-    };
-      vi.spyOn(apiClient, "get").mockResolvedValueOnce({ data: mockResponse });
+        stats: {
+          revenue: 1000,
+          revenue_diff: 10,
+          spend: 500,
+          spend_diff: 5,
+          roas: 2.0,
+          roas_diff: 0,
+          conversions: 100,
+          conv_diff: 0,
+        },
+        matrix: [],
+        funnel: [],
+        channels: [],
+        insights: [],
+      };
+      global.fetch = vi.fn().mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse,
+      } as Response);
 
       const data = await fetchDashboardData();
-      expect(apiClient.get).toHaveBeenCalledWith("/api/v1/marketing/dashboard");
+      expect(global.fetch).toHaveBeenCalledWith("http://localhost:8080/api/v1/marketing/dashboard");
       expect(data.kpis[0].value).toBe("$1,000");
     });
 
     it("returns fallback Organic Precision specs gracefully upon API rejection", async () => {
-      vi.spyOn(apiClient, "get").mockRejectedValueOnce(new Error("Timeout"));
+      global.fetch = vi.fn().mockRejectedValueOnce(new Error("Timeout"));
 
       const data = await fetchDashboardData();
       const expectedMock = await fetchDashboardDataMock();
@@ -90,15 +98,18 @@ describe("API Client Transformation & Formatting Engine (`src/lib/api.ts`)", () 
   describe("fetchPivotData", () => {
     it("fetches target pivot logs by dynamic path binding", async () => {
       const mockPivot = { id: "pvt-99", pivotDate: "2026-05-10", timeline: [] };
-      vi.spyOn(apiClient, "get").mockResolvedValueOnce({ data: mockPivot });
+      global.fetch = vi.fn().mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockPivot,
+      } as Response);
 
       const data = await fetchPivotData("pvt-99");
-      expect(apiClient.get).toHaveBeenCalledWith("/api/pivot/pvt-99");
+      expect(global.fetch).toHaveBeenCalledWith("http://localhost:8080/api/pivot/pvt-99");
       expect(data).toEqual(mockPivot);
     });
 
     it("falls back to parameter-bound dynamic mock timeline generation upon failure", async () => {
-      vi.spyOn(apiClient, "get").mockRejectedValueOnce(new Error("500 Internal"));
+      global.fetch = vi.fn().mockRejectedValueOnce(new Error("500 Internal"));
 
       const data = await fetchPivotData("pvt-error");
       const expectedMock = await fetchPivotDataMock("pvt-error");
@@ -108,6 +119,31 @@ describe("API Client Transformation & Formatting Engine (`src/lib/api.ts`)", () 
       );
       expect(data.id).toBe("pvt-error");
       expect(data).toEqual(expectedMock);
+    });
+  });
+
+  describe("fetchDailyCVR", () => {
+    it("fetches daily CVR dynamic metric streams upon success", async () => {
+      const mockTelemetry = {
+        data: [{ date: "2026-05-15", revenue: 5000, spend: 1000, roas: 5.0, ctr: 0.05, cvr: 0.1 }],
+        metadata: { engine: "Decision-Tracer-BQ-v1", confidence: "High" },
+      };
+      global.fetch = vi.fn().mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockTelemetry,
+      } as Response);
+
+      const data = await fetchDailyCVR();
+      expect(global.fetch).toHaveBeenCalledWith("http://localhost:8080/api/v1/marketing/daily-cvr");
+      expect(data).toEqual(mockTelemetry);
+    });
+
+    it("falls back to empty array and default metadata upon failure", async () => {
+      global.fetch = vi.fn().mockRejectedValueOnce(new Error("Database offline"));
+
+      const data = await fetchDailyCVR();
+      expect(data.data).toEqual([]);
+      expect(data.metadata.engine).toBe("Decision-Tracer-BQ-Fallback-v1");
     });
   });
 });

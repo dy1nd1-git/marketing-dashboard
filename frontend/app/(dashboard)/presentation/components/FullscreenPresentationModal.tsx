@@ -1,5 +1,5 @@
 import React from "react";
-import { SlidePage } from "./types";
+import { SlidePage } from "../../../../src/types/presentation";
 import { InsightItem } from "../../../../src/context/InsightCartContext";
 
 interface FullscreenPresentationModalProps {
@@ -57,7 +57,9 @@ export const FullscreenPresentationModal: React.FC<
             aria-label="Exit full screen"
             title="Exit Present Mode (ESC)"
           >
-            <span className="material-symbols-outlined text-base block">close</span>
+            <span className="material-symbols-outlined text-base block">
+              close
+            </span>
           </button>
         </div>
       </header>
@@ -82,8 +84,8 @@ export const FullscreenPresentationModal: React.FC<
             activeSlide.theme === "dark"
               ? "bg-[#1E1E1E] text-white border-stone-700"
               : activeSlide.theme === "mellow"
-              ? "bg-[#F5F4EE] text-on-surface border-[#87A996]/40"
-              : "bg-white text-on-surface border-outline-variant/40"
+                ? "bg-[#F5F4EE] text-on-surface border-[#87A996]/40"
+                : "bg-white text-on-surface border-outline-variant/40"
           }`}
         >
           {/* Header block */}

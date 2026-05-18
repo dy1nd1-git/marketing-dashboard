@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { HistoryLogItem } from "./types";
+import { HistoryLogItem } from "../../../../src/types/genealogy";
 
 interface SelectionHistoryPanelProps {
   historyLogs: HistoryLogItem[];
@@ -26,7 +26,8 @@ export const SelectionHistoryPanel: React.FC<SelectionHistoryPanelProps> = ({
             Selection &amp; Action History
           </h2>
           <p className="font-body-sm text-body-md text-outline">
-            Persistent audit trail of contextual segment exploration and strategic pipeline executions.
+            Persistent audit trail of contextual segment exploration and
+            strategic pipeline executions.
           </p>
         </div>
         <span className="font-label text-label text-primary bg-primary/5 px-3 py-1 rounded-lg border border-primary/10">
@@ -85,7 +86,7 @@ export const SelectionHistoryPanel: React.FC<SelectionHistoryPanelProps> = ({
             <button
               onClick={() => {
                 alert(
-                  `Synchronizing specific workspace checkpoint parameters for:\n"${log.title}"`
+                  `Synchronizing specific workspace checkpoint parameters for:\n"${log.title}"`,
                 );
               }}
               className="font-label text-label text-primary hover:underline self-end md:self-center shrink-0"

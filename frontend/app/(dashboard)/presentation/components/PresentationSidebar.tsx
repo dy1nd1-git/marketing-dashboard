@@ -1,5 +1,5 @@
 import React from "react";
-import { SlidePage } from "./types";
+import { SlidePage } from "../../../../src/types/presentation";
 import { InsightItem } from "../../../../src/context/InsightCartContext";
 
 interface PresentationSidebarProps {
@@ -61,7 +61,8 @@ export const PresentationSidebar: React.FC<PresentationSidebarProps> = ({
                   category
                 </span>
                 <p className="text-[11px] font-body">
-                  No items in stock. Pin charts from daily analysis pages to fill this workspace.
+                  No items in stock. Pin charts from daily analysis pages to
+                  fill this workspace.
                 </p>
               </div>
             ) : (
@@ -106,7 +107,9 @@ export const PresentationSidebar: React.FC<PresentationSidebarProps> = ({
             <input
               type="text"
               value={activeSlide.title}
-              onChange={(e) => updateActiveSlideField({ title: e.target.value })}
+              onChange={(e) =>
+                updateActiveSlideField({ title: e.target.value })
+              }
               className="px-3 py-2 bg-surface-container rounded-lg text-xs font-label text-on-surface border border-outline-variant/20 focus:border-primary outline-none transition-colors"
               placeholder="e.g. Executive Summary"
             />
@@ -120,7 +123,9 @@ export const PresentationSidebar: React.FC<PresentationSidebarProps> = ({
             <input
               type="text"
               value={activeSlide.subtitle || ""}
-              onChange={(e) => updateActiveSlideField({ subtitle: e.target.value })}
+              onChange={(e) =>
+                updateActiveSlideField({ subtitle: e.target.value })
+              }
               className="px-3 py-2 bg-surface-container rounded-lg text-xs font-label text-on-surface border border-outline-variant/20 focus:border-primary outline-none transition-colors"
               placeholder="Optional tactical timeframe label"
             />
@@ -152,11 +157,15 @@ export const PresentationSidebar: React.FC<PresentationSidebarProps> = ({
           <div className="flex flex-col gap-1 flex-1 min-h-[100px]">
             <label className="font-label text-[10px] text-outline font-bold uppercase flex justify-between">
               <span>Executive Narrative</span>
-              <span className="text-[9px] lowercase opacity-60">Speaker notes</span>
+              <span className="text-[9px] lowercase opacity-60">
+                Speaker notes
+              </span>
             </label>
             <textarea
               value={activeSlide.executiveNotes}
-              onChange={(e) => updateActiveSlideField({ executiveNotes: e.target.value })}
+              onChange={(e) =>
+                updateActiveSlideField({ executiveNotes: e.target.value })
+              }
               rows={4}
               className="p-2.5 bg-surface-container rounded-lg text-xs font-body text-on-surface border border-outline-variant/20 focus:border-primary outline-none transition-colors resize-none flex-1"
               placeholder="Summarize key architectural takeaways or target shifts displayed on this canvas..."
@@ -174,12 +183,16 @@ export const PresentationSidebar: React.FC<PresentationSidebarProps> = ({
                   Visual Proportions
                 </h4>
               </div>
-              
+
               <div className="flex items-center justify-between gap-4">
                 <div className="flex-1">
-                  <span className="text-[10px] text-outline block uppercase font-mono mb-1">Height (px)</span>
+                  <span className="text-[10px] text-outline block uppercase font-mono mb-1">
+                    Height (px)
+                  </span>
                   <div className="font-mono text-sm font-bold text-primary">
-                    {activeSlide.nodes.find(n => n.id === selectedNodeId)?.height || 280}px
+                    {activeSlide.nodes.find((n) => n.id === selectedNodeId)
+                      ?.height || 280}
+                    px
                   </div>
                 </div>
                 <button
@@ -190,7 +203,8 @@ export const PresentationSidebar: React.FC<PresentationSidebarProps> = ({
                 </button>
               </div>
               <p className="text-[9px] text-outline mt-3 italic px-1">
-                Drag the handle at the bottom of the artifact on the canvas to resize manually.
+                Drag the handle at the bottom of the artifact on the canvas to
+                resize manually.
               </p>
             </div>
           )}
@@ -203,7 +217,9 @@ export const PresentationSidebar: React.FC<PresentationSidebarProps> = ({
             <input
               type="text"
               value={activeSlide.footerText || ""}
-              onChange={(e) => updateActiveSlideField({ footerText: e.target.value })}
+              onChange={(e) =>
+                updateActiveSlideField({ footerText: e.target.value })
+              }
               className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-lg p-3 text-xs font-label focus:border-primary outline-none transition-colors"
               placeholder="e.g. 2026/05/15 | Internal Project"
             />
@@ -218,7 +234,8 @@ export const PresentationSidebar: React.FC<PresentationSidebarProps> = ({
                 </span>
               </div>
               <p className="text-[10px] text-outline leading-tight">
-                All layers sync instantly to secure browser memory. Refreshing does not discard configurations.
+                All layers sync instantly to secure browser memory. Refreshing
+                does not discard configurations.
               </p>
             </div>
           </div>

@@ -1,19 +1,19 @@
-import { describe, it, expect, vi } from "vitest";
-import { fetchDashboardData, apiClient } from "./api";
-
-vi.mock("./api", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("./api")>();
-  return {
-    ...actual,
-    // We want to keep most of it, but maybe mock the apiClient specifically
-  };
-});
+import { describe, it, expect, vi, afterEach } from "vitest";
+import { fetchDashboardData } from "./api";
 
 describe("fetchDashboardData Error Handling & Validation", () => {
+  const originalFetch = global.fetch;
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+    vi.restoreAllMocks();
+  });
+
   it("should fall back to mock data when API returns malformed JSON (missing funnel)", async () => {
-    // Force apiClient.get to return malformed data
-    const spy = vi.spyOn(apiClient, "get").mockResolvedValue({
-      data: {
+    // Force global.fetch to return malformed data (funnel is missing)
+    global.fetch = vi.fn().mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
         stats: {
           revenue: 100,
           revenue_diff: 0,
@@ -28,8 +28,8 @@ describe("fetchDashboardData Error Handling & Validation", () => {
         // funnel is missing!
         channels: [],
         insights: [],
-      },
-    });
+      }),
+    } as Response);
 
     const data = await fetchDashboardData();
     
@@ -37,18 +37,14 @@ describe("fetchDashboardData Error Handling & Validation", () => {
     expect(data.funnel).toBeDefined();
     expect(data.funnel.length).toBeGreaterThan(0);
     expect(data.funnel[0].label).toBe("Awareness"); // check it's the mock data
-    
-    spy.mockRestore();
   });
 
   it("should fall back to mock data when API fails (network error)", async () => {
-    const spy = vi.spyOn(apiClient, "get").mockRejectedValue(new Error("Network Error"));
+    global.fetch = vi.fn().mockRejectedValueOnce(new Error("Network Error"));
     
     const data = await fetchDashboardData();
     
     expect(data.funnel).toBeDefined();
     expect(data.funnel.length).toBeGreaterThan(0);
-    
-    spy.mockRestore();
   });
 });

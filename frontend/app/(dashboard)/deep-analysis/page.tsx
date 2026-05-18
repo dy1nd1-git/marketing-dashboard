@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { mapToChartData } from "./utils/metrics";
 import { useMarketingContext } from "../../../src/context/MarketingContext";
 import { useInsightCart } from "../../../src/context/InsightCartContext";
+import { executeAnalysisAction } from "../../../src/actions/aiAnalysis";
 import { DateRangePicker } from "../../../src/components/dashboard/DateRangePicker";
 import {
   LineChart,
@@ -99,17 +100,9 @@ function AnaliseContent() {
   async function executeAIGeneratedAnalysis(promptText: string) {
     setIsAnalyzing(true);
     try {
-      const response = await fetch("http://localhost:8080/api/v1/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: promptText }),
-      });
+      const res = await executeAnalysisAction(promptText);
 
-      if (!response.ok) throw new Error("Failed to connect to analysis engine");
-
-      const res = await response.json();
-
-          // Map backend response using robust modular metric utility
+      // Map backend response using robust modular metric utility
       const chartData = mapToChartData(res.data, promptText);
 
       const isComparison =
@@ -135,7 +128,7 @@ function AnaliseContent() {
     } catch (error) {
       console.error("Failed to execute analysis:", error);
       alert(
-        "AI分析エンジンの呼び出しに失敗しました。バックエンドとAPIキーの設定を確認してください。",
+        error instanceof Error ? error.message : "AI分析エンジンの呼び出しに失敗しました。バックエンドとAPIキーの設定を確認してください。"
       );
     } finally {
       setIsAnalyzing(false);
