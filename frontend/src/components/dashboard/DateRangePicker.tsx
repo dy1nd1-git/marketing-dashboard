@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
+import React, { useState, useRef, useLayoutEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
+import { useIsClient } from "../../hooks/useIsClient";
 import { useMarketingContext } from "../../context/MarketingContext";
 
 interface Preset {
@@ -23,18 +24,18 @@ const PRESETS: Preset[] = [
  * Sub-component for the popover content.
  * Uses the 'key' pattern to reset internal state when props change.
  */
-const PopoverContent = ({ 
-  startDate, 
-  endDate, 
-  onApply, 
-  onCancel, 
-  coords 
-}: { 
-  startDate: string, 
-  endDate: string, 
-  onApply: (start: string, end: string) => void, 
-  onCancel: () => void,
-  coords: { top: number, left: number }
+const PopoverContent = ({
+  startDate,
+  endDate,
+  onApply,
+  onCancel,
+  coords,
+}: {
+  startDate: string;
+  endDate: string;
+  onApply: (start: string, end: string) => void;
+  onCancel: () => void;
+  coords: { top: number; left: number };
 }) => {
   // ⭕ Initialize state directly from props - no useEffect needed!
   const [tempStart, setTempStart] = useState(startDate);
@@ -43,7 +44,7 @@ const PopoverContent = ({
   const handlePreset = (preset: Preset) => {
     const end = new Date();
     const start = new Date();
-    
+
     if (preset.days) {
       start.setDate(end.getDate() - preset.days);
     } else if (preset.type === "this_month") {
@@ -60,13 +61,16 @@ const PopoverContent = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] pointer-events-none" key="calendar-portal-root">
+    <div
+      className="fixed inset-0 z-[9999] pointer-events-none"
+      key="calendar-portal-root"
+    >
       {/* Clickable Backdrop */}
-      <div 
-        className="absolute inset-0 pointer-events-auto bg-black/5" 
-        onClick={onCancel} 
+      <div
+        className="absolute inset-0 pointer-events-auto bg-black/5"
+        onClick={onCancel}
       />
-      
+
       <motion.div
         key="calendar-popover"
         initial={{ opacity: 0, y: -10, scale: 0.95 }}
@@ -97,7 +101,12 @@ const PopoverContent = ({
         {/* Custom Range Inputs */}
         <div className="space-y-4">
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="start-date" className="text-[10px] font-label uppercase tracking-widest text-outline px-1">Start Date</label>
+            <label
+              htmlFor="start-date"
+              className="text-[10px] font-label uppercase tracking-widest text-outline px-1"
+            >
+              Start Date
+            </label>
             <input
               id="start-date"
               type="date"
@@ -107,7 +116,12 @@ const PopoverContent = ({
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="end-date" className="text-[10px] font-label uppercase tracking-widest text-outline px-1">End Date</label>
+            <label
+              htmlFor="end-date"
+              className="text-[10px] font-label uppercase tracking-widest text-outline px-1"
+            >
+              End Date
+            </label>
             <input
               id="end-date"
               type="date"
@@ -139,17 +153,11 @@ const PopoverContent = ({
 
 export const DateRangePicker = () => {
   const { startDate, endDate, setDateRange, isPending } = useMarketingContext();
+  const isClient = useIsClient();
   const [isOpen, setIsOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  
+
   const triggerRef = useRef<HTMLDivElement>(null);
   const [coords, setCoords] = useState({ top: 0, left: 0 });
-
-  useEffect(() => {
-    // Avoid synchronous setState in effect for strict lint rules
-    const frame = requestAnimationFrame(() => setMounted(true));
-    return () => cancelAnimationFrame(frame);
-  }, []);
 
   const updateCoords = () => {
     if (triggerRef.current) {
@@ -199,29 +207,32 @@ export const DateRangePicker = () => {
             {formattedRange}
           </span>
         </div>
-        <span className={`material-symbols-outlined text-outline/60 text-[20px] transition-transform duration-300 pointer-events-none ${isOpen ? "rotate-180" : ""}`}>
+        <span
+          className={`material-symbols-outlined text-outline/60 text-[20px] transition-transform duration-300 pointer-events-none ${isOpen ? "rotate-180" : ""}`}
+        >
           expand_more
         </span>
       </button>
 
-      {mounted && createPortal(
-        <AnimatePresence>
-          {isOpen && (
-            <PopoverContent 
-              key={`${startDate}-${endDate}`} // ⭕ Best Practice: Reset on date change
-              startDate={startDate}
-              endDate={endDate}
-              coords={coords}
-              onApply={(start, end) => {
-                setDateRange(start, end);
-                setIsOpen(false);
-              }}
-              onCancel={() => setIsOpen(false)}
-            />
-          )}
-        </AnimatePresence>,
-        document.body
-      )}
+      {isClient &&
+        createPortal(
+          <AnimatePresence>
+            {isOpen && (
+              <PopoverContent
+                key={`${startDate}-${endDate}`} // ⭕ Best Practice: Reset on date change
+                startDate={startDate}
+                endDate={endDate}
+                coords={coords}
+                onApply={(start, end) => {
+                  setDateRange(start, end);
+                  setIsOpen(false);
+                }}
+                onCancel={() => setIsOpen(false)}
+              />
+            )}
+          </AnimatePresence>,
+          document.body,
+        )}
     </div>
   );
 };

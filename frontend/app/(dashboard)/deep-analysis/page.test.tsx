@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import AnaliseContent from "./page";
+import AnaliseContent from "./DeepAnalysisPageClient";
 
 // Mock next/navigation
 vi.mock("next/navigation", () => ({

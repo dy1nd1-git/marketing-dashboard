@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import LogicGenealogyPage from "./page";
+import LogicGenealogyPage from "./LogicCanvasPage";
 
 // Mock MarketingContext
 vi.mock("../../../src/context/MarketingContext", () => ({
@@ -23,28 +23,28 @@ describe("LogicGenealogyPage (Dynamic HUD Lineage)", () => {
     localStorage.clear();
   });
 
-  it("renders the main feature header and dynamic segment chip", () => {
+  it("renders the main feature header and dynamic segment chip", async () => {
     render(<LogicGenealogyPage />);
 
-    expect(screen.getByText("Logic Genealogy")).toBeDefined();
-    expect(screen.getByText("Paid Social")).toBeDefined();
+    expect(await screen.findByText("Logic Genealogy")).toBeDefined();
+    expect(await screen.findByText("Paid Social")).toBeDefined();
     expect(
-      screen.getByText(/Trace statistical evidence and approve predictive strategy workflows/i)
+      await screen.findByText(/Trace statistical evidence and approve predictive strategy workflows/i)
     ).toBeDefined();
   });
 
-  it("renders the default active Genealogy HUD view with core nodes", () => {
+  it("renders the default active Genealogy HUD view with core nodes", async () => {
     render(<LogicGenealogyPage />);
 
-    expect(screen.getByText("Genealogy HUD")).toBeDefined();
-    expect(screen.getAllByText("Organic Social Pivot").length).toBeGreaterThan(0);
-    expect(screen.getByText("Logic Evidence SQL")).toBeDefined();
+    expect(await screen.findByText("Genealogy HUD")).toBeDefined();
+    expect((await screen.findAllByText("Organic Social Pivot")).length).toBeGreaterThan(0);
+    expect(await screen.findByText("Logic Evidence SQL")).toBeDefined();
   });
 
   it("switches tabs dynamically to display persistent Selection History", async () => {
     render(<LogicGenealogyPage />);
 
-    const historyTabBtn = screen.getByRole("button", { name: /History/i });
+    const historyTabBtn = await screen.findByRole("button", { name: /History/i });
     fireEvent.click(historyTabBtn);
 
     await waitFor(() => {
@@ -55,7 +55,7 @@ describe("LogicGenealogyPage (Dynamic HUD Lineage)", () => {
   it("switches tabs dynamically to display Strategic Documentation", async () => {
     render(<LogicGenealogyPage />);
 
-    const docTabBtn = screen.getByRole("button", { name: /Document/i });
+    const docTabBtn = await screen.findByRole("button", { name: /Document/i });
     fireEvent.click(docTabBtn);
 
     await waitFor(() => {

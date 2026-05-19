@@ -20,22 +20,26 @@ interface InsightCartContextType {
   clearCart: () => void;
 }
 
-const InsightCartContext = createContext<InsightCartContextType | undefined>(undefined);
+const InsightCartContext = createContext<InsightCartContextType | undefined>(
+  undefined,
+);
 
-export const InsightCartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const InsightCartProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const [items, setItems] = useState<InsightItem[]>([]);
 
-  // Restore cart state safely from client localStorage
+  const [, startTransition] = React.useTransition();
+
   useEffect(() => {
     try {
       const stored = localStorage.getItem("mellow_insight_cart");
       if (stored) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setItems(JSON.parse(stored));
+        startTransition(() => {
+          setItems(JSON.parse(stored));
+        });
       }
-    } catch {
-      // Ignored gracefully
-    }
+    } catch {}
   }, []);
 
   // Save cart modifications persisting locally
@@ -66,7 +70,9 @@ export const InsightCartProvider: React.FC<{ children: ReactNode }> = ({ childre
   };
 
   return (
-    <InsightCartContext.Provider value={{ items, addInsight, removeInsight, clearCart }}>
+    <InsightCartContext.Provider
+      value={{ items, addInsight, removeInsight, clearCart }}
+    >
       {children}
     </InsightCartContext.Provider>
   );
@@ -75,7 +81,9 @@ export const InsightCartProvider: React.FC<{ children: ReactNode }> = ({ childre
 export const useInsightCart = (): InsightCartContextType => {
   const context = useContext(InsightCartContext);
   if (!context) {
-    throw new Error("useInsightCart must be used within an InsightCartProvider");
+    throw new Error(
+      "useInsightCart must be used within an InsightCartProvider",
+    );
   }
   return context;
 };

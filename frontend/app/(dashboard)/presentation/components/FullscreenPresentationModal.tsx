@@ -14,15 +14,12 @@ interface FullscreenPresentationModalProps {
 export const FullscreenPresentationModal: React.FC<
   FullscreenPresentationModalProps
 > = ({
-  isFullscreenMode,
   setIsFullscreenMode,
   activeSlideIndex,
   setActiveSlideIndex,
   deck,
   renderNodeVisual,
 }) => {
-  if (!isFullscreenMode) return null;
-
   const activeSlide = deck[activeSlideIndex] || deck[0];
 
   return (

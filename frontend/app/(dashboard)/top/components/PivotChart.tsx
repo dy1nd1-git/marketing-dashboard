@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   LineChart,
   Line,
@@ -8,7 +8,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
 } from "recharts";
 import {
   ValueType,
@@ -71,11 +70,28 @@ const CustomDot = (props: CustomDotProps) => {
 
 export const PivotChart: React.FC<PivotChartProps> = ({ data, details }) => {
   const [memoState, setMemoState] = useState({ visible: false, x: 0, y: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [chartWidth, setChartWidth] = useState<number>(0);
+
+  useEffect(() => {
+    if (containerRef.current && typeof window !== "undefined" && "ResizeObserver" in window) {
+      setChartWidth(containerRef.current.clientWidth || 600);
+      const observer = new window.ResizeObserver((entries) => {
+        if (entries[0]) {
+          setChartWidth(entries[0].contentRect.width || 600);
+        }
+      });
+      observer.observe(containerRef.current);
+      return () => observer.disconnect();
+    }
+  }, []);
 
   return (
-    <div className="relative w-full h-[380px]">
-      <ResponsiveContainer width="100%" height="100%">
+    <div ref={containerRef} className="relative w-full h-[380px]">
+      {chartWidth > 0 && (
         <LineChart
+          width={chartWidth}
+          height={380}
           data={data}
           margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
         >
@@ -148,7 +164,7 @@ export const PivotChart: React.FC<PivotChartProps> = ({ data, details }) => {
             isAnimationActive={false}
           />
         </LineChart>
-      </ResponsiveContainer>
+      )}
 
       {/* Pop-up Memo Card */}
       <MemoCard

@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import html2canvas from "html2canvas";
 import pptxgen from "pptxgenjs";
 import { SlidePage } from "../../../../src/types/presentation";
+import { useIsClient } from "../../../../src/hooks/useIsClient";
 
 interface ExportGuidanceModalProps {
   isExportModalOpen: boolean;
@@ -13,20 +14,14 @@ interface ExportGuidanceModalProps {
 }
 
 export const ExportGuidanceModal: React.FC<ExportGuidanceModalProps> = ({
-  isExportModalOpen,
   setIsExportModalOpen,
   deck,
   setIsExporting,
   onExportCsv,
 }) => {
-  const [mounted, setMounted] = useState(false);
+  const isClient = useIsClient();
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
-  }, []);
 
   const generatePPTX = async () => {
     if (isGenerating) return;
@@ -121,8 +116,10 @@ export const ExportGuidanceModal: React.FC<ExportGuidanceModalProps> = ({
     }
   };
 
-  if (!mounted || typeof window === "undefined" || !isExportModalOpen)
-    return null;
+  // State naturally resets on unmount due to conditional rendering in parent
+
+  // Remove redundant return null, rely on parent to unmount
+  if (!isClient) return null;
 
   return createPortal(
     <div className="fixed inset-0 z-[120] bg-stone-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200 select-none print:hidden">
