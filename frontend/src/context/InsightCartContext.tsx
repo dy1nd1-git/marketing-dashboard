@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 export interface InsightItem {
   id: string;
@@ -27,15 +27,20 @@ const InsightCartContext = createContext<InsightCartContextType | undefined>(
 export const InsightCartProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const [items, setItems] = useState<InsightItem[]>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const stored = localStorage.getItem("mellow_insight_cart");
-        if (stored) return JSON.parse(stored);
-      } catch {}
-    }
-    return [];
-  });
+  const [items, setItems] = useState<InsightItem[]>([]);
+
+  const [, startTransition] = React.useTransition();
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("mellow_insight_cart");
+      if (stored) {
+        startTransition(() => {
+          setItems(JSON.parse(stored));
+        });
+      }
+    } catch {}
+  }, []);
 
   // Save cart modifications persisting locally
   const saveItems = (newItems: InsightItem[]) => {

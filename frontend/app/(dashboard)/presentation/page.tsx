@@ -35,19 +35,14 @@ function PresentationDeckEngine() {
   const { items: cartItems } = useInsightCart();
   const isClient = useIsClient();
 
-  // Master deck initialization using Lazy Initial State to reconstruct deck from localStorage
   const [deck, setDeck] = useState<SlidePage[]>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const stored = localStorage.getItem("mellow_slide_deck");
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (parsed && parsed.length > 0) return parsed;
-        }
-      } catch {
-        // Ignored gracefully
+    try {
+      const stored = localStorage.getItem("mellow_slide_deck");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && parsed.length > 0) return parsed;
       }
-    }
+    } catch {}
     return [
       {
         id: "slide_initial",
@@ -85,8 +80,6 @@ function PresentationDeckEngine() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isFullscreenMode, deck.length]);
-
-
 
   // --- Spreadsheet Export (CSV) ---
   const exportToCsv = () => {
@@ -188,7 +181,12 @@ function PresentationDeckEngine() {
           }
           return slide;
         });
-        try { localStorage.setItem("mellow_slide_deck", JSON.stringify(updatedDeck)); } catch {}
+        try {
+          localStorage.setItem(
+            "mellow_slide_deck",
+            JSON.stringify(updatedDeck),
+          );
+        } catch {}
         return updatedDeck;
       });
     } catch {
@@ -215,7 +213,9 @@ function PresentationDeckEngine() {
         footerText: `ROI Analysis | ${new Date().toLocaleDateString()}`,
       };
       const updatedDeck = [...prevDeck, newSlide];
-      try { localStorage.setItem("mellow_slide_deck", JSON.stringify(updatedDeck)); } catch {}
+      try {
+        localStorage.setItem("mellow_slide_deck", JSON.stringify(updatedDeck));
+      } catch {}
       return updatedDeck;
     });
     setActiveSlideIndex(deck.length);
@@ -227,7 +227,9 @@ function PresentationDeckEngine() {
 
     setDeck((prevDeck) => {
       const updated = prevDeck.filter((_, idx) => idx !== targetIdx);
-      try { localStorage.setItem("mellow_slide_deck", JSON.stringify(updated)); } catch {}
+      try {
+        localStorage.setItem("mellow_slide_deck", JSON.stringify(updated));
+      } catch {}
       return updated;
     });
     setActiveSlideIndex(Math.min(activeSlideIndex, deck.length - 2));
@@ -241,13 +243,15 @@ function PresentationDeckEngine() {
         }
         return slide;
       });
-      try { localStorage.setItem("mellow_slide_deck", JSON.stringify(updatedDeck)); } catch {}
+      try {
+        localStorage.setItem("mellow_slide_deck", JSON.stringify(updatedDeck));
+      } catch {}
       return updatedDeck;
     });
   };
 
   const removeNodeFromActiveSlide = (nodeId: string) => {
-    setDeck(prevDeck => {
+    setDeck((prevDeck) => {
       const updatedDeck = prevDeck.map((slide, idx) => {
         if (idx === activeSlideIndex) {
           return {
@@ -257,13 +261,15 @@ function PresentationDeckEngine() {
         }
         return slide;
       });
-      try { localStorage.setItem("mellow_slide_deck", JSON.stringify(updatedDeck)); } catch {}
+      try {
+        localStorage.setItem("mellow_slide_deck", JSON.stringify(updatedDeck));
+      } catch {}
       return updatedDeck;
     });
   };
 
   const updateNodeTitle = (nodeId: string, newTitle: string) => {
-    setDeck(prevDeck => {
+    setDeck((prevDeck) => {
       const updatedDeck = prevDeck.map((slide, idx) => {
         if (idx === activeSlideIndex) {
           return {
@@ -277,13 +283,15 @@ function PresentationDeckEngine() {
         }
         return slide;
       });
-      try { localStorage.setItem("mellow_slide_deck", JSON.stringify(updatedDeck)); } catch {}
+      try {
+        localStorage.setItem("mellow_slide_deck", JSON.stringify(updatedDeck));
+      } catch {}
       return updatedDeck;
     });
   };
 
   const updateNodeHeight = (nodeId: string, newHeight: number) => {
-    setDeck(prevDeck => {
+    setDeck((prevDeck) => {
       const updatedDeck = prevDeck.map((slide, idx) => {
         if (idx === activeSlideIndex) {
           return {
@@ -297,7 +305,9 @@ function PresentationDeckEngine() {
         }
         return slide;
       });
-      try { localStorage.setItem("mellow_slide_deck", JSON.stringify(updatedDeck)); } catch {}
+      try {
+        localStorage.setItem("mellow_slide_deck", JSON.stringify(updatedDeck));
+      } catch {}
       return updatedDeck;
     });
   };
@@ -739,7 +749,8 @@ function PresentationDeckEngine() {
             </h1>
           </div>
           <p className="text-body-md text-outline">
-            Drag analytics artifacts directly from your stock palette to compose tactical deck layers.
+            Drag analytics artifacts directly from your stock palette to compose
+            tactical deck layers.
           </p>
         </div>
 

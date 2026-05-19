@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense, useTransition } from "react";
+import dynamic from "next/dynamic";
 import { mapToChartData } from "./utils/metrics";
 import { useMarketingContext } from "../../../src/context/MarketingContext";
 import { useInsightCart } from "../../../src/context/InsightCartContext";
@@ -41,41 +42,35 @@ function AnaliseContent() {
   const [isPending, startTransition] = useTransition();
 
   const [tabs, setTabs] = useState<AnalysisResult[]>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const savedTabs = localStorage.getItem("exploration_tabs");
-        if (savedTabs) {
-          const parsed = JSON.parse(savedTabs);
-          if (parsed && parsed.length > 0) return parsed;
-        }
-      } catch {}
-    }
+    try {
+      const savedTabs = localStorage.getItem("exploration_tabs");
+      if (savedTabs) {
+        const parsed = JSON.parse(savedTabs);
+        if (parsed && parsed.length > 0) return parsed;
+      }
+    } catch {}
     return [];
   });
 
   const [activeTabId, setActiveTabId] = useState<string | null>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const savedTabs = localStorage.getItem("exploration_tabs");
-        if (savedTabs) {
-          const parsed = JSON.parse(savedTabs);
-          if (parsed && parsed.length > 0) return parsed[0].id;
-        }
-      } catch {}
-    }
+    try {
+      const savedTabs = localStorage.getItem("exploration_tabs");
+      if (savedTabs) {
+        const parsed = JSON.parse(savedTabs);
+        if (parsed && parsed.length > 0) return parsed[0].id;
+      }
+    } catch {}
     return null;
   });
 
   const [cartItems, setCartItems] = useState<AnalysisResult[]>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const savedCart = localStorage.getItem("exploration_cart");
-        if (savedCart) {
-          const parsed = JSON.parse(savedCart);
-          if (parsed && parsed.length > 0) return parsed;
-        }
-      } catch {}
-    }
+    try {
+      const savedCart = localStorage.getItem("exploration_cart");
+      if (savedCart) {
+        const parsed = JSON.parse(savedCart);
+        if (parsed && parsed.length > 0) return parsed;
+      }
+    } catch {}
     return [];
   });
 
@@ -277,9 +272,7 @@ function AnaliseContent() {
               <button
                 onClick={() => {
                   setPrompt("広告費と売上成長の相関関係を検証せよ");
-                  handleAnalyze(
-                    "広告費と売上成長の相関関係を検証せよ",
-                  );
+                  handleAnalyze("広告費と売上成長の相関関係を検証せよ");
                 }}
                 className="bg-[#FDFCF8] hover:bg-[#87A996]/10 text-[#456555] border border-[#87A996]/20 px-3 py-1 rounded-full text-[10px] font-medium cursor-pointer transition-all hover:scale-[1.01] hover:border-[#87A996]/50"
               >
@@ -288,9 +281,7 @@ function AnaliseContent() {
               <button
                 onClick={() => {
                   setPrompt("昨日のROAS急落の要因とアノマリーを特定せよ");
-                  handleAnalyze(
-                    "昨日のROAS急落の要因とアノマリーを特定せよ",
-                  );
+                  handleAnalyze("昨日のROAS急落の要因とアノマリーを特定せよ");
                 }}
                 className="bg-[#FDFCF8] hover:bg-[#87A996]/10 text-[#456555] border border-[#87A996]/20 px-3 py-1 rounded-full text-[10px] font-medium cursor-pointer transition-all hover:scale-[1.01] hover:border-[#87A996]/50"
               >
@@ -696,7 +687,7 @@ function AnaliseContent() {
   );
 }
 
-export default function AnalisePage() {
+function AnalisePage() {
   return (
     <Suspense
       fallback={<div className="p-6 text-gray-400">Loading workspace...</div>}
@@ -705,3 +696,7 @@ export default function AnalisePage() {
     </Suspense>
   );
 }
+
+export default dynamic(() => Promise.resolve(AnalisePage), {
+  ssr: false,
+});

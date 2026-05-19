@@ -10,6 +10,7 @@ import { DocumentPanel } from "./components/DocumentPanel";
 import { EvidencePanel } from "./components/EvidencePanel";
 import { GenealogyHUD } from "./components/GenealogyHUD";
 
+import dynamic from "next/dynamic";
 import {
   CURRENT_PATH_D,
   RECOMMENDED_PATH_D,
@@ -17,7 +18,7 @@ import {
   INITIAL_DEMO_HISTORY,
 } from "./mockData";
 
-export default function LogicCanvasPage() {
+function LogicCanvasPage() {
   const { segment } = useMarketingContext();
   const [activeTab, setActiveTab] = useState<
     "Genealogy" | "Document" | "History"
@@ -25,12 +26,10 @@ export default function LogicCanvasPage() {
   const [selectedNodeId, setSelectedNodeId] = useState<string>("node-rec-1");
   const isClient = useIsClient();
   const [historyLogs, setHistoryLogs] = useState<HistoryLogItem[]>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem("logic_canvas_history");
-        if (saved) return JSON.parse(saved);
-      } catch {}
-    }
+    try {
+      const saved = localStorage.getItem("logic_canvas_history");
+      if (saved) return JSON.parse(saved);
+    } catch {}
     return INITIAL_DEMO_HISTORY;
   });
   const [optimisticApproved, setOptimisticApproved] = useState<boolean>(false);
@@ -91,10 +90,7 @@ export default function LogicCanvasPage() {
       setHistoryLogs((prev) => {
         const updated = [approvalLog, ...prev];
         try {
-          localStorage.setItem(
-            "logic_canvas_history",
-            JSON.stringify(updated),
-          );
+          localStorage.setItem("logic_canvas_history", JSON.stringify(updated));
         } catch (e) {
           console.error("Storage error", e);
         }
@@ -128,7 +124,8 @@ export default function LogicCanvasPage() {
             </span>
           </div>
           <p className="text-body-md text-outline">
-            Trace statistical evidence and approve predictive strategy workflows.
+            Trace statistical evidence and approve predictive strategy
+            workflows.
           </p>
         </div>
 
@@ -204,7 +201,10 @@ export default function LogicCanvasPage() {
           </motion.div>
         )}
       </AnimatePresence>
-
     </div>
   );
 }
+
+export default dynamic(() => Promise.resolve(LogicCanvasPage), {
+  ssr: false,
+});
