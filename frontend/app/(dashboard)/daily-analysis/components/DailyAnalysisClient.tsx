@@ -6,6 +6,7 @@ import { LineageHUD } from "./LineageHUD";
 import { StockInsightButton } from "../../../../src/components/dashboard/StockInsightButton";
 import { DateRangePicker } from "../../../../src/components/dashboard/DateRangePicker";
 import { DailyCVR, ResponseMetadata } from "../../../../src/types/marketing";
+import { useMarketingContext } from "../../../../src/context/MarketingContext";
 import {
   BarChart,
   Bar,
@@ -57,6 +58,7 @@ export function DailyAnalysisClient({
   initialMetadata,
 }: DailyAnalysisClientProps) {
   const router = useRouter();
+  const { segment } = useMarketingContext();
   const dailyData = initialData;
   const metadata = initialMetadata;
   const [activeTab, setActiveTab] = useState<"ripples" | "flux" | "tides">(
@@ -265,7 +267,7 @@ export function DailyAnalysisClient({
         </div>
       </header>
 
-      <div className="flex-1 overflow-auto rounded-xl border border-surface-container-highest relative max-h-[480px] shadow-2xs">
+      <div className="flex-1 overflow-auto rounded-xl border border-surface-container-highest relative max-h-[350px] shadow-2xs">
         <table className="w-full text-left border-collapse font-body text-xs">
           <thead>
             <tr className="border-b border-surface-container-highest bg-surface-container-lowest text-on-surface-variant select-none">
@@ -339,13 +341,21 @@ export function DailyAnalysisClient({
 
   return (
     <div className="p-xl max-w-[1500px] space-y-xl mx-auto">
-      {/* Header section: Ultra-clean and modern Layout */}
-      <header className="mb-xl flex flex-col sm:flex-row sm:justify-between items-start sm:items-end gap-4">
+      {/* Header section: Universal Aesthetic Layout */}
+      <header className="mb-8 flex flex-col sm:flex-row sm:justify-between items-start sm:items-end gap-4">
         <div>
-          <h1 className="font-h1 text-h1 text-on-surface tracking-tight">
-            Subaquatic Observatory
-          </h1>
-          <p className="text-on-surface-variant font-body-md text-body-md mt-1">
+          <div className="flex items-center gap-3 mb-2">
+            <span className="material-symbols-outlined text-primary text-[32px] shrink-0">
+              insert_chart
+            </span>
+            <h1 className="text-[36px] font-semibold text-on-surface tracking-tight leading-none shrink-0">
+              Daily Analysis
+            </h1>
+            <span className="px-3 py-1 bg-primary-container/20 text-primary rounded-full text-xs font-medium tracking-wide shrink-0">
+              {segment}
+            </span>
+          </div>
+          <p className="text-body-md text-outline">
             Marketing telemetry bounded by strict pipeline scope
           </p>
         </div>
@@ -400,7 +410,7 @@ export function DailyAnalysisClient({
       </nav>
 
       {/* Main Visual Display Grid */}
-      <div className="flex flex-col gap-lg items-stretch min-h-[500px]">
+      <div className="flex flex-col gap-lg items-stretch min-h-[380px]">
         {activeTab === "ripples" && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-lg items-start w-full">
             {renderMetricTable(
@@ -475,8 +485,8 @@ export function DailyAnalysisClient({
                 />
               </div>
             </header>
-            <div className="w-full h-[400px]">
-              <ResponsiveContainer width="100%" height="100%" minHeight={400}>
+            <div className="w-full h-[300px]">
+              <ResponsiveContainer width="100%" height="100%" minHeight={300}>
                 <BarChart data={channelFluxData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-outline-variant)" />
                   <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fill: "var(--color-outline)", fontSize: 12 }} />
@@ -533,8 +543,8 @@ export function DailyAnalysisClient({
                 />
               </div>
             </header>
-            <div className="w-full h-[400px]">
-              <ResponsiveContainer width="100%" height="100%" minHeight={400}>
+            <div className="w-full h-[300px]">
+              <ResponsiveContainer width="100%" height="100%" minHeight={300}>
                 <AreaChart data={audienceTidesData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                   <defs>
                     <linearGradient id="colorReturning" x1="0" y1="0" x2="0" y2="1">

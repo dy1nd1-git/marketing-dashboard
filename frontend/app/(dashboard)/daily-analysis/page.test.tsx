@@ -2,6 +2,15 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DailyAnalysisClient } from "./components/DailyAnalysisClient";
 
+// Mock MarketingContext
+vi.mock("../../../src/context/MarketingContext", () => ({
+  useMarketingContext: () => ({
+    segment: "Paid Social",
+    setSegment: vi.fn(),
+    isPending: false,
+  }),
+}));
+
 // Mock next/navigation
 const pushMock = vi.fn();
 vi.mock("next/navigation", () => ({
@@ -69,7 +78,7 @@ describe("DailyAnalysisClient (Subaquatic Observatory & Tactical Grids)", () => 
       />
     );
 
-    expect(screen.getByText("Subaquatic Observatory")).toBeDefined();
+    expect(screen.getByText("Daily Analysis")).toBeDefined();
 
     // 確認: 3列のタイトルが表示されていること
     expect(screen.getByText("Daily Tactical")).toBeDefined();

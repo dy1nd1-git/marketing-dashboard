@@ -109,20 +109,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
         </Link>
       </div>
-
-      {/* Primary Action */}
-      <div
-        className={`border-t border-surface-container ${isCollapsed ? "p-4 flex justify-center" : "p-6"}`}
-      >
-        <button
-          className={`bg-primary text-white py-3 rounded-2xl font-label flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-md shadow-primary/10 ${isCollapsed ? "w-12 h-12 rounded-full p-0" : "w-full"}`}
-        >
-          <span className="material-symbols-outlined text-sm">add</span>
-          {!isCollapsed && (
-            <span className="whitespace-nowrap">New Analysis</span>
-          )}
-        </button>
-      </div>
     </aside>
   );
 };

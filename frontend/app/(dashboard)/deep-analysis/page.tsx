@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense, useTransition } from "react";
 import { mapToChartData } from "./utils/metrics";
 import { useMarketingContext } from "../../../src/context/MarketingContext";
 import { useInsightCart } from "../../../src/context/InsightCartContext";
-import { executeAnalysisAction } from "../../../src/actions/aiAnalysis";
+import { executeAnalysisAction } from "../../../src/lib/aiAnalysis";
 import { DateRangePicker } from "../../../src/components/dashboard/DateRangePicker";
 import { useIsClient } from "../../../src/hooks/useIsClient";
 import {
@@ -129,7 +129,9 @@ function AnaliseContent() {
         } catch (error) {
           console.error("Failed to execute analysis:", error);
           alert(
-            error instanceof Error ? error.message : "AI分析エンジンの呼び出しに失敗しました。バックエンドとAPIキーの設定を確認してください。"
+            error instanceof Error
+              ? error.message
+              : "AI分析エンジンの呼び出しに失敗しました。バックエンドとAPIキーの設定を確認してください。",
           );
         }
       });
@@ -159,9 +161,11 @@ function AnaliseContent() {
   if (!isClient) {
     return (
       <div className="p-10 pb-32 min-h-screen bg-background relative flex flex-col font-sans">
-        <div className="flex-1 flex flex-col items-center justify-center min-h-[500px]">
+        <div className="flex-1 flex flex-col items-center justify-center min-h-[380px]">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-          <p className="text-sm text-outline font-mono">Initializing Sandbox Engine...</p>
+          <p className="text-sm text-outline font-mono">
+            Initializing Sandbox Engine...
+          </p>
         </div>
       </div>
     );
@@ -169,26 +173,23 @@ function AnaliseContent() {
 
   return (
     <div className="p-10 pb-32 min-h-screen bg-background relative flex flex-col font-sans">
-      {/* Header & Top Input Bar */}
-      <div className="mb-8 flex justify-between items-end gap-8">
-        <div className="w-1/3">
-          <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-[36px] font-semibold text-on-surface tracking-tight leading-none">
-              Exploration
+      {/* Header & Top Input Bar - Standardized Parallel Row */}
+      <div className="mb-8 flex flex-col gap-4">
+        {/* Row 1: Title with Icon & Input Bar */}
+        <div className="flex justify-between items-center gap-8">
+          <div className="flex-1 flex items-center gap-3">
+            <span className="material-symbols-outlined text-primary text-[32px] shrink-0">
+              troubleshoot
+            </span>
+            <h1 className="text-[36px] font-semibold text-on-surface tracking-tight leading-none shrink-0">
+              Deep Analysis
             </h1>
-            <span className="px-3 py-1 bg-primary-container/20 text-primary rounded-full text-xs font-medium tracking-wide">
+            <span className="px-3 py-1 bg-primary-container/20 text-primary rounded-full text-xs font-medium tracking-wide shrink-0">
               {segment}
             </span>
           </div>
-          <p className="text-body-md text-outline">
-            Analyze and pivot your marketing data.
-          </p>
-        </div>
 
-        {/* Top Input Bar with Date above it */}
-        <div className="flex-1 max-w-[700px] flex flex-col items-end gap-2">
-          <DateRangePicker />
-          <div className="w-full flex items-center gap-4 bg-surface-container-lowest border border-outline-variant/40 rounded-full py-2 px-3 shadow-sm focus-within:ring-2 focus-within:ring-primary/20 transition-all focus-within:shadow-md">
+          <div className="flex-1 max-w-[700px] flex items-center gap-4 bg-surface-container-lowest border border-outline-variant/40 rounded-full py-2 px-3 shadow-sm focus-within:ring-2 focus-within:ring-primary/20 transition-all focus-within:shadow-md">
             <div className="pl-4 text-primary opacity-80">
               <svg
                 className="w-5 h-5"
@@ -210,7 +211,11 @@ function AnaliseContent() {
               placeholder="// [INPUT]: Try '推移' or '比較'..."
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+                  handleAnalyze();
+                }
+              }}
             />
             <button
               className="bg-primary text-on-primary hover:opacity-90 w-10 h-10 flex items-center justify-center rounded-full shadow-sm disabled:opacity-50 transition-all hover:scale-[1.02] shrink-0"
@@ -236,54 +241,64 @@ function AnaliseContent() {
               )}
             </button>
           </div>
+        </div>
 
-          {/* Gentle Professional suggestion chips to trigger quick AI execution */}
-          <div className="w-full flex flex-wrap gap-1.5 justify-start mt-1 pl-2">
-            <span className="text-[10px] text-outline font-semibold tracking-wider uppercase self-center mr-1.5">
-              Suggestions:
-            </span>
-            <button
-              onClick={() => {
-                setPrompt(
-                  "過去30日間のコンバージョン率（CVR）の推移を分析せよ",
-                );
-                handleAnalyze(
-                  "過去30日間のコンバージョン率（CVR）の推移を分析せよ",
-                );
-              }}
-              className="bg-[#FDFCF8] hover:bg-[#87A996]/10 text-[#456555] border border-[#87A996]/20 px-3 py-1 rounded-full text-[10px] font-medium cursor-pointer transition-all hover:scale-[1.01] hover:border-[#87A996]/50"
-            >
-              CVR Trend Analysis
-            </button>
-            <button
-              onClick={() => {
-                setPrompt("広告費と売上成長の相関関係を検証せよ");
-                handleAnalyze(
-                  "広告費と売上成長の相関関係を検証せよ",
-                );
-              }}
-              className="bg-[#FDFCF8] hover:bg-[#87A996]/10 text-[#456555] border border-[#87A996]/20 px-3 py-1 rounded-full text-[10px] font-medium cursor-pointer transition-all hover:scale-[1.01] hover:border-[#87A996]/50"
-            >
-              Spend vs Revenue
-            </button>
-            <button
-              onClick={() => {
-                setPrompt("昨日のROAS急落の要因とアノマリーを特定せよ");
-                handleAnalyze(
-                  "昨日のROAS急落の要因とアノマリーを特定せよ",
-                );
-              }}
-              className="bg-[#FDFCF8] hover:bg-[#87A996]/10 text-[#456555] border border-[#87A996]/20 px-3 py-1 rounded-full text-[10px] font-medium cursor-pointer transition-all hover:scale-[1.01] hover:border-[#87A996]/50"
-            >
-              ROAS Anomaly Detection
-            </button>
+        {/* Row 2: Subtitle & Suggestions + DatePicker */}
+        <div className="flex justify-between items-center gap-8">
+          <p className="text-body-md text-outline flex-1">
+            Analyze and pivot your marketing data.
+          </p>
+          <div className="flex-1 max-w-[700px] flex flex-wrap sm:flex-nowrap justify-between items-center gap-3 pl-2">
+            <div className="flex flex-wrap gap-1.5 justify-start">
+              <span className="text-[10px] text-outline font-semibold tracking-wider uppercase self-center mr-1.5">
+                Suggestions:
+              </span>
+              <button
+                onClick={() => {
+                  setPrompt(
+                    "過去30日間のコンバージョン率（CVR）の推移を分析せよ",
+                  );
+                  handleAnalyze(
+                    "過去30日間のコンバージョン率（CVR）の推移を分析せよ",
+                  );
+                }}
+                className="bg-[#FDFCF8] hover:bg-[#87A996]/10 text-[#456555] border border-[#87A996]/20 px-3 py-1 rounded-full text-[10px] font-medium cursor-pointer transition-all hover:scale-[1.01] hover:border-[#87A996]/50"
+              >
+                CVR Trend Analysis
+              </button>
+              <button
+                onClick={() => {
+                  setPrompt("広告費と売上成長の相関関係を検証せよ");
+                  handleAnalyze(
+                    "広告費と売上成長の相関関係を検証せよ",
+                  );
+                }}
+                className="bg-[#FDFCF8] hover:bg-[#87A996]/10 text-[#456555] border border-[#87A996]/20 px-3 py-1 rounded-full text-[10px] font-medium cursor-pointer transition-all hover:scale-[1.01] hover:border-[#87A996]/50"
+              >
+                Spend vs Revenue
+              </button>
+              <button
+                onClick={() => {
+                  setPrompt("昨日のROAS急落の要因とアノマリーを特定せよ");
+                  handleAnalyze(
+                    "昨日のROAS急落の要因とアノマリーを特定せよ",
+                  );
+                }}
+                className="bg-[#FDFCF8] hover:bg-[#87A996]/10 text-[#456555] border border-[#87A996]/20 px-3 py-1 rounded-full text-[10px] font-medium cursor-pointer transition-all hover:scale-[1.01] hover:border-[#87A996]/50"
+              >
+                ROAS Anomaly Detection
+              </button>
+            </div>
+            <div className="shrink-0 self-center">
+              <DateRangePicker />
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="flex gap-8 flex-1 items-start">
+      <div className="flex gap-8 flex-1">
         {/* Left Area: Dynamic Canvas */}
-        <div className="flex-1 flex flex-col gap-6">
+        <div className="flex-1 min-w-0 flex flex-col gap-6">
           {/* Tabs UI */}
           {tabs.length > 0 && (
             <div className="flex gap-2 border-b border-outline-variant/30 pb-2 overflow-x-auto scrollbar-hide">
@@ -342,7 +357,7 @@ function AnaliseContent() {
               </div>
 
               {/* Chart Shimmer */}
-              <div className="h-[300px] w-full bg-[#FDFCF8] rounded-xl border border-slate-100 flex items-center justify-center">
+              <div className="h-[650px] w-full bg-[#FDFCF8] rounded-xl border border-slate-100 flex items-center justify-center">
                 <span className="text-[11px] font-bold text-[#87A996] tracking-widest uppercase">
                   AI AGGREGATING PIPELINE TELEMETRY...
                 </span>
@@ -388,7 +403,7 @@ function AnaliseContent() {
               </div>
 
               {/* Dynamic Recharts */}
-              <div className="h-[300px] w-full mt-4 flex items-center justify-center">
+              <div className="h-[650px] w-full mt-4 flex items-center justify-center">
                 {!isClient ? (
                   <div className="text-outline/40 text-data-sm animate-pulse">
                     Initializing visualization...
@@ -566,8 +581,8 @@ function AnaliseContent() {
             </div>
           ) : (
             // Empty State
-            <div className="bg-surface-container-lowest rounded-[20px] p-12 shadow-sm border border-outline-variant/30 flex flex-col items-center justify-center text-center h-[500px]">
-              <div className="w-20 h-20 bg-[#f0f4f1] rounded-full flex items-center justify-center mb-6">
+            <div className="w-full bg-surface-container-lowest rounded-[20px] p-8 shadow-sm border border-outline-variant/30 flex flex-col items-center justify-center text-center h-full min-h-[480px]">
+              <div className="w-20 h-20 bg-[#f0f4f1] rounded-full flex items-center justify-center mb-6 shrink-0">
                 <svg
                   className="w-10 h-10 text-primary opacity-50"
                   fill="none"
@@ -582,10 +597,10 @@ function AnaliseContent() {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-on-surface mb-2">
+              <h3 className="text-xl font-semibold text-on-surface mb-2 tracking-tight">
                 No active analysis
               </h3>
-              <p className="text-outline text-data-sm max-w-md">
+              <p className="text-outline text-data-sm w-full text-center leading-relaxed whitespace-normal">
                 Use the input bar above to query your marketing data. E.g.
                 &quot;推移&quot; or &quot;比較&quot;.
               </p>
@@ -594,7 +609,7 @@ function AnaliseContent() {
         </div>
 
         {/* Right Area: Insight Cart */}
-        <div className="w-80 bg-surface-container-low/50 rounded-[24px] p-6 h-full min-h-[600px] border border-outline-variant/20 shadow-inner flex flex-col">
+        <div className="w-80 bg-surface-container-low/50 rounded-[24px] p-6 h-full min-h-[480px] border border-outline-variant/20 shadow-inner flex flex-col">
           <div className="flex items-center gap-3 mb-6 px-2">
             <svg
               className="w-5 h-5 text-outline"

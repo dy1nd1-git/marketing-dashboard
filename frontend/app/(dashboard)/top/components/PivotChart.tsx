@@ -73,7 +73,7 @@ export const PivotChart: React.FC<PivotChartProps> = ({ data, details }) => {
   const [memoState, setMemoState] = useState({ visible: false, x: 0, y: 0 });
 
   return (
-    <div className="relative w-full h-[500px]">
+    <div className="relative w-full h-[380px]">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart
           data={data}

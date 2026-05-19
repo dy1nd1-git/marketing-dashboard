@@ -744,22 +744,18 @@ function PresentationDeckEngine() {
   return (
     <main className="max-w-[1600px] mx-auto p-2 sm:p-6 h-[calc(100vh-100px)] flex flex-col gap-4 print:p-0 print:m-0 print:h-auto print:block">
       {/* Upper Dashboard Header */}
-      <section className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-2 border-b border-outline-variant/20 print:hidden">
+      <section className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-4 border-b border-outline-variant/20 print:hidden">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary text-2xl">
+          <div className="flex items-center gap-3 mb-2">
+            <span className="material-symbols-outlined text-primary text-3xl">
               co_present
             </span>
-            <h1 className="font-h1 text-2xl font-bold text-on-surface">
+            <h1 className="text-[36px] font-semibold text-on-surface tracking-tight leading-none">
               Presentation Master
             </h1>
-            <span className="px-2 py-0.5 bg-secondary-container text-on-secondary-container font-mono text-[10px] font-bold rounded-md">
-              HTML5 Native Engine
-            </span>
           </div>
-          <p className="text-xs text-outline mt-0.5">
-            Drag analytics artifacts directly from your stock palette to compose
-            tactical deck layers.
+          <p className="text-body-md text-outline">
+            Drag analytics artifacts directly from your stock palette to compose tactical deck layers.
           </p>
         </div>
 
@@ -798,7 +794,7 @@ function PresentationDeckEngine() {
       </section>
 
       {/* Main Builder Grid Layout */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-[500px] print:hidden">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-[380px] print:hidden">
         {/* Center Canvas Stage / Massively Expanded to 8 Columns on Left */}
         {/* Center Canvas Stage decoupled to optimized subcomponent */}
         <PresentationCanvasStage

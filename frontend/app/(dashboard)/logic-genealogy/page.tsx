@@ -206,27 +206,22 @@ export default function LogicCanvasPage() {
   return (
     <div className="p-xl flex flex-col gap-xl max-w-[1500px] mx-auto min-h-screen">
       {/* Top Controls & Navigation Shell */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-md pb-sm border-b border-outline-variant/30">
-        <div className="flex items-center gap-md">
-          <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-sm">
-            <span className="material-symbols-outlined text-primary text-[28px]">
+      <section className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-4 border-b border-outline-variant/20 print:hidden mb-6">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <span className="material-symbols-outlined text-primary text-3xl shrink-0">
               account_tree
             </span>
+            <h1 className="text-[36px] font-semibold text-on-surface tracking-tight leading-none shrink-0">
+              Logic Genealogy
+            </h1>
+            <span className="px-3 py-1 bg-primary-container/20 text-primary rounded-full text-xs font-medium tracking-wide shrink-0">
+              {segment}
+            </span>
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="font-h1 text-h1 text-on-surface leading-tight">
-                Logic Genealogy
-              </h1>
-              <span className="px-2.5 py-0.5 rounded-full bg-primary-container/20 text-primary font-label text-[11px] uppercase tracking-wider">
-                {segment}
-              </span>
-            </div>
-            <p className="font-label text-label text-outline">
-              Trace statistical evidence and approve predictive strategy
-              workflows.
-            </p>
-          </div>
+          <p className="text-body-md text-outline">
+            Trace statistical evidence and approve predictive strategy workflows.
+          </p>
         </div>
 
         {/* Dynamic Mode Switcher */}
@@ -260,7 +255,7 @@ export default function LogicCanvasPage() {
             );
           })}
         </div>
-      </div>
+      </section>
 
       {/* Main Responsive Render Area */}
       <AnimatePresence mode="wait">
@@ -287,55 +282,21 @@ export default function LogicCanvasPage() {
               setSelectedNodeId={setSelectedNodeId}
               selectedNode={selectedNode}
             />
-            <EvidencePanel selectedNode={selectedNode} />
+            <EvidencePanel
+              selectedNode={selectedNode}
+              onApprove={handleApproveAction}
+              isApproving={isPending}
+              optimisticApproved={optimisticApproved}
+              onAddToCart={() => {
+                alert(
+                  `Saved strategy context for "${selectedNode.label}" to persistent Insight Cart.`,
+                );
+              }}
+            />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Persistent Execution Footer Panel */}
-      <footer className="mt-auto bg-[#FDFCF8]/95 dark:bg-stone-950/95 backdrop-blur-md px-8 py-5 border border-outline-variant/30 shadow-[0_-10px_40px_rgba(0,0,0,0.04)] rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-md relative z-30">
-        <div className="font-label text-[11px] font-bold uppercase tracking-widest text-primary">
-          © 2026 Logic Genealogy Organic Precision
-        </div>
-
-        <div className="flex items-center gap-4 w-full sm:w-auto justify-end">
-          <button
-            onClick={() => {
-              alert(
-                `Saved strategy context for "${selectedNode.label}" to persistent Insight Cart.`,
-              );
-            }}
-            className="flex-1 sm:flex-none px-6 py-3 rounded-xl border border-[#D4A373] text-[#D4A373] font-label text-label hover:bg-[#D4A373]/5 transition-colors uppercase tracking-wider text-center"
-          >
-            Add to Cart
-          </button>
-          <button
-            onClick={handleApproveAction}
-            disabled={isPending || optimisticApproved}
-            className={`flex-1 sm:flex-none px-8 py-3 rounded-xl font-label text-label uppercase tracking-wider shadow-md transition-all duration-300 flex items-center justify-center gap-2 ${
-              optimisticApproved
-                ? "bg-primary-container text-white cursor-default"
-                : "bg-primary text-on-primary hover:shadow-lg hover:scale-[1.02]"
-            } ${isPending ? "opacity-75 cursor-wait" : ""}`}
-          >
-            {isPending ? (
-              <>
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Executing...
-              </>
-            ) : optimisticApproved ? (
-              <>
-                <span className="material-symbols-outlined text-[18px]">
-                  done
-                </span>
-                Action Approved
-              </>
-            ) : (
-              "Approve Action"
-            )}
-          </button>
-        </div>
-      </footer>
     </div>
   );
 }
