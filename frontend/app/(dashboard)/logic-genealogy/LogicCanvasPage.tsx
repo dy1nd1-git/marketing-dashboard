@@ -15,32 +15,43 @@ import {
   INITIAL_DEMO_HISTORY,
 } from "./mockData";
 
+import { useIsClient } from "../../../src/hooks/useIsClient";
+
 export default function LogicCanvasPage() {
   const { segment } = useMarketingContext();
+  const isClient = useIsClient();
   const [activeTab, setActiveTab] = useState<
     "Genealogy" | "Document" | "History"
   >("Genealogy");
   const [selectedNodeId, setSelectedNodeId] = useState<string>("node-rec-1");
-  const [historyLogs, setHistoryLogs] = useState<HistoryLogItem[]>(() => {
-    try {
-      const saved = localStorage.getItem("logic_canvas_history");
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return INITIAL_DEMO_HISTORY;
-  });
+  const [historyLogs, setHistoryLogs] = useState<HistoryLogItem[]>(INITIAL_DEMO_HISTORY);
+
   const [optimisticApproved, setOptimisticApproved] = useState<boolean>(false);
   const [isPending, startTransition] = useTransition();
 
+  useEffect(() => {
+    if (isClient) {
+      try {
+        const saved = localStorage.getItem("logic_canvas_history");
+        if (saved) {
+          startTransition(() => {
+            setHistoryLogs(JSON.parse(saved));
+          });
+        }
+      } catch {}
+    }
+  }, [isClient]);
+
   // Track exploration segment switches in history log dynamically
   useEffect(() => {
-    if (!segment) return;
+    if (!segment || !isClient) return;
     setTimeout(() => {
       setHistoryLogs((prev) => {
         // Avoid duplicate consecutive logging
         if (prev.length > 0 && prev[0].title.includes(segment)) return prev;
 
         const newLog: HistoryLogItem = {
-          id: crypto.randomUUID(),
+          id: `log_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
           timestamp: new Date()
             .toISOString()
             .replace("T", " ")
@@ -59,7 +70,7 @@ export default function LogicCanvasPage() {
         return updated;
       });
     }, 0);
-  }, [segment]);
+  }, [segment, isClient]);
 
   const selectedNode =
     STRATEGY_NODES.find((n) => n.id === selectedNodeId) || STRATEGY_NODES[3];
@@ -75,7 +86,7 @@ export default function LogicCanvasPage() {
 
       // Record persistent selection decision log
       const approvalLog: HistoryLogItem = {
-        id: crypto.randomUUID(),
+        id: `log_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
         timestamp: new Date().toISOString().replace("T", " ").substring(0, 16),
         type: "approval",
         title: `Approved Action: ${selectedNode.label}`,

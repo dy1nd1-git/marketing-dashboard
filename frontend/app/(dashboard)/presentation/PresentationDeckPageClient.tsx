@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useTransition } from "react";
 
 import {
   useInsightCart,
@@ -35,26 +35,34 @@ function PresentationDeckEngine() {
   const { items: cartItems } = useInsightCart();
   const isClient = useIsClient();
 
-  const [deck, setDeck] = useState<SlidePage[]>(() => {
-    try {
-      const stored = localStorage.getItem("mellow_slide_deck");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed && parsed.length > 0) return parsed;
-      }
-    } catch {}
-    return [
-      {
-        id: "slide_initial",
-        title: "Mellow Marketing ROI Review",
-        subtitle: "Q1 Campaign Performance Strategic Horizons",
-        theme: "light",
-        nodes: [],
-        executiveNotes:
-          "Overall spend efficiency remained highly robust through strategic pivot reallocations.",
-      },
-    ];
-  });
+  const [, startTransition] = useTransition();
+  const [deck, setDeck] = useState<SlidePage[]>([
+    {
+      id: "slide_initial",
+      title: "Mellow Marketing ROI Review",
+      subtitle: "Q1 Campaign Performance Strategic Horizons",
+      theme: "light",
+      nodes: [],
+      executiveNotes:
+        "Overall spend efficiency remained highly robust through strategic pivot reallocations.",
+    },
+  ]);
+
+  useEffect(() => {
+    if (isClient) {
+      try {
+        const stored = localStorage.getItem("mellow_slide_deck");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed && parsed.length > 0) {
+            startTransition(() => {
+              setDeck(parsed);
+            });
+          }
+        }
+      } catch {}
+    }
+  }, [isClient]);
 
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const [activePanelTab, setActivePanelTab] = useState<"palette" | "inspector">(
@@ -165,7 +173,7 @@ function PresentationDeckEngine() {
       }
 
       const newNode: SlideNode = {
-        id: crypto.randomUUID(),
+        id: `node_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
         item: { ...droppedItem },
         position: { x: 0, y: 0 },
         height: 400,

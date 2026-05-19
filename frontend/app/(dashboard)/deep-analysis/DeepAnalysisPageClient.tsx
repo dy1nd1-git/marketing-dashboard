@@ -52,7 +52,12 @@ function AnaliseContent() {
   }, [isClient]);
 
   useEffect(() => {
-    if (chartReady && containerRef.current && typeof window !== "undefined" && "ResizeObserver" in window) {
+    if (
+      chartReady &&
+      containerRef.current &&
+      typeof window !== "undefined" &&
+      "ResizeObserver" in window
+    ) {
       setChartWidth(containerRef.current.clientWidth || 800);
       const observer = new window.ResizeObserver((entries) => {
         if (entries[0]) {
@@ -66,38 +71,35 @@ function AnaliseContent() {
 
   const [isPending, startTransition] = useTransition();
 
-  const [tabs, setTabs] = useState<AnalysisResult[]>(() => {
-    try {
-      const savedTabs = localStorage.getItem("exploration_tabs");
-      if (savedTabs) {
-        const parsed = JSON.parse(savedTabs);
-        if (parsed && parsed.length > 0) return parsed;
-      }
-    } catch {}
-    return [];
-  });
+  const [tabs, setTabs] = useState<AnalysisResult[]>([]);
+  const [activeTabId, setActiveTabId] = useState<string | null>(null);
+  const [cartItems, setCartItems] = useState<AnalysisResult[]>([]);
+  const isLoadedRef = useRef(false);
 
-  const [activeTabId, setActiveTabId] = useState<string | null>(() => {
-    try {
-      const savedTabs = localStorage.getItem("exploration_tabs");
-      if (savedTabs) {
-        const parsed = JSON.parse(savedTabs);
-        if (parsed && parsed.length > 0) return parsed[0].id;
-      }
-    } catch {}
-    return null;
-  });
-
-  const [cartItems, setCartItems] = useState<AnalysisResult[]>(() => {
-    try {
-      const savedCart = localStorage.getItem("exploration_cart");
-      if (savedCart) {
-        const parsed = JSON.parse(savedCart);
-        if (parsed && parsed.length > 0) return parsed;
-      }
-    } catch {}
-    return [];
-  });
+  useEffect(() => {
+    if (isClient && !isLoadedRef.current) {
+      try {
+        const savedTabs = localStorage.getItem("exploration_tabs");
+        const savedCart = localStorage.getItem("exploration_cart");
+        startTransition(() => {
+          if (savedTabs) {
+            const parsed = JSON.parse(savedTabs);
+            if (parsed && parsed.length > 0) {
+              setTabs(parsed);
+              setActiveTabId(parsed[0].id);
+            }
+          }
+          if (savedCart) {
+            const parsed = JSON.parse(savedCart);
+            if (parsed && parsed.length > 0) {
+              setCartItems(parsed);
+            }
+          }
+        });
+      } catch {}
+      isLoadedRef.current = true;
+    }
+  }, [isClient]);
 
   const [prompt, setPrompt] = useState("");
 
@@ -107,11 +109,15 @@ function AnaliseContent() {
 
   // Save to LocalStorage on changes
   useEffect(() => {
-    localStorage.setItem("exploration_tabs", JSON.stringify(tabs));
+    if (isLoadedRef.current) {
+      localStorage.setItem("exploration_tabs", JSON.stringify(tabs));
+    }
   }, [tabs]);
 
   useEffect(() => {
-    localStorage.setItem("exploration_cart", JSON.stringify(cartItems));
+    if (isLoadedRef.current) {
+      localStorage.setItem("exploration_cart", JSON.stringify(cartItems));
+    }
   }, [cartItems]);
 
   const handleCopySql = async (sqlText: string) => {
@@ -138,7 +144,7 @@ function AnaliseContent() {
             analysisPrompt.includes("比較") || analysisPrompt.includes("割合");
 
           const realResult: AnalysisResult = {
-            id: crypto.randomUUID(),
+            id: `analysis_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
             title: isComparison
               ? "AI Structural Comparison"
               : "AI Intelligence Trend",
@@ -427,7 +433,10 @@ function AnaliseContent() {
               </div>
 
               {/* Dynamic Recharts */}
-              <div ref={containerRef} className={`h-[650px] w-full mt-4 ${!chartReady ? "flex items-center justify-center" : "relative block"}`}>
+              <div
+                ref={containerRef}
+                className={`h-[650px] w-full mt-4 ${!chartReady ? "flex items-center justify-center" : "relative block"}`}
+              >
                 {!chartReady || chartWidth === 0 ? (
                   <div className="text-outline/40 text-data-sm animate-pulse">
                     Initializing visualization...

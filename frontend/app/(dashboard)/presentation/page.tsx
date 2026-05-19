@@ -1,13 +1,8 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { DashboardPageLoading } from "../../../src/components/dashboard/DashboardPageLoading";
-
-const PresentationDeckPage = dynamic(() => import("./PresentationDeckPageClient"), {
-  ssr: false,
-  loading: () => <DashboardPageLoading />,
-});
+import PresentationDeckPageClient from "./PresentationDeckPageClient";
 
 export default function Page() {
-  return <PresentationDeckPage />;
+  return <PresentationDeckPageClient />;
 }
+
