@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import PresentationDeckEngine from "./page";
+import PresentationDeckEngine from "./PresentationDeckPageClient";
 
 // Mock Recharts subcomponents robustly to support lightweight reliable jsdom assertions
 vi.mock("recharts", () => ({

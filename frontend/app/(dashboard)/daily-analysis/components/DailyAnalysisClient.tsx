@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { LineageHUD } from "./LineageHUD";
 import { StockInsightButton } from "../../../../src/components/dashboard/StockInsightButton";
@@ -16,7 +16,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
   Legend,
   Cell,
 } from "recharts";
@@ -49,6 +48,22 @@ export function DailyAnalysisClient({
   const [activeTab, setActiveTab] = useState<"ripples" | "flux" | "tides">(
     "ripples",
   );
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [chartWidth, setChartWidth] = useState<number>(0);
+
+  useEffect(() => {
+    if (containerRef.current && typeof window !== "undefined" && "ResizeObserver" in window) {
+      setChartWidth(containerRef.current.clientWidth || 500);
+      const observer = new window.ResizeObserver((entries) => {
+        if (entries[0]) {
+          setChartWidth(entries[0].contentRect.width || 500);
+        }
+      });
+      observer.observe(containerRef.current);
+      return () => observer.disconnect();
+    }
+  }, [activeTab]);
 
   // Independent sorting states for the 3 unified tables
   const [dailySort, setDailySort] = useState<{
@@ -470,9 +485,9 @@ export function DailyAnalysisClient({
                 />
               </div>
             </header>
-            <div className="w-full h-[300px]">
-              <ResponsiveContainer width="100%" height="100%" minHeight={300}>
-                <BarChart data={channelFluxData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+            <div ref={containerRef} className="w-full h-[300px]">
+              {chartWidth > 0 && (
+                <BarChart width={chartWidth} height={300} data={channelFluxData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-outline-variant)" />
                   <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fill: "var(--color-outline)", fontSize: 12 }} />
                   <YAxis tickFormatter={(val) => `$${val / 1000}k`} tickLine={false} axisLine={false} tick={{ fill: "var(--color-outline)", fontSize: 12 }} />
@@ -493,7 +508,7 @@ export function DailyAnalysisClient({
                     ))}
                   </Bar>
                 </BarChart>
-              </ResponsiveContainer>
+              )}
             </div>
           </section>
         )}
@@ -528,9 +543,9 @@ export function DailyAnalysisClient({
                 />
               </div>
             </header>
-            <div className="w-full h-[300px]">
-              <ResponsiveContainer width="100%" height="100%" minHeight={300}>
-                <AreaChart data={audienceTidesData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+            <div ref={containerRef} className="w-full h-[300px]">
+              {chartWidth > 0 && (
+                <AreaChart width={chartWidth} height={300} data={audienceTidesData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                   <defs>
                     <linearGradient id="colorReturning" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.3} />
@@ -571,7 +586,7 @@ export function DailyAnalysisClient({
                     name="New Users"
                   />
                 </AreaChart>
-              </ResponsiveContainer>
+              )}
             </div>
           </section>
         )}

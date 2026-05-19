@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import LogicGenealogyPage from "./page";
+import LogicGenealogyPage from "./LogicCanvasPage";
 
 // Mock MarketingContext
 vi.mock("../../../src/context/MarketingContext", () => ({
