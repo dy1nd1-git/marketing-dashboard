@@ -40,36 +40,44 @@ function AnaliseContent() {
   const isClient = useIsClient();
   const [isPending, startTransition] = useTransition();
 
-  const [tabs, setTabs] = useState<AnalysisResult[]>([]);
-  const [activeTabId, setActiveTabId] = useState<string | null>(null);
-  const [cartItems, setCartItems] = useState<AnalysisResult[]>([]);
-
-  useEffect(() => {
-    try {
-      const savedTabs = localStorage.getItem("exploration_tabs");
-      if (savedTabs) {
-        const parsed = JSON.parse(savedTabs);
-        if (parsed && parsed.length > 0) {
-          setTimeout(() => {
-            setTabs(parsed);
-            setActiveTabId(parsed[0].id);
-          }, 0);
+  const [tabs, setTabs] = useState<AnalysisResult[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const savedTabs = localStorage.getItem("exploration_tabs");
+        if (savedTabs) {
+          const parsed = JSON.parse(savedTabs);
+          if (parsed && parsed.length > 0) return parsed;
         }
-      }
-
-      const savedCart = localStorage.getItem("exploration_cart");
-      if (savedCart) {
-        const parsed = JSON.parse(savedCart);
-        if (parsed && parsed.length > 0) {
-          setTimeout(() => {
-            setCartItems(parsed);
-          }, 0);
-        }
-      }
-    } catch {
-      // Ignored gracefully
+      } catch {}
     }
-  }, []);
+    return [];
+  });
+
+  const [activeTabId, setActiveTabId] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const savedTabs = localStorage.getItem("exploration_tabs");
+        if (savedTabs) {
+          const parsed = JSON.parse(savedTabs);
+          if (parsed && parsed.length > 0) return parsed[0].id;
+        }
+      } catch {}
+    }
+    return null;
+  });
+
+  const [cartItems, setCartItems] = useState<AnalysisResult[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const savedCart = localStorage.getItem("exploration_cart");
+        if (savedCart) {
+          const parsed = JSON.parse(savedCart);
+          if (parsed && parsed.length > 0) return parsed;
+        }
+      } catch {}
+    }
+    return [];
+  });
 
   const [prompt, setPrompt] = useState("");
 

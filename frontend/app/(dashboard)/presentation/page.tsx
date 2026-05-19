@@ -37,16 +37,16 @@ function PresentationDeckEngine() {
 
   // Master deck initialization using Lazy Initial State to reconstruct deck from localStorage
   const [deck, setDeck] = useState<SlidePage[]>(() => {
-    try {
-      if (typeof window !== "undefined") {
+    if (typeof window !== "undefined") {
+      try {
         const stored = localStorage.getItem("mellow_slide_deck");
         if (stored) {
           const parsed = JSON.parse(stored);
           if (parsed && parsed.length > 0) return parsed;
         }
+      } catch {
+        // Ignored gracefully
       }
-    } catch {
-      // Ignored gracefully
     }
     return [
       {

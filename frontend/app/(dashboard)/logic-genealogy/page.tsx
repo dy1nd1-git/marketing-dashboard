@@ -24,16 +24,15 @@ export default function LogicCanvasPage() {
   >("Genealogy");
   const [selectedNodeId, setSelectedNodeId] = useState<string>("node-rec-1");
   const isClient = useIsClient();
-  const [historyLogs, setHistoryLogs] = useState<HistoryLogItem[]>(INITIAL_DEMO_HISTORY);
-
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("logic_canvas_history");
-      if (saved) {
-        setTimeout(() => setHistoryLogs(JSON.parse(saved)), 0);
-      }
-    } catch {}
-  }, []);
+  const [historyLogs, setHistoryLogs] = useState<HistoryLogItem[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("logic_canvas_history");
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return INITIAL_DEMO_HISTORY;
+  });
   const [optimisticApproved, setOptimisticApproved] = useState<boolean>(false);
   const [isPending, startTransition] = useTransition();
 
