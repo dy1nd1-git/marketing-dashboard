@@ -10,7 +10,6 @@ import { DocumentPanel } from "./components/DocumentPanel";
 import { EvidencePanel } from "./components/EvidencePanel";
 import { GenealogyHUD } from "./components/GenealogyHUD";
 
-import dynamic from "next/dynamic";
 import {
   CURRENT_PATH_D,
   RECOMMENDED_PATH_D,
@@ -205,6 +204,14 @@ function LogicCanvasPage() {
   );
 }
 
-export default dynamic(() => Promise.resolve(LogicCanvasPage), {
-  ssr: false,
-});
+export default function Page() {
+  const isClient = useIsClient();
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-[#111111] p-6 flex items-center justify-center">
+        <div className="text-gray-400">Loading workspace...</div>
+      </div>
+    );
+  }
+  return <LogicCanvasPage />;
+}

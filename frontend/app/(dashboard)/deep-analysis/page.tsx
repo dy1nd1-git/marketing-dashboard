@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense, useTransition } from "react";
-import dynamic from "next/dynamic";
+
 import { mapToChartData } from "./utils/metrics";
 import { useMarketingContext } from "../../../src/context/MarketingContext";
 import { useInsightCart } from "../../../src/context/InsightCartContext";
@@ -687,7 +687,15 @@ function AnaliseContent() {
   );
 }
 
-function AnalisePage() {
+export default function Page() {
+  const isClient = useIsClient();
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-[#111111] p-6 flex items-center justify-center">
+        <div className="text-gray-400">Loading workspace...</div>
+      </div>
+    );
+  }
   return (
     <Suspense
       fallback={<div className="p-6 text-gray-400">Loading workspace...</div>}
@@ -696,7 +704,3 @@ function AnalisePage() {
     </Suspense>
   );
 }
-
-export default dynamic(() => Promise.resolve(AnalisePage), {
-  ssr: false,
-});
