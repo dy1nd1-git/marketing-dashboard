@@ -27,6 +27,8 @@ import { PrintDeckEngine } from "./components/PrintDeckEngine";
 import { PresentationCanvasStage } from "./components/PresentationCanvasStage";
 import { generateAiPrompt } from "./utils/promptGenerator";
 
+import { useIsClient } from "../../../src/hooks/useIsClient";
+
 // Sparklines mockup telemetry bounds enabling rich graphical visual feedback
 const mockTrendData = [
   { p: "D1", v: 12 },
@@ -47,6 +49,7 @@ const mockFunnelData = [
 
 function PresentationDeckEngine() {
   const { items: cartItems } = useInsightCart();
+  const isClient = useIsClient();
 
   // Master deck initialization using Lazy Initial State to reconstruct deck from localStorage
   const [deck, setDeck] = useState<SlidePage[]>(() => {
@@ -82,14 +85,6 @@ function PresentationDeckEngine() {
   const [isFullscreenMode, setIsFullscreenMode] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsMounted(true);
-    }, 0);
-    return () => clearTimeout(timer);
-  }, []);
 
   // Fullscreen slideshow keyboard controller hooks supporting arrow flips and direct escape closures
   useEffect(() => {
@@ -107,14 +102,7 @@ function PresentationDeckEngine() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isFullscreenMode, deck.length]);
 
-  const saveDeck = (newDeck: SlidePage[]) => {
-    setDeck(newDeck);
-    try {
-      localStorage.setItem("mellow_slide_deck", JSON.stringify(newDeck));
-    } catch {
-      // Ignored gracefully
-    }
-  };
+
 
   // --- Spreadsheet Export (CSV) ---
   const exportToCsv = () => {
@@ -206,17 +194,19 @@ function PresentationDeckEngine() {
         height: 400,
       };
 
-      const updatedDeck = deck.map((slide, idx) => {
-        if (idx === activeSlideIndex) {
-          return {
-            ...slide,
-            nodes: [...slide.nodes, newNode],
-          };
-        }
-        return slide;
+      setDeck((prevDeck) => {
+        const updatedDeck = prevDeck.map((slide, idx) => {
+          if (idx === activeSlideIndex) {
+            return {
+              ...slide,
+              nodes: [...slide.nodes, newNode],
+            };
+          }
+          return slide;
+        });
+        try { localStorage.setItem("mellow_slide_deck", JSON.stringify(updatedDeck)); } catch {}
+        return updatedDeck;
       });
-
-      saveDeck(updatedDeck);
     } catch {
       // Ignored gracefully
     }
@@ -229,17 +219,21 @@ function PresentationDeckEngine() {
 
   // Slide Deck navigation mutators
   const addSlide = () => {
-    const newSlide: SlidePage = {
-      id: `slide_${Date.now()}`,
-      title: `Strategic Focus Area ${deck.length + 1}`,
-      subtitle: "Tactical Execution Timeline",
-      theme: "light",
-      nodes: [],
-      executiveNotes:
-        "Provide contextual narrative supporting metric variance.",
-      footerText: `ROI Analysis | ${new Date().toLocaleDateString()}`,
-    };
-    saveDeck([...deck, newSlide]);
+    setDeck((prevDeck) => {
+      const newSlide: SlidePage = {
+        id: `slide_${Date.now()}`,
+        title: `Strategic Focus Area ${prevDeck.length + 1}`,
+        subtitle: "Tactical Execution Timeline",
+        theme: "light",
+        nodes: [],
+        executiveNotes:
+          "Provide contextual narrative supporting metric variance.",
+        footerText: `ROI Analysis | ${new Date().toLocaleDateString()}`,
+      };
+      const updatedDeck = [...prevDeck, newSlide];
+      try { localStorage.setItem("mellow_slide_deck", JSON.stringify(updatedDeck)); } catch {}
+      return updatedDeck;
+    });
     setActiveSlideIndex(deck.length);
   };
 
@@ -247,66 +241,81 @@ function PresentationDeckEngine() {
     e.stopPropagation();
     if (deck.length <= 1) return; // Retain baseline parent frame
 
-    const updated = deck.filter((_, idx) => idx !== targetIdx);
-    saveDeck(updated);
-    setActiveSlideIndex(Math.min(activeSlideIndex, updated.length - 1));
+    setDeck((prevDeck) => {
+      const updated = prevDeck.filter((_, idx) => idx !== targetIdx);
+      try { localStorage.setItem("mellow_slide_deck", JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+    setActiveSlideIndex(Math.min(activeSlideIndex, deck.length - 2));
   };
 
   const updateActiveSlideField = (field: Partial<SlidePage>) => {
-    const updatedDeck = deck.map((slide, idx) => {
-      if (idx === activeSlideIndex) {
-        return { ...slide, ...field };
-      }
-      return slide;
+    setDeck((prevDeck) => {
+      const updatedDeck = prevDeck.map((slide, idx) => {
+        if (idx === activeSlideIndex) {
+          return { ...slide, ...field };
+        }
+        return slide;
+      });
+      try { localStorage.setItem("mellow_slide_deck", JSON.stringify(updatedDeck)); } catch {}
+      return updatedDeck;
     });
-    saveDeck(updatedDeck);
   };
 
   const removeNodeFromActiveSlide = (nodeId: string) => {
-    const updatedDeck = deck.map((slide, idx) => {
-      if (idx === activeSlideIndex) {
-        return {
-          ...slide,
-          nodes: slide.nodes.filter((n) => n.id !== nodeId),
-        };
-      }
-      return slide;
+    setDeck(prevDeck => {
+      const updatedDeck = prevDeck.map((slide, idx) => {
+        if (idx === activeSlideIndex) {
+          return {
+            ...slide,
+            nodes: slide.nodes.filter((n) => n.id !== nodeId),
+          };
+        }
+        return slide;
+      });
+      try { localStorage.setItem("mellow_slide_deck", JSON.stringify(updatedDeck)); } catch {}
+      return updatedDeck;
     });
-    saveDeck(updatedDeck);
   };
 
   const updateNodeTitle = (nodeId: string, newTitle: string) => {
-    const updatedDeck = deck.map((slide, idx) => {
-      if (idx === activeSlideIndex) {
-        return {
-          ...slide,
-          nodes: slide.nodes.map((node) =>
-            node.id === nodeId
-              ? { ...node, item: { ...node.item, title: newTitle } }
-              : node,
-          ),
-        };
-      }
-      return slide;
+    setDeck(prevDeck => {
+      const updatedDeck = prevDeck.map((slide, idx) => {
+        if (idx === activeSlideIndex) {
+          return {
+            ...slide,
+            nodes: slide.nodes.map((node) =>
+              node.id === nodeId
+                ? { ...node, item: { ...node.item, title: newTitle } }
+                : node,
+            ),
+          };
+        }
+        return slide;
+      });
+      try { localStorage.setItem("mellow_slide_deck", JSON.stringify(updatedDeck)); } catch {}
+      return updatedDeck;
     });
-    saveDeck(updatedDeck);
   };
 
   const updateNodeHeight = (nodeId: string, newHeight: number) => {
-    const updatedDeck = deck.map((slide, idx) => {
-      if (idx === activeSlideIndex) {
-        return {
-          ...slide,
-          nodes: slide.nodes.map((node) =>
-            node.id === nodeId
-              ? { ...node, height: Math.max(120, Math.min(newHeight, 800)) }
-              : node,
-          ),
-        };
-      }
-      return slide;
+    setDeck(prevDeck => {
+      const updatedDeck = prevDeck.map((slide, idx) => {
+        if (idx === activeSlideIndex) {
+          return {
+            ...slide,
+            nodes: slide.nodes.map((node) =>
+              node.id === nodeId
+                ? { ...node, height: Math.max(120, Math.min(newHeight, 800)) }
+                : node,
+            ),
+          };
+        }
+        return slide;
+      });
+      try { localStorage.setItem("mellow_slide_deck", JSON.stringify(updatedDeck)); } catch {}
+      return updatedDeck;
     });
-    saveDeck(updatedDeck);
   };
 
   // Dynamic Visual Rendering Engine producing rich native charts per item type
@@ -527,7 +536,7 @@ function PresentationDeckEngine() {
             <div style={{ display: "flex", justifyContent: "center" }}>
               {chartContent}
             </div>
-          ) : !isMounted ? (
+          ) : !isClient ? (
             <div className="flex items-center justify-center h-full text-outline/20 text-[10px]">
               Loading Visualization...
             </div>
@@ -628,7 +637,7 @@ function PresentationDeckEngine() {
           >
             {isExportingMode ? (
               chartContent
-            ) : !isMounted ? (
+            ) : !isClient ? (
               <div className="text-outline/20 text-[8px]">Loading...</div>
             ) : (
               <ResponsiveContainer width="100%" height={kpiH} minWidth={0}>
@@ -719,7 +728,7 @@ function PresentationDeckEngine() {
       >
         {isExportingMode ? (
           <div className="flex justify-center">{chartContent}</div>
-        ) : !isMounted ? (
+        ) : !isClient ? (
           <div className="flex items-center justify-center h-full text-outline/20 text-[10px]">
             Loading Visualization...
           </div>
@@ -823,23 +832,29 @@ function PresentationDeckEngine() {
       </div>
 
       {/* Decoupled Immersive Fullscreen Presentation Stage */}
-      <FullscreenPresentationModal
-        isFullscreenMode={isFullscreenMode}
-        setIsFullscreenMode={setIsFullscreenMode}
-        activeSlideIndex={activeSlideIndex}
-        setActiveSlideIndex={setActiveSlideIndex}
-        deck={deck}
-        renderNodeVisual={renderNodeVisual}
-      />
+      {isFullscreenMode && (
+        <FullscreenPresentationModal
+          key="fullscreen-presentation-modal"
+          isFullscreenMode={isFullscreenMode}
+          setIsFullscreenMode={setIsFullscreenMode}
+          activeSlideIndex={activeSlideIndex}
+          setActiveSlideIndex={setActiveSlideIndex}
+          deck={deck}
+          renderNodeVisual={renderNodeVisual}
+        />
+      )}
 
       {/* Export Orchestrator Guidance Modal */}
-      <ExportGuidanceModal
-        isExportModalOpen={isExportModalOpen}
-        setIsExportModalOpen={setIsExportModalOpen}
-        deck={deck}
-        setIsExporting={setIsExporting}
-        onExportCsv={exportToCsv}
-      />
+      {isExportModalOpen && (
+        <ExportGuidanceModal
+          key="export-guidance-modal"
+          isExportModalOpen={isExportModalOpen}
+          setIsExportModalOpen={setIsExportModalOpen}
+          deck={deck}
+          setIsExporting={setIsExporting}
+          onExportCsv={exportToCsv}
+        />
+      )}
 
       {/* Print-only Dedicated Full Deck Stage Rendering */}
       <PrintDeckEngine

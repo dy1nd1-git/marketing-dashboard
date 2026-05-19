@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useTransition } from "react";
+import { useIsClient } from "../../../src/hooks/useIsClient";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMarketingContext } from "../../../src/context/MarketingContext";
 import { HistoryLogItem, StrategyNode } from "../../../src/types/genealogy";
@@ -113,31 +114,19 @@ export default function LogicCanvasPage() {
     "Genealogy" | "Document" | "History"
   >("Genealogy");
   const [selectedNodeId, setSelectedNodeId] = useState<string>("node-rec-1");
-  const [historyLogs, setHistoryLogs] = useState<HistoryLogItem[]>([]);
-  const [isApproving, setIsApproving] = useState<boolean>(false);
-  const [optimisticApproved, setOptimisticApproved] = useState<boolean>(false);
-  const [, startTransition] = useTransition();
+  const isClient = useIsClient();
+  const [historyLogs, setHistoryLogs] = useState<HistoryLogItem[]>(INITIAL_DEMO_HISTORY);
 
-  // Load selection history from LocalStorage
   useEffect(() => {
     try {
       const saved = localStorage.getItem("logic_canvas_history");
-      setTimeout(() => {
-        if (saved) {
-          setHistoryLogs(JSON.parse(saved));
-        } else {
-          setHistoryLogs(INITIAL_DEMO_HISTORY);
-          localStorage.setItem(
-            "logic_canvas_history",
-            JSON.stringify(INITIAL_DEMO_HISTORY),
-          );
-        }
-      }, 0);
-    } catch (e) {
-      console.error("Failed loading history logs", e);
-      setTimeout(() => setHistoryLogs(INITIAL_DEMO_HISTORY), 0);
-    }
+      if (saved) {
+        setTimeout(() => setHistoryLogs(JSON.parse(saved)), 0);
+      }
+    } catch {}
   }, []);
+  const [optimisticApproved, setOptimisticApproved] = useState<boolean>(false);
+  const [isPending, startTransition] = useTransition();
 
   // Track exploration segment switches in history log dynamically
   useEffect(() => {
@@ -173,43 +162,46 @@ export default function LogicCanvasPage() {
     STRATEGY_NODES.find((n) => n.id === selectedNodeId) || STRATEGY_NODES[3];
 
   const handleApproveAction = () => {
-    if (isApproving || optimisticApproved) return;
-    setIsApproving(true);
+    if (isPending || optimisticApproved) return;
 
-    // Simulate API execution pipeline
-    setTimeout(() => {
-      startTransition(() => {
-        setIsApproving(false);
-        setOptimisticApproved(true);
+    startTransition(async () => {
+      // Simulate API execution pipeline
+      await new Promise((resolve) => setTimeout(resolve, 1200));
 
-        // Record persistent selection decision log
-        const approvalLog: HistoryLogItem = {
-          id: crypto.randomUUID(),
-          timestamp: new Date()
-            .toISOString()
-            .replace("T", " ")
-            .substring(0, 16),
-          type: "approval",
-          title: `Approved Action: ${selectedNode.label}`,
-          detail: `Optimistically triggered baseline reallocation. Target Metrics: CVR ${selectedNode.cvr} / ROI ${selectedNode.roi}.`,
-          badge: "Executed",
-        };
+      setOptimisticApproved(true);
 
-        setHistoryLogs((prev) => {
-          const updated = [approvalLog, ...prev];
-          try {
-            localStorage.setItem(
-              "logic_canvas_history",
-              JSON.stringify(updated),
-            );
-          } catch (e) {
-            console.error("Storage error", e);
-          }
-          return updated;
-        });
+      // Record persistent selection decision log
+      const approvalLog: HistoryLogItem = {
+        id: crypto.randomUUID(),
+        timestamp: new Date().toISOString().replace("T", " ").substring(0, 16),
+        type: "approval",
+        title: `Approved Action: ${selectedNode.label}`,
+        detail: `Optimistically triggered baseline reallocation. Target Metrics: CVR ${selectedNode.cvr} / ROI ${selectedNode.roi}.`,
+        badge: "Executed",
+      };
+
+      setHistoryLogs((prev) => {
+        const updated = [approvalLog, ...prev];
+        try {
+          localStorage.setItem(
+            "logic_canvas_history",
+            JSON.stringify(updated),
+          );
+        } catch (e) {
+          console.error("Storage error", e);
+        }
+        return updated;
       });
-    }, 1200);
+    });
   };
+
+  if (!isClient) {
+    return (
+      <div className="p-xl flex items-center justify-center min-h-screen">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-xl flex flex-col gap-xl max-w-[1500px] mx-auto min-h-screen">
@@ -319,14 +311,14 @@ export default function LogicCanvasPage() {
           </button>
           <button
             onClick={handleApproveAction}
-            disabled={isApproving || optimisticApproved}
+            disabled={isPending || optimisticApproved}
             className={`flex-1 sm:flex-none px-8 py-3 rounded-xl font-label text-label uppercase tracking-wider shadow-md transition-all duration-300 flex items-center justify-center gap-2 ${
               optimisticApproved
                 ? "bg-primary-container text-white cursor-default"
                 : "bg-primary text-on-primary hover:shadow-lg hover:scale-[1.02]"
-            } ${isApproving ? "opacity-75 cursor-wait" : ""}`}
+            } ${isPending ? "opacity-75 cursor-wait" : ""}`}
           >
-            {isApproving ? (
+            {isPending ? (
               <>
                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 Executing...

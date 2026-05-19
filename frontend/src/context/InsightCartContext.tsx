@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, ReactNode } from "react";
 
 export interface InsightItem {
   id: string;
@@ -20,23 +20,22 @@ interface InsightCartContextType {
   clearCart: () => void;
 }
 
-const InsightCartContext = createContext<InsightCartContextType | undefined>(undefined);
+const InsightCartContext = createContext<InsightCartContextType | undefined>(
+  undefined,
+);
 
-export const InsightCartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [items, setItems] = useState<InsightItem[]>([]);
-
-  // Restore cart state safely from client localStorage
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("mellow_insight_cart");
-      if (stored) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setItems(JSON.parse(stored));
-      }
-    } catch {
-      // Ignored gracefully
+export const InsightCartProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
+  const [items, setItems] = useState<InsightItem[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("mellow_insight_cart");
+        if (stored) return JSON.parse(stored);
+      } catch {}
     }
-  }, []);
+    return [];
+  });
 
   // Save cart modifications persisting locally
   const saveItems = (newItems: InsightItem[]) => {
@@ -66,7 +65,9 @@ export const InsightCartProvider: React.FC<{ children: ReactNode }> = ({ childre
   };
 
   return (
-    <InsightCartContext.Provider value={{ items, addInsight, removeInsight, clearCart }}>
+    <InsightCartContext.Provider
+      value={{ items, addInsight, removeInsight, clearCart }}
+    >
       {children}
     </InsightCartContext.Provider>
   );
@@ -75,7 +76,9 @@ export const InsightCartProvider: React.FC<{ children: ReactNode }> = ({ childre
 export const useInsightCart = (): InsightCartContextType => {
   const context = useContext(InsightCartContext);
   if (!context) {
-    throw new Error("useInsightCart must be used within an InsightCartProvider");
+    throw new Error(
+      "useInsightCart must be used within an InsightCartProvider",
+    );
   }
   return context;
 };

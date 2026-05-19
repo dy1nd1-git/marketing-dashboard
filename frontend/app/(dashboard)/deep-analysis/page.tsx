@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useTransition } from "react";
 import { mapToChartData } from "./utils/metrics";
 import { useMarketingContext } from "../../../src/context/MarketingContext";
 import { useInsightCart } from "../../../src/context/InsightCartContext";
 import { executeAnalysisAction } from "../../../src/actions/aiAnalysis";
 import { DateRangePicker } from "../../../src/components/dashboard/DateRangePicker";
+import { useIsClient } from "../../../src/hooks/useIsClient";
 import {
   LineChart,
   Line,
@@ -36,47 +37,45 @@ function AnaliseContent() {
   const { addInsight } = useInsightCart();
 
   // Defer initialization to client-side mount tick to prevent SSR hydration mismatches
+  const isClient = useIsClient();
+  const [isPending, startTransition] = useTransition();
+
   const [tabs, setTabs] = useState<AnalysisResult[]>([]);
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
   const [cartItems, setCartItems] = useState<AnalysisResult[]>([]);
 
+  useEffect(() => {
+    try {
+      const savedTabs = localStorage.getItem("exploration_tabs");
+      if (savedTabs) {
+        const parsed = JSON.parse(savedTabs);
+        if (parsed && parsed.length > 0) {
+          setTimeout(() => {
+            setTabs(parsed);
+            setActiveTabId(parsed[0].id);
+          }, 0);
+        }
+      }
+
+      const savedCart = localStorage.getItem("exploration_cart");
+      if (savedCart) {
+        const parsed = JSON.parse(savedCart);
+        if (parsed && parsed.length > 0) {
+          setTimeout(() => {
+            setCartItems(parsed);
+          }, 0);
+        }
+      }
+    } catch {
+      // Ignored gracefully
+    }
+  }, []);
+
   const [prompt, setPrompt] = useState("");
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
 
   // Custom states for generative AI traceability & copy actions
   const [isSqlExpanded, setIsSqlExpanded] = useState(false);
   const [copiedSql, setCopiedSql] = useState(false);
-
-  // Initial load after mount to securely restore localized states
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      try {
-        const savedTabs = localStorage.getItem("exploration_tabs");
-        if (savedTabs) {
-          const parsed = JSON.parse(savedTabs);
-          if (parsed && parsed.length > 0) {
-            setTabs(parsed);
-            setActiveTabId(parsed[0].id);
-          }
-        }
-
-        const savedCart = localStorage.getItem("exploration_cart");
-        if (savedCart) {
-          const parsed = JSON.parse(savedCart);
-          if (parsed && parsed.length > 0) {
-            setCartItems(parsed);
-          }
-        }
-      } catch {
-        // Ignored gracefully
-      }
-
-      setIsMounted(true);
-    }, 0);
-
-    return () => clearTimeout(timer);
-  }, []);
 
   // Save to LocalStorage on changes
   useEffect(() => {
@@ -97,43 +96,45 @@ function AnaliseContent() {
     }
   };
 
-  async function executeAIGeneratedAnalysis(promptText: string) {
-    setIsAnalyzing(true);
-    try {
-      const res = await executeAnalysisAction(promptText);
+  const handleAnalyze = (targetPrompt?: string) => {
+    const analysisPrompt = targetPrompt || prompt;
+    if (analysisPrompt.trim()) {
+      startTransition(async () => {
+        try {
+          const res = await executeAnalysisAction(analysisPrompt);
 
-      // Map backend response using robust modular metric utility
-      const chartData = mapToChartData(res.data, promptText);
+          // Map backend response using robust modular metric utility
+          const chartData = mapToChartData(res.data, analysisPrompt);
 
-      const isComparison =
-        promptText.includes("比較") || promptText.includes("割合");
+          const isComparison =
+            analysisPrompt.includes("比較") || analysisPrompt.includes("割合");
 
-      const realResult: AnalysisResult = {
-        id: crypto.randomUUID(),
-        title: isComparison
-          ? "AI Structural Comparison"
-          : "AI Intelligence Trend",
-        prompt: promptText,
-        sql: res.metadata?.execution_sql || "N/A",
-        chartType: isComparison ? "bar" : "line",
-        data: chartData,
-        insight: res.analysis,
-        actions: res.actions,
-        timestamp: new Date().toISOString(),
-      };
+          const realResult: AnalysisResult = {
+            id: crypto.randomUUID(),
+            title: isComparison
+              ? "AI Structural Comparison"
+              : "AI Intelligence Trend",
+            prompt: analysisPrompt,
+            sql: res.metadata?.execution_sql || "N/A",
+            chartType: isComparison ? "bar" : "line",
+            data: chartData,
+            insight: res.analysis,
+            actions: res.actions,
+            timestamp: new Date().toISOString(),
+          };
 
-      setTabs((prev) => [realResult, ...prev]);
-      setActiveTabId(realResult.id);
-      setPrompt("");
-    } catch (error) {
-      console.error("Failed to execute analysis:", error);
-      alert(
-        error instanceof Error ? error.message : "AI分析エンジンの呼び出しに失敗しました。バックエンドとAPIキーの設定を確認してください。"
-      );
-    } finally {
-      setIsAnalyzing(false);
+          setTabs((prev) => [realResult, ...prev]);
+          setActiveTabId(realResult.id);
+          setPrompt("");
+        } catch (error) {
+          console.error("Failed to execute analysis:", error);
+          alert(
+            error instanceof Error ? error.message : "AI分析エンジンの呼び出しに失敗しました。バックエンドとAPIキーの設定を確認してください。"
+          );
+        }
+      });
     }
-  }
+  };
 
   const onDropToCart = (analysisData: AnalysisResult) => {
     const packageData = { ...analysisData, addedAt: new Date().toISOString() };
@@ -153,15 +154,9 @@ function AnaliseContent() {
     });
   };
 
-  const handleAnalyze = () => {
-    if (prompt.trim()) {
-      executeAIGeneratedAnalysis(prompt);
-    }
-  };
-
   const activeTab = tabs.find((t) => t.id === activeTabId);
 
-  if (!isMounted) {
+  if (!isClient) {
     return (
       <div className="p-10 pb-32 min-h-screen bg-background relative flex flex-col font-sans">
         <div className="flex-1 flex flex-col items-center justify-center min-h-[500px]">
@@ -219,10 +214,10 @@ function AnaliseContent() {
             />
             <button
               className="bg-primary text-on-primary hover:opacity-90 w-10 h-10 flex items-center justify-center rounded-full shadow-sm disabled:opacity-50 transition-all hover:scale-[1.02] shrink-0"
-              onClick={handleAnalyze}
-              disabled={isAnalyzing || !prompt.trim()}
+              onClick={() => handleAnalyze()}
+              disabled={isPending || !prompt.trim()}
             >
-              {isAnalyzing ? (
+              {isPending ? (
                 <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
               ) : (
                 <svg
@@ -252,7 +247,7 @@ function AnaliseContent() {
                 setPrompt(
                   "過去30日間のコンバージョン率（CVR）の推移を分析せよ",
                 );
-                executeAIGeneratedAnalysis(
+                handleAnalyze(
                   "過去30日間のコンバージョン率（CVR）の推移を分析せよ",
                 );
               }}
@@ -263,7 +258,7 @@ function AnaliseContent() {
             <button
               onClick={() => {
                 setPrompt("広告費と売上成長の相関関係を検証せよ");
-                executeAIGeneratedAnalysis(
+                handleAnalyze(
                   "広告費と売上成長の相関関係を検証せよ",
                 );
               }}
@@ -274,7 +269,7 @@ function AnaliseContent() {
             <button
               onClick={() => {
                 setPrompt("昨日のROAS急落の要因とアノマリーを特定せよ");
-                executeAIGeneratedAnalysis(
+                handleAnalyze(
                   "昨日のROAS急落の要因とアノマリーを特定せよ",
                 );
               }}
@@ -336,7 +331,7 @@ function AnaliseContent() {
           )}
 
           {/* Canvas Content */}
-          {isAnalyzing ? (
+          {isPending ? (
             <div className="bg-surface-container-lowest rounded-[20px] rounded-tl-none p-6 shadow-[0_10px_30px_rgba(135,169,150,0.05)] border border-outline-variant/30 flex flex-col gap-6 animate-pulse">
               <div className="flex justify-between items-start">
                 <div className="w-1/3 space-y-2">
@@ -394,7 +389,7 @@ function AnaliseContent() {
 
               {/* Dynamic Recharts */}
               <div className="h-[300px] w-full mt-4 flex items-center justify-center">
-                {!isMounted ? (
+                {!isClient ? (
                   <div className="text-outline/40 text-data-sm animate-pulse">
                     Initializing visualization...
                   </div>

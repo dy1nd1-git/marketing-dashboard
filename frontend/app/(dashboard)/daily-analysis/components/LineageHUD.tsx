@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useIsClient } from "../../../../src/hooks/useIsClient";
 import { LineageTelemetry } from "../../../../src/types/marketing";
 
 interface LineageHUDProps {
@@ -12,7 +13,7 @@ export const LineageHUD: React.FC<LineageHUDProps> = ({
   compact = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const isClient = useIsClient();
   const containerRef = useRef<HTMLDivElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const [coords, setCoords] = useState<{
@@ -21,12 +22,6 @@ export const LineageHUD: React.FC<LineageHUDProps> = ({
     align: "left" | "right";
     showAbove: boolean;
   }>({ top: 0, left: 0, align: "left", showAbove: false });
-
-  useEffect(() => {
-    // Next.js (SSR) 環境で createPortal を安全に利用するためのマウント判定
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
-  }, []);
 
   const toggleOpen = () => {
     if (!isOpen) {
@@ -107,7 +102,7 @@ export const LineageHUD: React.FC<LineageHUDProps> = ({
       </button>
 
       {/* Popover HUD Overlay: Pure, unadorned source reference panel */}
-      {mounted && isOpen && createPortal(
+      {isClient && isOpen && createPortal(
         <div
           ref={popoverRef}
           className="fixed z-[100] animate-fade-in"
