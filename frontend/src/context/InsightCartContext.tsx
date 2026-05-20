@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, use, useState, useEffect, ReactNode } from "react";
 
 export interface InsightItem {
   id: string;
@@ -79,7 +79,7 @@ export const InsightCartProvider: React.FC<{ children: ReactNode }> = ({
 };
 
 export const useInsightCart = (): InsightCartContextType => {
-  const context = useContext(InsightCartContext);
+  const context = use(InsightCartContext);
   if (!context) {
     throw new Error(
       "useInsightCart must be used within an InsightCartProvider",
