@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import React from "react";
-import { useMarketingContext } from "../../src/context/MarketingContext";
+import { useMarketingContext } from "@/src/context/MarketingContext";
 
 export default function DashboardTemplate({
   children,

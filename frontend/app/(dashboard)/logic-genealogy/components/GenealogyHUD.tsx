@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { StrategyNode } from "../../../../src/types/genealogy";
+import { StrategyNode } from "@/src/types/genealogy";
 
 interface GenealogyHUDProps {
   STRATEGY_NODES: StrategyNode[];

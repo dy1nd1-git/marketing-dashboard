@@ -2,10 +2,10 @@ import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import { DateRangePicker } from "./DateRangePicker";
-import { useMarketingContext } from "../../context/MarketingContext";
+import { useMarketingContext } from "@/src/context/MarketingContext";
 
 // Mock the context hook
-vi.mock("../../context/MarketingContext", () => ({
+vi.mock("@/src/context/MarketingContext", () => ({
   useMarketingContext: vi.fn(),
 }));
 

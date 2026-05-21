@@ -1,7 +1,7 @@
 import React, { Suspense } from "react";
-import { MarketingProvider } from "../../src/context/MarketingContext";
-import { InsightCartProvider } from "../../src/context/InsightCartContext";
-import { InsightCartDrawer } from "../../src/components/dashboard/InsightCartDrawer";
+import { MarketingProvider } from "@/src/context/MarketingContext";
+import { InsightCartProvider } from "@/src/context/InsightCartContext";
+import { InsightCartDrawer } from "@/src/components/dashboard/InsightCartDrawer";
 import { SidebarShell } from "./components/SidebarShell";
 
 /**

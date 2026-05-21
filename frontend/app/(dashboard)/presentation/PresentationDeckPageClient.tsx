@@ -5,7 +5,7 @@ import React, { useState, useEffect, useTransition } from "react";
 import {
   useInsightCart,
   InsightItem,
-} from "../../../src/context/InsightCartContext";
+} from "@/src/context/InsightCartContext";
 import {
   ResponsiveContainer,
   BarChart,
@@ -19,7 +19,7 @@ import {
   CartesianGrid,
 } from "recharts";
 
-import { SlideNode, SlidePage } from "../../../src/types/presentation";
+import { SlideNode, SlidePage } from "@/src/types/presentation";
 import { PresentationSidebar } from "./components/PresentationSidebar";
 import { FullscreenPresentationModal } from "./components/FullscreenPresentationModal";
 import { ExportGuidanceModal } from "./components/ExportGuidanceModal";
@@ -27,7 +27,7 @@ import { PrintDeckEngine } from "./components/PrintDeckEngine";
 import { PresentationCanvasStage } from "./components/PresentationCanvasStage";
 import { generateAiPrompt } from "./utils/promptGenerator";
 
-import { useIsClient } from "../../../src/hooks/useIsClient";
+import { useIsClient } from "@/src/hooks/useIsClient";
 
 import { mockTrendData, mockFunnelData } from "./mockData";
 

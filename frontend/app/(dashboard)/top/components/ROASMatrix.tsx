@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { ROASMatrixCell } from "../../../../src/types/marketing";
+import { ROASMatrixCell } from "@/src/types/marketing";
 
 interface ROASMatrixProps {
   data: ROASMatrixCell[];

@@ -1,5 +1,5 @@
 import React from "react";
-import { fetchDailyCVR } from "../../../src/lib/api";
+import { fetchDailyCVR } from "@/src/lib/api";
 import { DailyAnalysisClient } from "./components/DailyAnalysisClient";
 
 export default async function DailyDashboard({

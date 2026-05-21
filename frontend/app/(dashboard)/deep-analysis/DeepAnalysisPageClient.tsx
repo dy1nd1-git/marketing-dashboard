@@ -3,11 +3,11 @@
 import { useState, useEffect, Suspense, useTransition, useRef } from "react";
 
 import { mapToChartData } from "./utils/metrics";
-import { useMarketingContext } from "../../../src/context/MarketingContext";
-import { useInsightCart } from "../../../src/context/InsightCartContext";
-import { executeAnalysisAction } from "../../../src/lib/aiAnalysis";
-import { DateRangePicker } from "../../../src/components/dashboard/DateRangePicker";
-import { useIsClient } from "../../../src/hooks/useIsClient";
+import { useMarketingContext } from "@/src/context/MarketingContext";
+import { useInsightCart } from "@/src/context/InsightCartContext";
+import { executeAnalysisAction } from "@/src/lib/aiAnalysis";
+import { DateRangePicker } from "@/src/components/dashboard/DateRangePicker";
+import { useIsClient } from "@/src/hooks/useIsClient";
 import {
   LineChart,
   Line,

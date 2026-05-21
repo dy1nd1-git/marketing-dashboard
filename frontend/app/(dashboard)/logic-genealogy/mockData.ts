@@ -1,4 +1,4 @@
-import { HistoryLogItem, StrategyNode } from "../../../src/types/genealogy";
+import { HistoryLogItem, StrategyNode } from "@/src/types/genealogy";
 
 export const CURRENT_PATH_D =
   "M 150,450 C 300,450 300,300 450,300 C 625,300 650,210 800,210";

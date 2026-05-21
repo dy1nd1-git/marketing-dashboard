@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { SlidePage } from "../../../../src/types/presentation";
-import { InsightItem } from "../../../../src/context/InsightCartContext";
+import { SlidePage } from "@/src/types/presentation";
+import { InsightItem } from "@/src/context/InsightCartContext";
 
 interface PresentationCanvasStageProps {
   deck: SlidePage[];

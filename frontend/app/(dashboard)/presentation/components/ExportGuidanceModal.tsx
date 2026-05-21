@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import html2canvas from "html2canvas";
 import pptxgen from "pptxgenjs";
-import { SlidePage } from "../../../../src/types/presentation";
-import { useIsClient } from "../../../../src/hooks/useIsClient";
+import { SlidePage } from "@/src/types/presentation";
+import { useIsClient } from "@/src/hooks/useIsClient";
 
 interface ExportGuidanceModalProps {
   isExportModalOpen: boolean;

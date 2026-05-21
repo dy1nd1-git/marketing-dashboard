@@ -3,10 +3,10 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { LineageHUD } from "./LineageHUD";
-import { StockInsightButton } from "../../../../src/components/dashboard/StockInsightButton";
-import { DateRangePicker } from "../../../../src/components/dashboard/DateRangePicker";
-import { DailyCVR, ResponseMetadata } from "../../../../src/types/marketing";
-import { useMarketingContext } from "../../../../src/context/MarketingContext";
+import { StockInsightButton } from "@/src/components/dashboard/StockInsightButton";
+import { DateRangePicker } from "@/src/components/dashboard/DateRangePicker";
+import { DailyCVR, ResponseMetadata } from "@/src/types/marketing";
+import { useMarketingContext } from "@/src/context/MarketingContext";
 import {
   BarChart,
   Bar,

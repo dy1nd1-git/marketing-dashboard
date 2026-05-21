@@ -13,7 +13,7 @@ import {
   ValueType,
   NameType,
 } from "recharts/types/component/DefaultTooltipContent";
-import { PivotData, PivotDetails } from "../../../../src/types/marketing";
+import { PivotData, PivotDetails } from "@/src/types/marketing";
 import { MemoCard } from "./MemoCard";
 
 interface PivotChartProps {

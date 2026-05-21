@@ -20,7 +20,7 @@ vi.mock("recharts", () => ({
 }));
 
 // Mock localized Cart Context telemetry state maps
-vi.mock("../../../src/context/InsightCartContext", () => ({
+vi.mock("@/src/context/InsightCartContext", () => ({
   useInsightCart: () => ({
     items: [
       {

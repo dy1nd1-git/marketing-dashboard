@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { useIsClient } from "../../../../src/hooks/useIsClient";
-import { LineageTelemetry } from "../../../../src/types/marketing";
+import { useIsClient } from "@/src/hooks/useIsClient";
+import { LineageTelemetry } from "@/src/types/marketing";
 
 interface LineageHUDProps {
   telemetry: LineageTelemetry;

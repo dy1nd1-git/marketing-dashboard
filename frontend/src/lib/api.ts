@@ -10,7 +10,7 @@ import {
   DashboardInsight,
   DailyCVR,
   ResponseMetadata,
-} from "../types/marketing";
+} from "@/src/types/marketing";
 import { z } from "zod";
 import { getServerApiUrl } from "./apiConfig";
 

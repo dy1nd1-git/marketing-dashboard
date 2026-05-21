@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import LogicGenealogyPage from "./LogicCanvasPage";
 
 // Mock MarketingContext
-vi.mock("../../../src/context/MarketingContext", () => ({
+vi.mock("@/src/context/MarketingContext", () => ({
   useMarketingContext: () => ({
     segment: "Paid Social",
     setSegment: vi.fn(),

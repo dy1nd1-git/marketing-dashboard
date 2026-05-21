@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { PivotDetails } from "../../../../src/types/marketing";
+import { PivotDetails } from "@/src/types/marketing";
 import { PivotChart } from "./PivotChart";
 
 interface PivotLogDashboardProps {

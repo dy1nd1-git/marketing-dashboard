@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Sidebar } from "../../../src/components/layout/Sidebar";
+import { Sidebar } from "@/src/components/layout/Sidebar";
 
 /**
  * SidebarShell: Isolates sidebar collapse state as a client component leaf.

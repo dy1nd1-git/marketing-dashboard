@@ -3,8 +3,8 @@
 import React, { useState, useRef, useLayoutEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
-import { useIsClient } from "../../hooks/useIsClient";
-import { useMarketingContext } from "../../context/MarketingContext";
+import { useIsClient } from "@/src/hooks/useIsClient";
+import { useMarketingContext } from "@/src/context/MarketingContext";
 
 interface Preset {
   label: string;

@@ -1,5 +1,5 @@
 import React from "react";
-import { PivotDetails } from "../../../../src/types/marketing";
+import { PivotDetails } from "@/src/types/marketing";
 
 interface MemoCardProps {
   details: PivotDetails;

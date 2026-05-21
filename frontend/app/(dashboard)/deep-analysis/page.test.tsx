@@ -8,7 +8,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 // Mock MarketingContext
-vi.mock("../../../src/context/MarketingContext", () => ({
+vi.mock("@/src/context/MarketingContext", () => ({
   useMarketingContext: () => ({
     segment: "Overall",
     setSegment: vi.fn(),
@@ -20,7 +20,7 @@ vi.mock("../../../src/context/MarketingContext", () => ({
 }));
 
 // Mock InsightCart Context
-vi.mock("../../../src/context/InsightCartContext", () => ({
+vi.mock("@/src/context/InsightCartContext", () => ({
   useInsightCart: () => ({
     items: [],
     addItem: vi.fn(),

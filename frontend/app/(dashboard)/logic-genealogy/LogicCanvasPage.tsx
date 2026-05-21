@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useTransition } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useMarketingContext } from "../../../src/context/MarketingContext";
-import { HistoryLogItem } from "../../../src/types/genealogy";
+import { useMarketingContext } from "@/src/context/MarketingContext";
+import { HistoryLogItem } from "@/src/types/genealogy";
 import { SelectionHistoryPanel } from "./components/SelectionHistoryPanel";
 import { DocumentPanel } from "./components/DocumentPanel";
 import { EvidencePanel } from "./components/EvidencePanel";
@@ -15,7 +15,7 @@ import {
   INITIAL_DEMO_HISTORY,
 } from "./mockData";
 
-import { useIsClient } from "../../../src/hooks/useIsClient";
+import { useIsClient } from "@/src/hooks/useIsClient";
 
 export default function LogicCanvasPage() {
   const { segment } = useMarketingContext();
