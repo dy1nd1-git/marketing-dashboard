@@ -3,7 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { StrategyNode } from "../../../../src/types/genealogy";
+import { StrategyNode } from "@/src/types/genealogy";
 
 interface EvidencePanelProps {
   selectedNode: StrategyNode;

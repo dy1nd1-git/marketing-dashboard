@@ -1,6 +1,6 @@
 import React from "react";
-import { SlidePage, SlideNode } from "../../../../src/types/presentation";
-import { InsightItem } from "../../../../src/context/InsightCartContext";
+import { SlidePage, SlideNode } from "@/src/types/presentation";
+import { InsightItem } from "@/src/context/InsightCartContext";
 
 interface PrintDeckEngineProps {
   deck: SlidePage[];

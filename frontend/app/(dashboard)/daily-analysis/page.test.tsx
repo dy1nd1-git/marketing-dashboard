@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DailyAnalysisClient } from "./components/DailyAnalysisClient";
 
 // Mock MarketingContext
-vi.mock("../../../src/context/MarketingContext", () => ({
+vi.mock("@/src/context/MarketingContext", () => ({
   useMarketingContext: () => ({
     segment: "Paid Social",
     setSegment: vi.fn(),
@@ -20,7 +20,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 // Mock InsightCart Context
-vi.mock("../../../src/context/InsightCartContext", () => ({
+vi.mock("@/src/context/InsightCartContext", () => ({
   useInsightCart: () => ({
     items: [],
     addInsight: vi.fn(),

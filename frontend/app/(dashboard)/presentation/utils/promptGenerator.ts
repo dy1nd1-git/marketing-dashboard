@@ -1,4 +1,4 @@
-import { SlidePage } from "../../../../src/types/presentation";
+import { SlidePage } from "@/src/types/presentation";
 
 /**
  * Generates a structured, data-centric reconstruction prompt for AI models

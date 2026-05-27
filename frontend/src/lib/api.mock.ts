@@ -1,6 +1,6 @@
 "use server";
 
-import { MarketingData, DashboardData, PivotDetails } from "../types/marketing";
+import { MarketingData, DashboardData, PivotDetails } from "@/src/types/marketing";
 
 export const fetchMarketingDataMock = async (): Promise<MarketingData[]> => {
   return [

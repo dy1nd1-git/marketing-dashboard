@@ -1,6 +1,6 @@
 import React from "react";
-import { SlidePage } from "../../../../src/types/presentation";
-import { InsightItem } from "../../../../src/context/InsightCartContext";
+import { SlidePage } from "@/src/types/presentation";
+import { InsightItem } from "@/src/context/InsightCartContext";
 
 interface FullscreenPresentationModalProps {
   isFullscreenMode: boolean;
@@ -14,15 +14,12 @@ interface FullscreenPresentationModalProps {
 export const FullscreenPresentationModal: React.FC<
   FullscreenPresentationModalProps
 > = ({
-  isFullscreenMode,
   setIsFullscreenMode,
   activeSlideIndex,
   setActiveSlideIndex,
   deck,
   renderNodeVisual,
 }) => {
-  if (!isFullscreenMode) return null;
-
   const activeSlide = deck[activeSlideIndex] || deck[0];
 
   return (
