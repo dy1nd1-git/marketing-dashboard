@@ -199,46 +199,52 @@ function AnaliseContent() {
           </p>
         </div>
 
-        {/* Right: Input card — input + suggestions inside */}
-        <div className="flex-1 max-w-[700px] flex flex-col gap-0 bg-surface-container-lowest border border-outline-variant/40 rounded-[20px] shadow-sm focus-within:ring-2 focus-within:ring-primary/20 transition-all focus-within:shadow-md overflow-hidden">
-          {/* Input row */}
-          <div className="flex items-center gap-4 py-2 px-3">
-            <div className="pl-2 text-primary opacity-80">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
-                  d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <input
-              type="text"
-              className="flex-1 bg-transparent px-2 py-2 text-data-lg focus:outline-none placeholder:text-outline/60 font-data-sm text-on-surface"
-              placeholder="// [INPUT]: Try '推移' or '比較'..."
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.nativeEvent.isComposing) {
-                  handleAnalyze();
-                }
-              }}
-            />
-            <button
-              className="bg-primary text-on-primary hover:opacity-90 w-10 h-10 flex items-center justify-center rounded-full shadow-sm disabled:opacity-50 transition-all hover:scale-[1.02] shrink-0"
-              onClick={() => handleAnalyze()}
-              disabled={isPending || !prompt.trim()}
-            >
-              {isPending ? (
-                <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-              ) : (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                </svg>
-              )}
-            </button>
+        {/* Right: DatePicker (outside) + Input card */}
+        <div className="flex-1 max-w-[700px] flex flex-col items-end gap-2">
+          {/* DatePicker — outside the card */}
+          <div className="shrink-0">
+            <DateRangePicker />
           </div>
 
-          {/* Suggestions + DatePicker row — inside the card */}
-          <div className="flex items-center justify-between gap-2 px-4 py-2 border-t border-outline-variant/20 bg-surface-container-lowest/50">
-            <div className="flex flex-nowrap items-center gap-1.5 overflow-x-auto scrollbar-hide">
+          {/* Input card — input + suggestions inside */}
+          <div className="w-full flex flex-col gap-0 bg-surface-container-lowest border border-outline-variant/40 rounded-[20px] shadow-sm focus-within:ring-2 focus-within:ring-primary/20 transition-all focus-within:shadow-md overflow-hidden">
+            {/* Input row */}
+            <div className="flex items-center gap-4 py-2 px-3">
+              <div className="pl-2 text-primary opacity-80">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
+                    d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <input
+                type="text"
+                className="flex-1 bg-transparent px-2 py-2 text-data-lg focus:outline-none placeholder:text-outline/60 font-data-sm text-on-surface"
+                placeholder="// [INPUT]: Try '推移' or '比較'..."
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+                    handleAnalyze();
+                  }
+                }}
+              />
+              <button
+                className="bg-primary text-on-primary hover:opacity-90 w-10 h-10 flex items-center justify-center rounded-full shadow-sm disabled:opacity-50 transition-all hover:scale-[1.02] shrink-0"
+                onClick={() => handleAnalyze()}
+                disabled={isPending || !prompt.trim()}
+              >
+                {isPending ? (
+                  <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                  </svg>
+                )}
+              </button>
+            </div>
+
+            {/* Suggestions row — inside the card */}
+            <div className="flex items-center gap-1.5 px-4 py-2 border-t border-outline-variant/20 bg-surface-container-lowest/50 overflow-x-auto scrollbar-hide">
               <span className="text-[10px] text-outline font-semibold tracking-wider uppercase shrink-0 mr-1">
                 Suggestions:
               </span>
@@ -260,9 +266,6 @@ function AnaliseContent() {
               >
                 ROAS Anomaly Detection
               </button>
-            </div>
-            <div className="shrink-0">
-              <DateRangePicker />
             </div>
           </div>
         </div>
