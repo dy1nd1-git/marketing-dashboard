@@ -16,21 +16,30 @@ export default function DashboardTemplate({
 
   return (
     <div className="relative min-h-[calc(100vh-3rem)] w-full">
-      <motion.div
-        key={isClient ? "content" : "loading"}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
-        className="h-full"
-      >
+      <AnimatePresence mode="wait">
         {!isClient ? (
-          <div className="h-[80vh] w-full flex flex-col items-center justify-center">
+          <motion.div
+            key="loading"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="h-[80vh] w-full flex flex-col items-center justify-center absolute inset-0 z-10"
+          >
             <LoadingSpinner />
-          </div>
+          </motion.div>
         ) : (
-          children
+          <motion.div
+            key="content"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="h-full w-full"
+          >
+            {children}
+          </motion.div>
         )}
-      </motion.div>
+      </AnimatePresence>
 
       {/* Overlay spinner when transitioning filters / segment updates */}
       <AnimatePresence>
