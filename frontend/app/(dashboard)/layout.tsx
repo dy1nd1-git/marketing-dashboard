@@ -4,6 +4,7 @@ import { InsightCartProvider } from "@/src/context/InsightCartContext";
 import { InsightCartDrawer } from "@/src/components/dashboard/InsightCartDrawer";
 import { SidebarShell } from "./components/SidebarShell";
 
+export const dynamic = "force-dynamic";
 /**
  * DashboardLayout: Server Component.
  * "use client" is NOT present here — sidebar state is isolated in SidebarShell.
