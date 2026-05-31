@@ -3,6 +3,8 @@
 import { motion, AnimatePresence } from "framer-motion";
 import React from "react";
 import { useMarketingContext } from "@/src/context/MarketingContext";
+import { useIsClient } from "@/src/hooks/useIsClient";
+import { LoadingSpinner } from "@/src/components/dashboard/LoadingSpinner";
 
 export default function DashboardTemplate({
   children,
@@ -10,16 +12,24 @@ export default function DashboardTemplate({
   children: React.ReactNode;
 }) {
   const { isPending } = useMarketingContext();
+  const isClient = useIsClient();
 
   return (
     <div className="relative min-h-[calc(100vh-3rem)] w-full">
       <motion.div
-        initial={false}
+        key={isClient ? "content" : "loading"}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25, ease: "easeInOut" }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
         className="h-full"
       >
-        {children}
+        {!isClient ? (
+          <div className="h-[80vh] w-full flex flex-col items-center justify-center">
+            <LoadingSpinner />
+          </div>
+        ) : (
+          children
+        )}
       </motion.div>
 
       {/* Overlay spinner when transitioning filters / segment updates */}
