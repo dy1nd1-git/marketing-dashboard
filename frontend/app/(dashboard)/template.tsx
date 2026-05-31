@@ -5,6 +5,7 @@ import React from "react";
 import { useMarketingContext } from "@/src/context/MarketingContext";
 import { useIsClient } from "@/src/hooks/useIsClient";
 import { LoadingSpinner } from "@/src/components/dashboard/LoadingSpinner";
+import { usePathname } from "next/navigation";
 
 export default function DashboardTemplate({
   children,
@@ -13,6 +14,7 @@ export default function DashboardTemplate({
 }) {
   const { isPending } = useMarketingContext();
   const isClient = useIsClient();
+  const pathname = usePathname();
 
   return (
     <div className="relative min-h-[calc(100vh-3rem)] w-full">
@@ -30,10 +32,11 @@ export default function DashboardTemplate({
           </motion.div>
         ) : (
           <motion.div
-            key="content"
+            key={pathname}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
             className="h-full w-full"
           >
             {children}
