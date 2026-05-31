@@ -42,6 +42,12 @@ function AnaliseContent() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [chartWidth, setChartWidth] = useState<number>(0);
 
+  const [isPending, startTransition] = useTransition();
+
+  const [tabs, setTabs] = useState<AnalysisResult[]>([]);
+  const [activeTabId, setActiveTabId] = useState<string | null>(null);
+  const [cartItems, setCartItems] = useState<AnalysisResult[]>([]);
+
   useEffect(() => {
     if (isClient) {
       const timer = setTimeout(() => {
@@ -67,13 +73,8 @@ function AnaliseContent() {
       observer.observe(containerRef.current);
       return () => observer.disconnect();
     }
-  }, [chartReady]);
-
-  const [isPending, startTransition] = useTransition();
-
-  const [tabs, setTabs] = useState<AnalysisResult[]>([]);
-  const [activeTabId, setActiveTabId] = useState<string | null>(null);
-  const [cartItems, setCartItems] = useState<AnalysisResult[]>([]);
+  // activeTabId が変わるたびに containerRef の再接続を確認する
+  }, [chartReady, activeTabId]);
   const isLoadedRef = useRef(false);
 
   useEffect(() => {
