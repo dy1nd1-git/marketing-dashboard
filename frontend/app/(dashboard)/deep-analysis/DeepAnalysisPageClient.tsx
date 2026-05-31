@@ -254,8 +254,8 @@ function AnaliseContent() {
           <p className="text-body-md text-outline flex-1">
             Analyze and pivot your marketing data.
           </p>
-          <div className="flex-1 max-w-[700px] flex flex-wrap sm:flex-nowrap justify-between items-center gap-3 pl-2">
-            <div className="flex flex-wrap gap-1.5 justify-start">
+          <div className="flex-1 max-w-[700px] flex flex-nowrap justify-between items-center gap-3 pl-2">
+            <div className="flex flex-nowrap gap-1.5 justify-start overflow-x-auto scrollbar-hide">
               <span className="text-[10px] text-outline font-semibold tracking-wider uppercase self-center mr-1.5">
                 Suggestions:
               </span>
