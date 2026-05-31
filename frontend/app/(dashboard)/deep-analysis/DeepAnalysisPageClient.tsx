@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense, useTransition, useRef } from "react";
+// useRef: isLoadedRef (localStorage 初期化の重複防止) に使用
 
 import { mapToChartData } from "./utils/metrics";
 import { useMarketingContext } from "@/src/context/MarketingContext";
@@ -17,6 +18,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  ResponsiveContainer,
 } from "recharts";
 
 interface AnalysisResult {
@@ -36,45 +38,14 @@ function AnaliseContent() {
   const { segment } = useMarketingContext();
   const { addInsight } = useInsightCart();
 
-  // Defer initialization to client-side mount tick to prevent SSR hydration mismatches
+  // useIsClient: SSRハイドレーション不一致を防ぐためクライアント判定のみに使用
   const isClient = useIsClient();
-  const [chartReady, setChartReady] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [chartWidth, setChartWidth] = useState<number>(0);
 
   const [isPending, startTransition] = useTransition();
 
   const [tabs, setTabs] = useState<AnalysisResult[]>([]);
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
   const [cartItems, setCartItems] = useState<AnalysisResult[]>([]);
-
-  useEffect(() => {
-    if (isClient) {
-      const timer = setTimeout(() => {
-        setChartReady(true);
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [isClient]);
-
-  useEffect(() => {
-    if (
-      chartReady &&
-      containerRef.current &&
-      typeof window !== "undefined" &&
-      "ResizeObserver" in window
-    ) {
-      setChartWidth(containerRef.current.clientWidth || 800);
-      const observer = new window.ResizeObserver((entries) => {
-        if (entries[0]) {
-          setChartWidth(entries[0].contentRect.width || 800);
-        }
-      });
-      observer.observe(containerRef.current);
-      return () => observer.disconnect();
-    }
-  // activeTabId が変わるたびに containerRef の再接続を確認する
-  }, [chartReady, activeTabId]);
   const isLoadedRef = useRef(false);
 
   useEffect(() => {
@@ -433,21 +404,12 @@ function AnaliseContent() {
                 </button>
               </div>
 
-              {/* Dynamic Recharts */}
-              <div
-                ref={containerRef}
-                className={`h-[650px] w-full mt-4 ${!chartReady ? "flex items-center justify-center" : "relative block"}`}
-              >
-                {!chartReady || chartWidth === 0 ? (
-                  <div className="text-outline/40 text-data-sm animate-pulse">
-                    Initializing visualization...
-                  </div>
-                ) : (
-                  <>
+              {/* Dynamic Recharts — ResponsiveContainer で幅追跡を自動化 */}
+              <div className="h-[650px] w-full mt-4">
+                {isClient && (
+                  <ResponsiveContainer width="100%" height="100%">
                     {activeTab.chartType === "line" ? (
                       <LineChart
-                        width={chartWidth}
-                        height={650}
                         data={activeTab.data}
                         margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                       >
@@ -492,8 +454,6 @@ function AnaliseContent() {
                       </LineChart>
                     ) : (
                       <BarChart
-                        width={chartWidth}
-                        height={650}
                         data={activeTab.data}
                         margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                       >
@@ -531,7 +491,7 @@ function AnaliseContent() {
                         />
                       </BarChart>
                     )}
-                  </>
+                  </ResponsiveContainer>
                 )}
               </div>
 
