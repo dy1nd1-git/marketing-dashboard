@@ -4,7 +4,6 @@ import { KPICard } from "./components/KPICard";
 import { SegmentSelector } from "../../../src/components/dashboard/SegmentSelector";
 import { StockInsightButton } from "../../../src/components/dashboard/StockInsightButton";
 import { DateRangePicker } from "../../../src/components/dashboard/DateRangePicker";
-import { ROASMatrix } from "./components/ROASMatrix";
 import { fetchDashboardData, fetchPivotData } from "../../../src/lib/api";
 
 export default async function Home({
@@ -235,11 +234,6 @@ export default async function Home({
           </div>
         </section>
       </div>
-
-      {/* Efficiency Matrix Heatmap */}
-      <section className="mb-xl">
-        <ROASMatrix data={dashboardData.matrix || []} />
-      </section>
 
       {/* Deep Dive Channel Table */}
       <section className="card-professional !p-0 overflow-hidden">

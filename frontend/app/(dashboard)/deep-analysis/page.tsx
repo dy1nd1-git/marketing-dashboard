@@ -243,7 +243,7 @@ function AnaliseContent() {
           </div>
 
           {/* Gentle Professional suggestion chips to trigger quick AI execution */}
-          <div className="w-full flex flex-wrap gap-1.5 justify-start mt-1 pl-2">
+          <div className="w-full flex flex-nowrap gap-1.5 justify-start mt-1 pl-2 overflow-x-auto scrollbar-hide">
             <span className="text-[10px] text-outline font-semibold tracking-wider uppercase self-center mr-1.5">
               Suggestions:
             </span>

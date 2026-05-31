@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LineageHUD } from "./LineageHUD";
+import { ROASMatrix } from "./ROASMatrix";
 import { StockInsightButton } from "../../../../src/components/dashboard/StockInsightButton";
 import { DateRangePicker } from "../../../../src/components/dashboard/DateRangePicker";
 import { DailyCVR, ResponseMetadata } from "../../../../src/types/marketing";
@@ -27,6 +28,17 @@ const channelFluxData = [
   { name: "Referral", value: 15000 },
   { name: "Email", value: 12000 },
 ];
+
+// Efficiency Heatmap mock data (7 days × 24 hours)
+const matrixMockData = Array.from({ length: 7 }, (_, day) =>
+  Array.from({ length: 24 }, (_, hour) => ({
+    day_of_week: day,
+    hour_of_day: hour,
+    roas: parseFloat(
+      (1.5 + Math.sin((hour / 24) * Math.PI * 2) * 1.2 + Math.random() * 0.8).toFixed(2)
+    ),
+  }))
+).flat();
 
 const audienceTidesData = [
   { time: "00:00", returning: 1200, new: 400 },
@@ -59,9 +71,9 @@ export function DailyAnalysisClient({
   const router = useRouter();
   const dailyData = initialData;
   const metadata = initialMetadata;
-  const [activeTab, setActiveTab] = useState<"ripples" | "flux" | "tides">(
-    "ripples",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "ripples" | "flux" | "tides" | "heatmap"
+  >("ripples");
 
   // Independent sorting states for the 3 unified tables
   const [dailySort, setDailySort] = useState<{
@@ -397,6 +409,17 @@ export function DailyAnalysisClient({
             <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full"></div>
           )}
         </button>
+        <button
+          onClick={() => setActiveTab("heatmap")}
+          className={`relative pb-4 font-label text-label transition-colors ${
+            activeTab === "heatmap" ? "text-primary" : "text-on-surface-variant hover:text-on-surface"
+          }`}
+        >
+          Efficiency Heatmap
+          {activeTab === "heatmap" && (
+            <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full"></div>
+          )}
+        </button>
       </nav>
 
       {/* Main Visual Display Grid */}
@@ -579,6 +602,10 @@ export function DailyAnalysisClient({
               </ResponsiveContainer>
             </div>
           </section>
+        )}
+
+        {activeTab === "heatmap" && (
+          <ROASMatrix data={matrixMockData} />
         )}
       </div>
     </div>
