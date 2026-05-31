@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense, useTransition, useRef } from "react";
+// useRef: isLoadedRef (localStorage 初期化の重複防止) に使用
 
 import { mapToChartData } from "./utils/metrics";
 import { useMarketingContext } from "@/src/context/MarketingContext";
@@ -17,6 +18,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  ResponsiveContainer,
 } from "recharts";
 
 interface AnalysisResult {
@@ -36,38 +38,8 @@ function AnaliseContent() {
   const { segment } = useMarketingContext();
   const { addInsight } = useInsightCart();
 
-  // Defer initialization to client-side mount tick to prevent SSR hydration mismatches
+  // useIsClient: SSRハイドレーション不一致を防ぐためクライアント判定のみに使用
   const isClient = useIsClient();
-  const [chartReady, setChartReady] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [chartWidth, setChartWidth] = useState<number>(0);
-
-  useEffect(() => {
-    if (isClient) {
-      const timer = setTimeout(() => {
-        setChartReady(true);
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [isClient]);
-
-  useEffect(() => {
-    if (
-      chartReady &&
-      containerRef.current &&
-      typeof window !== "undefined" &&
-      "ResizeObserver" in window
-    ) {
-      setChartWidth(containerRef.current.clientWidth || 800);
-      const observer = new window.ResizeObserver((entries) => {
-        if (entries[0]) {
-          setChartWidth(entries[0].contentRect.width || 800);
-        }
-      });
-      observer.observe(containerRef.current);
-      return () => observer.disconnect();
-    }
-  }, [chartReady]);
 
   const [isPending, startTransition] = useTransition();
 
@@ -207,11 +179,11 @@ function AnaliseContent() {
 
   return (
     <div className="p-10 pb-32 min-h-screen bg-background relative flex flex-col font-sans">
-      {/* Header & Top Input Bar - Standardized Parallel Row */}
-      <div className="mb-8 flex flex-col gap-4">
-        {/* Row 1: Title with Icon & Input Bar */}
-        <div className="flex justify-between items-center gap-8">
-          <div className="flex-1 flex items-center gap-3">
+      {/* Header & Input Card */}
+      <div className="mb-8 flex justify-between items-start gap-8">
+        {/* Left: Title + Subtitle */}
+        <div className="flex-1">
+          <div className="flex items-center gap-3 mb-2">
             <span className="material-symbols-outlined text-primary text-[32px] shrink-0">
               troubleshoot
             </span>
@@ -222,105 +194,78 @@ function AnaliseContent() {
               {segment}
             </span>
           </div>
-
-          <div className="flex-1 max-w-[700px] flex items-center gap-4 bg-surface-container-lowest border border-outline-variant/40 rounded-full py-2 px-3 shadow-sm focus-within:ring-2 focus-within:ring-primary/20 transition-all focus-within:shadow-md">
-            <div className="pl-4 text-primary opacity-80">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2.5}
-                  d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-            </div>
-            <input
-              type="text"
-              className="flex-1 bg-transparent px-2 py-2 text-data-lg focus:outline-none placeholder:text-outline/60 font-data-sm text-on-surface"
-              placeholder="// [INPUT]: Try '推移' or '比較'..."
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.nativeEvent.isComposing) {
-                  handleAnalyze();
-                }
-              }}
-            />
-            <button
-              className="bg-primary text-on-primary hover:opacity-90 w-10 h-10 flex items-center justify-center rounded-full shadow-sm disabled:opacity-50 transition-all hover:scale-[1.02] shrink-0"
-              onClick={() => handleAnalyze()}
-              disabled={isPending || !prompt.trim()}
-            >
-              {isPending ? (
-                <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-              ) : (
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2.5}
-                    d="M5 10l7-7m0 0l7 7m-7-7v18"
-                  />
-                </svg>
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Row 2: Subtitle & Suggestions + DatePicker */}
-        <div className="flex justify-between items-center gap-8">
-          <p className="text-body-md text-outline flex-1">
+          <p className="text-body-md text-outline pl-1">
             Analyze and pivot your marketing data.
           </p>
-          <div className="flex-1 max-w-[700px] flex flex-wrap sm:flex-nowrap justify-between items-center gap-3 pl-2">
-            <div className="flex flex-wrap gap-1.5 justify-start">
-              <span className="text-[10px] text-outline font-semibold tracking-wider uppercase self-center mr-1.5">
+        </div>
+
+        {/* Right: DatePicker (outside) + Input card */}
+        <div className="flex-1 max-w-[700px] flex flex-col items-end gap-2">
+          {/* DatePicker — outside the card */}
+          <div className="shrink-0">
+            <DateRangePicker />
+          </div>
+
+          {/* Input card — input + suggestions inside */}
+          <div className="w-full flex flex-col gap-0 bg-surface-container-lowest border border-outline-variant/40 rounded-[20px] shadow-sm focus-within:ring-2 focus-within:ring-primary/20 transition-all focus-within:shadow-md overflow-hidden">
+            {/* Input row */}
+            <div className="flex items-center gap-4 py-2 px-3">
+              <div className="pl-2 text-primary opacity-80">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
+                    d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <input
+                type="text"
+                className="flex-1 bg-transparent px-2 py-2 text-data-lg focus:outline-none placeholder:text-outline/60 font-data-sm text-on-surface"
+                placeholder="// [INPUT]: Try '推移' or '比較'..."
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+                    handleAnalyze();
+                  }
+                }}
+              />
+              <button
+                className="bg-primary text-on-primary hover:opacity-90 w-10 h-10 flex items-center justify-center rounded-full shadow-sm disabled:opacity-50 transition-all hover:scale-[1.02] shrink-0"
+                onClick={() => handleAnalyze()}
+                disabled={isPending || !prompt.trim()}
+              >
+                {isPending ? (
+                  <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                  </svg>
+                )}
+              </button>
+            </div>
+
+            {/* Suggestions row — inside the card */}
+            <div className="flex items-center gap-1.5 px-4 py-2 border-t border-outline-variant/20 bg-surface-container-lowest/50 overflow-x-auto scrollbar-hide">
+              <span className="text-[10px] text-outline font-semibold tracking-wider uppercase shrink-0 mr-1">
                 Suggestions:
               </span>
               <button
-                onClick={() => {
-                  setPrompt(
-                    "過去30日間のコンバージョン率（CVR）の推移を分析せよ",
-                  );
-                  handleAnalyze(
-                    "過去30日間のコンバージョン率（CVR）の推移を分析せよ",
-                  );
-                }}
-                className="bg-[#FDFCF8] hover:bg-[#87A996]/10 text-[#456555] border border-[#87A996]/20 px-3 py-1 rounded-full text-[10px] font-medium cursor-pointer transition-all hover:scale-[1.01] hover:border-[#87A996]/50"
+                onClick={() => handleAnalyze("過去30日間のコンバージョン率（CVR）の推移を分析せよ")}
+                className="shrink-0 bg-[#FDFCF8] hover:bg-[#87A996]/10 text-[#456555] border border-[#87A996]/20 px-3 py-1 rounded-full text-[10px] font-medium cursor-pointer transition-all hover:scale-[1.01] hover:border-[#87A996]/50"
               >
                 CVR Trend Analysis
               </button>
               <button
-                onClick={() => {
-                  setPrompt("広告費と売上成長の相関関係を検証せよ");
-                  handleAnalyze("広告費と売上成長の相関関係を検証せよ");
-                }}
-                className="bg-[#FDFCF8] hover:bg-[#87A996]/10 text-[#456555] border border-[#87A996]/20 px-3 py-1 rounded-full text-[10px] font-medium cursor-pointer transition-all hover:scale-[1.01] hover:border-[#87A996]/50"
+                onClick={() => handleAnalyze("広告費と売上成長の相関関係を検証せよ")}
+                className="shrink-0 bg-[#FDFCF8] hover:bg-[#87A996]/10 text-[#456555] border border-[#87A996]/20 px-3 py-1 rounded-full text-[10px] font-medium cursor-pointer transition-all hover:scale-[1.01] hover:border-[#87A996]/50"
               >
                 Spend vs Revenue
               </button>
               <button
-                onClick={() => {
-                  setPrompt("昨日のROAS急落の要因とアノマリーを特定せよ");
-                  handleAnalyze("昨日のROAS急落の要因とアノマリーを特定せよ");
-                }}
-                className="bg-[#FDFCF8] hover:bg-[#87A996]/10 text-[#456555] border border-[#87A996]/20 px-3 py-1 rounded-full text-[10px] font-medium cursor-pointer transition-all hover:scale-[1.01] hover:border-[#87A996]/50"
+                onClick={() => handleAnalyze("昨日のROAS急落の要因とアノマリーを特定せよ")}
+                className="shrink-0 bg-[#FDFCF8] hover:bg-[#87A996]/10 text-[#456555] border border-[#87A996]/20 px-3 py-1 rounded-full text-[10px] font-medium cursor-pointer transition-all hover:scale-[1.01] hover:border-[#87A996]/50"
               >
                 ROAS Anomaly Detection
               </button>
-            </div>
-            <div className="shrink-0 self-center">
-              <DateRangePicker />
             </div>
           </div>
         </div>
@@ -432,21 +377,12 @@ function AnaliseContent() {
                 </button>
               </div>
 
-              {/* Dynamic Recharts */}
-              <div
-                ref={containerRef}
-                className={`h-[650px] w-full mt-4 ${!chartReady ? "flex items-center justify-center" : "relative block"}`}
-              >
-                {!chartReady || chartWidth === 0 ? (
-                  <div className="text-outline/40 text-data-sm animate-pulse">
-                    Initializing visualization...
-                  </div>
-                ) : (
-                  <>
+              {/* Dynamic Recharts — ResponsiveContainer で幅追跡を自動化 */}
+              <div className="h-[650px] w-full mt-4">
+                {isClient && (
+                  <ResponsiveContainer width="100%" height="100%">
                     {activeTab.chartType === "line" ? (
                       <LineChart
-                        width={chartWidth}
-                        height={650}
                         data={activeTab.data}
                         margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                       >
@@ -491,8 +427,6 @@ function AnaliseContent() {
                       </LineChart>
                     ) : (
                       <BarChart
-                        width={chartWidth}
-                        height={650}
                         data={activeTab.data}
                         margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                       >
@@ -530,7 +464,7 @@ function AnaliseContent() {
                         />
                       </BarChart>
                     )}
-                  </>
+                  </ResponsiveContainer>
                 )}
               </div>
 

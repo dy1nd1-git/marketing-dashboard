@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { LineageHUD } from "./LineageHUD";
+import { ROASMatrix } from "./ROASMatrix";
 import { StockInsightButton } from "@/src/components/dashboard/StockInsightButton";
 import { DateRangePicker } from "@/src/components/dashboard/DateRangePicker";
 import { DailyCVR, ResponseMetadata } from "@/src/types/marketing";
@@ -20,7 +21,7 @@ import {
   Cell,
 } from "recharts";
 
-import { channelFluxData, audienceTidesData } from "../mockData";
+import { channelFluxData, audienceTidesData, matrixMockData } from "../mockData";
 
 // Unified interface to represent Daily, Weekly, and Monthly aggregated rows with identical metrics
 interface UnifiedMetric {
@@ -45,9 +46,9 @@ export function DailyAnalysisClient({
   const { segment } = useMarketingContext();
   const dailyData = initialData;
   const metadata = initialMetadata;
-  const [activeTab, setActiveTab] = useState<"ripples" | "flux" | "tides">(
-    "ripples",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "ripples" | "flux" | "tides" | "heatmap"
+  >("ripples");
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [chartWidth, setChartWidth] = useState<number>(0);
@@ -407,6 +408,17 @@ export function DailyAnalysisClient({
             <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full"></div>
           )}
         </button>
+        <button
+          onClick={() => setActiveTab("heatmap")}
+          className={`relative pb-4 font-label text-label transition-colors ${
+            activeTab === "heatmap" ? "text-primary" : "text-on-surface-variant hover:text-on-surface"
+          }`}
+        >
+          Efficiency Heatmap
+          {activeTab === "heatmap" && (
+            <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full"></div>
+          )}
+        </button>
       </nav>
 
       {/* Main Visual Display Grid */}
@@ -589,6 +601,10 @@ export function DailyAnalysisClient({
               )}
             </div>
           </section>
+        )}
+
+        {activeTab === "heatmap" && (
+          <ROASMatrix data={matrixMockData} />
         )}
       </div>
     </div>

@@ -1,5 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap");
+
 
 @import "tailwindcss";
 
@@ -63,14 +62,14 @@
   --radius-3xl: 20px;   /* 24px から 20px に引き締め */
 
   /* TYPOGRAPHY - DUAL-TYPE STRATEGY */
-  --font-sans: "Manrope", sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
+  --font-sans: var(--font-manrope), sans-serif;
+  --font-mono: var(--font-jetbrains), monospace;
 
-  --font-h1: "Manrope", sans-serif;
-  --font-h2: "Manrope", sans-serif;
-  --font-label: "Manrope", sans-serif;
-  --font-body: "Manrope", sans-serif;
-  --font-data: "JetBrains Mono", monospace;
+  --font-h1: var(--font-sans);
+  --font-h2: var(--font-sans);
+  --font-label: var(--font-sans);
+  --font-body: var(--font-sans);
+  --font-data: var(--font-mono);
 
   /* SHADOWS - SAGE TINTED */
   --shadow-ambient: 0 12px 20px rgba(135, 169, 150, 0.12); /* 影も少し控えめに引き締め */
@@ -83,6 +82,17 @@
     font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
   }
+}
+
+/* Prevent Layout Shift (FOIT) from Icon Font loading */
+.material-symbols-outlined {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  line-height: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 24px;
 }
 
 /* ORGANIC PRECISION UTILITIES */
