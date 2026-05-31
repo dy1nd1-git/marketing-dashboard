@@ -179,11 +179,11 @@ function AnaliseContent() {
 
   return (
     <div className="p-10 pb-32 min-h-screen bg-background relative flex flex-col font-sans">
-      {/* Header & Top Input Bar - Standardized Parallel Row */}
-      <div className="mb-8 flex flex-col gap-4">
-        {/* Row 1: Title with Icon & Input Bar */}
-        <div className="flex justify-between items-center gap-8">
-          <div className="flex-1 flex items-center gap-3">
+      {/* Header & Input Card */}
+      <div className="mb-8 flex justify-between items-start gap-8">
+        {/* Left: Title + Subtitle */}
+        <div className="flex-1">
+          <div className="flex items-center gap-3 mb-2">
             <span className="material-symbols-outlined text-primary text-[32px] shrink-0">
               troubleshoot
             </span>
@@ -194,21 +194,19 @@ function AnaliseContent() {
               {segment}
             </span>
           </div>
+          <p className="text-body-md text-outline pl-1">
+            Analyze and pivot your marketing data.
+          </p>
+        </div>
 
-          <div className="flex-1 max-w-[700px] flex items-center gap-4 bg-surface-container-lowest border border-outline-variant/40 rounded-full py-2 px-3 shadow-sm focus-within:ring-2 focus-within:ring-primary/20 transition-all focus-within:shadow-md">
-            <div className="pl-4 text-primary opacity-80">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2.5}
-                  d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
+        {/* Right: Input card — input + suggestions inside */}
+        <div className="flex-1 max-w-[700px] flex flex-col gap-0 bg-surface-container-lowest border border-outline-variant/40 rounded-[20px] shadow-sm focus-within:ring-2 focus-within:ring-primary/20 transition-all focus-within:shadow-md overflow-hidden">
+          {/* Input row */}
+          <div className="flex items-center gap-4 py-2 px-3">
+            <div className="pl-2 text-primary opacity-80">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
+                  d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
             <input
@@ -231,67 +229,39 @@ function AnaliseContent() {
               {isPending ? (
                 <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
               ) : (
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2.5}
-                    d="M5 10l7-7m0 0l7 7m-7-7v18"
-                  />
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 10l7-7m0 0l7 7m-7-7v18" />
                 </svg>
               )}
             </button>
           </div>
-        </div>
 
-        {/* Row 2: Subtitle & Suggestions + DatePicker */}
-        <div className="flex justify-between items-center gap-8">
-          <p className="text-body-md text-outline flex-1">
-            Analyze and pivot your marketing data.
-          </p>
-          <div className="flex-1 max-w-[700px] flex flex-nowrap justify-between items-center gap-3 pl-2">
-            <div className="flex flex-nowrap gap-1.5 justify-start overflow-x-auto scrollbar-hide">
-              <span className="text-[10px] text-outline font-semibold tracking-wider uppercase self-center mr-1.5">
+          {/* Suggestions + DatePicker row — inside the card */}
+          <div className="flex items-center justify-between gap-2 px-4 py-2 border-t border-outline-variant/20 bg-surface-container-lowest/50">
+            <div className="flex flex-nowrap items-center gap-1.5 overflow-x-auto scrollbar-hide">
+              <span className="text-[10px] text-outline font-semibold tracking-wider uppercase shrink-0 mr-1">
                 Suggestions:
               </span>
               <button
-                onClick={() => {
-                  setPrompt(
-                    "過去30日間のコンバージョン率（CVR）の推移を分析せよ",
-                  );
-                  handleAnalyze(
-                    "過去30日間のコンバージョン率（CVR）の推移を分析せよ",
-                  );
-                }}
-                className="bg-[#FDFCF8] hover:bg-[#87A996]/10 text-[#456555] border border-[#87A996]/20 px-3 py-1 rounded-full text-[10px] font-medium cursor-pointer transition-all hover:scale-[1.01] hover:border-[#87A996]/50"
+                onClick={() => handleAnalyze("過去30日間のコンバージョン率（CVR）の推移を分析せよ")}
+                className="shrink-0 bg-[#FDFCF8] hover:bg-[#87A996]/10 text-[#456555] border border-[#87A996]/20 px-3 py-1 rounded-full text-[10px] font-medium cursor-pointer transition-all hover:scale-[1.01] hover:border-[#87A996]/50"
               >
                 CVR Trend Analysis
               </button>
               <button
-                onClick={() => {
-                  setPrompt("広告費と売上成長の相関関係を検証せよ");
-                  handleAnalyze("広告費と売上成長の相関関係を検証せよ");
-                }}
-                className="bg-[#FDFCF8] hover:bg-[#87A996]/10 text-[#456555] border border-[#87A996]/20 px-3 py-1 rounded-full text-[10px] font-medium cursor-pointer transition-all hover:scale-[1.01] hover:border-[#87A996]/50"
+                onClick={() => handleAnalyze("広告費と売上成長の相関関係を検証せよ")}
+                className="shrink-0 bg-[#FDFCF8] hover:bg-[#87A996]/10 text-[#456555] border border-[#87A996]/20 px-3 py-1 rounded-full text-[10px] font-medium cursor-pointer transition-all hover:scale-[1.01] hover:border-[#87A996]/50"
               >
                 Spend vs Revenue
               </button>
               <button
-                onClick={() => {
-                  setPrompt("昨日のROAS急落の要因とアノマリーを特定せよ");
-                  handleAnalyze("昨日のROAS急落の要因とアノマリーを特定せよ");
-                }}
-                className="bg-[#FDFCF8] hover:bg-[#87A996]/10 text-[#456555] border border-[#87A996]/20 px-3 py-1 rounded-full text-[10px] font-medium cursor-pointer transition-all hover:scale-[1.01] hover:border-[#87A996]/50"
+                onClick={() => handleAnalyze("昨日のROAS急落の要因とアノマリーを特定せよ")}
+                className="shrink-0 bg-[#FDFCF8] hover:bg-[#87A996]/10 text-[#456555] border border-[#87A996]/20 px-3 py-1 rounded-full text-[10px] font-medium cursor-pointer transition-all hover:scale-[1.01] hover:border-[#87A996]/50"
               >
                 ROAS Anomaly Detection
               </button>
             </div>
-            <div className="shrink-0 self-center">
+            <div className="shrink-0">
               <DateRangePicker />
             </div>
           </div>
