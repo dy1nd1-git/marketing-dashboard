@@ -3,7 +3,6 @@ import { PivotLogDashboard } from "./components/PivotLogDashboard";
 import { KPICard } from "./components/KPICard";
 import { SegmentSelector } from "@/src/components/dashboard/SegmentSelector";
 import { DateRangePicker } from "@/src/components/dashboard/DateRangePicker";
-import { ROASMatrix } from "./components/ROASMatrix";
 import { ConversionFunnel } from "./components/ConversionFunnel";
 import { AIInsightsCluster } from "./components/AIInsightsCluster";
 import { ChannelPerformanceTable } from "./components/ChannelPerformanceTable";
@@ -131,11 +130,6 @@ export default async function Home({
         <ConversionFunnel funnel={dashboardData.funnel || []} />
         <AIInsightsCluster insights={dashboardData.insights || []} />
       </div>
-
-      {/* Efficiency Matrix Heatmap */}
-      <section className="mb-xl">
-        <ROASMatrix data={dashboardData.matrix || []} />
-      </section>
 
       {/* Deep Dive Channel Table */}
       <ChannelPerformanceTable channels={dashboardData.channels || []} />

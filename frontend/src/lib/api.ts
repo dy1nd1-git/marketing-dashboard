@@ -101,7 +101,7 @@ export const fetchDashboardData = async (
     const kpis = [
       {
         title: "Revenue",
-        value: `$${stats.revenue.toLocaleString()}`,
+        value: `$${Math.round(stats.revenue).toLocaleString('en-US')}`,
         trendIcon: stats.revenue_diff >= 0 ? "arrow_upward" : "arrow_downward",
         trendValue: `${Math.abs(stats.revenue_diff).toFixed(1)}%`,
         trendBgClass:
@@ -115,7 +115,7 @@ export const fetchDashboardData = async (
       },
       {
         title: "Spend",
-        value: `$${stats.spend.toLocaleString()}`,
+        value: `$${Math.round(stats.spend).toLocaleString('en-US')}`,
         trendIcon: stats.spend_diff >= 0 ? "arrow_upward" : "arrow_downward",
         trendValue: `${Math.abs(stats.spend_diff).toFixed(1)}%`,
         trendBgClass:
