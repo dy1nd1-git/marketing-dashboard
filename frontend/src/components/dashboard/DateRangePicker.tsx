@@ -203,7 +203,7 @@ export const DateRangePicker = () => {
           <span className="text-[9px] font-label uppercase tracking-[0.15em] text-outline leading-none mb-1">
             Date Range
           </span>
-          <span className="text-[13px] font-semibold text-on-surface whitespace-nowrap leading-none tracking-tight">
+          <span suppressHydrationWarning className="text-[13px] font-semibold text-on-surface whitespace-nowrap leading-none tracking-tight">
             {formattedRange}
           </span>
         </div>
