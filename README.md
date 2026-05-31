@@ -105,39 +105,7 @@ cd frontend
 npm run dev
 ```
 
-ブラウザで [http://localhost:3000](http://localhost:3000) にアクセスすると、美しいダッシュボードが表示されます！
+ブラウザで [http://localhost:3000](http://localhost:3000) にアクセスすると、ダッシュボードが表示されます！
 
 ---
 
-## 🧪 テストと品質監査の実行
-
-本プロジェクトは、頑健なテスト駆動設計と厳格な品質検査フックを採用しています。
-
-### 1. ユニットテスト (Vitest)
-
-フロントエンドの共通コンテキスト、型安全なマッピング、およびロジックのテストです。
-
-```bash
-cd frontend
-npm run test
-```
-
-### 2. E2E ハイドレーション監視テスト (Playwright)
-
-ブラウザのコンソール警告を監視し、SSR (Server-Side Rendering) 時のハイドレーションエラーを 100% 根絶するための Sentinel テストです。
-
-```bash
-cd frontend
-npx playwright test
-```
-
-### 3. プロジェクト品質監査ゲートキーパーの実行 (Gatekeeper)
-
-Git コミット前に、Go ビルド、フロントエンド型チェック、ESLint、Vitest、および Playwright テストをワンストップで検証する監査スクリプトです。
-
-```bash
-# プロジェクトのルートディレクトリで実行
-bash ./.antigravity/gatekeeper.sh
-```
-
----

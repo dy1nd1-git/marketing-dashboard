@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { LineageHUD } from "./LineageHUD";
-import { StockInsightButton } from "../../../../src/components/dashboard/StockInsightButton";
-import { DateRangePicker } from "../../../../src/components/dashboard/DateRangePicker";
-import { DailyCVR, ResponseMetadata } from "../../../../src/types/marketing";
+import { StockInsightButton } from "@/src/components/dashboard/StockInsightButton";
+import { DateRangePicker } from "@/src/components/dashboard/DateRangePicker";
+import { DailyCVR, ResponseMetadata } from "@/src/types/marketing";
+import { useMarketingContext } from "@/src/context/MarketingContext";
 import {
   BarChart,
   Bar,
@@ -15,27 +16,11 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
   Legend,
   Cell,
 } from "recharts";
 
-const channelFluxData = [
-  { name: "Organic Search", value: 45000 },
-  { name: "Paid Social", value: 32000 },
-  { name: "Direct", value: 28000 },
-  { name: "Referral", value: 15000 },
-  { name: "Email", value: 12000 },
-];
-
-const audienceTidesData = [
-  { time: "00:00", returning: 1200, new: 400 },
-  { time: "04:00", returning: 800, new: 200 },
-  { time: "08:00", returning: 3400, new: 1500 },
-  { time: "12:00", returning: 5600, new: 2800 },
-  { time: "16:00", returning: 4800, new: 2100 },
-  { time: "20:00", returning: 6100, new: 3200 },
-];
+import { channelFluxData, audienceTidesData } from "../mockData";
 
 // Unified interface to represent Daily, Weekly, and Monthly aggregated rows with identical metrics
 interface UnifiedMetric {
@@ -57,11 +42,28 @@ export function DailyAnalysisClient({
   initialMetadata,
 }: DailyAnalysisClientProps) {
   const router = useRouter();
+  const { segment } = useMarketingContext();
   const dailyData = initialData;
   const metadata = initialMetadata;
   const [activeTab, setActiveTab] = useState<"ripples" | "flux" | "tides">(
     "ripples",
   );
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [chartWidth, setChartWidth] = useState<number>(0);
+
+  useEffect(() => {
+    if (containerRef.current && typeof window !== "undefined" && "ResizeObserver" in window) {
+      setChartWidth(containerRef.current.clientWidth || 500);
+      const observer = new window.ResizeObserver((entries) => {
+        if (entries[0]) {
+          setChartWidth(entries[0].contentRect.width || 500);
+        }
+      });
+      observer.observe(containerRef.current);
+      return () => observer.disconnect();
+    }
+  }, [activeTab]);
 
   // Independent sorting states for the 3 unified tables
   const [dailySort, setDailySort] = useState<{
@@ -265,7 +267,7 @@ export function DailyAnalysisClient({
         </div>
       </header>
 
-      <div className="flex-1 overflow-auto rounded-xl border border-surface-container-highest relative max-h-[480px] shadow-2xs">
+      <div className="flex-1 overflow-auto rounded-xl border border-surface-container-highest relative max-h-[350px] shadow-2xs">
         <table className="w-full text-left border-collapse font-body text-xs">
           <thead>
             <tr className="border-b border-surface-container-highest bg-surface-container-lowest text-on-surface-variant select-none">
@@ -339,13 +341,21 @@ export function DailyAnalysisClient({
 
   return (
     <div className="p-xl max-w-[1500px] space-y-xl mx-auto">
-      {/* Header section: Ultra-clean and modern Layout */}
-      <header className="mb-xl flex flex-col sm:flex-row sm:justify-between items-start sm:items-end gap-4">
+      {/* Header section: Universal Aesthetic Layout */}
+      <header className="mb-8 flex flex-col sm:flex-row sm:justify-between items-start sm:items-end gap-4">
         <div>
-          <h1 className="font-h1 text-h1 text-on-surface tracking-tight">
-            Subaquatic Observatory
-          </h1>
-          <p className="text-on-surface-variant font-body-md text-body-md mt-1">
+          <div className="flex items-center gap-3 mb-2">
+            <span className="material-symbols-outlined text-primary text-[32px] shrink-0">
+              insert_chart
+            </span>
+            <h1 className="text-[36px] font-semibold text-on-surface tracking-tight leading-none shrink-0">
+              Daily Analysis
+            </h1>
+            <span className="px-3 py-1 bg-primary-container/20 text-primary rounded-full text-xs font-medium tracking-wide shrink-0">
+              {segment}
+            </span>
+          </div>
+          <p className="text-body-md text-outline">
             Marketing telemetry bounded by strict pipeline scope
           </p>
         </div>
@@ -400,7 +410,7 @@ export function DailyAnalysisClient({
       </nav>
 
       {/* Main Visual Display Grid */}
-      <div className="flex flex-col gap-lg items-stretch min-h-[500px]">
+      <div className="flex flex-col gap-lg items-stretch min-h-[380px]">
         {activeTab === "ripples" && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-lg items-start w-full">
             {renderMetricTable(
@@ -475,9 +485,9 @@ export function DailyAnalysisClient({
                 />
               </div>
             </header>
-            <div className="w-full h-[400px]">
-              <ResponsiveContainer width="100%" height="100%" minHeight={400}>
-                <BarChart data={channelFluxData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+            <div ref={containerRef} className="w-full h-[300px]">
+              {chartWidth > 0 && (
+                <BarChart width={chartWidth} height={300} data={channelFluxData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-outline-variant)" />
                   <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fill: "var(--color-outline)", fontSize: 12 }} />
                   <YAxis tickFormatter={(val) => `$${val / 1000}k`} tickLine={false} axisLine={false} tick={{ fill: "var(--color-outline)", fontSize: 12 }} />
@@ -498,7 +508,7 @@ export function DailyAnalysisClient({
                     ))}
                   </Bar>
                 </BarChart>
-              </ResponsiveContainer>
+              )}
             </div>
           </section>
         )}
@@ -533,9 +543,9 @@ export function DailyAnalysisClient({
                 />
               </div>
             </header>
-            <div className="w-full h-[400px]">
-              <ResponsiveContainer width="100%" height="100%" minHeight={400}>
-                <AreaChart data={audienceTidesData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+            <div ref={containerRef} className="w-full h-[300px]">
+              {chartWidth > 0 && (
+                <AreaChart width={chartWidth} height={300} data={audienceTidesData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                   <defs>
                     <linearGradient id="colorReturning" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.3} />
@@ -576,7 +586,7 @@ export function DailyAnalysisClient({
                     name="New Users"
                   />
                 </AreaChart>
-              </ResponsiveContainer>
+              )}
             </div>
           </section>
         )}

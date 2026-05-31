@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useMarketingContext } from "../../context/MarketingContext";
+import { useMarketingContext } from "@/src/context/MarketingContext";
 
 export const SegmentSelector = () => {
   const { segment, setSegment, isPending } = useMarketingContext();

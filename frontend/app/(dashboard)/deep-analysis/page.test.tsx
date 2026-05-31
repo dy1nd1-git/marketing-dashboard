@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import AnaliseContent from "./page";
+import AnaliseContent from "./DeepAnalysisPageClient";
 
 // Mock next/navigation
 vi.mock("next/navigation", () => ({
@@ -8,7 +8,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 // Mock MarketingContext
-vi.mock("../../../src/context/MarketingContext", () => ({
+vi.mock("@/src/context/MarketingContext", () => ({
   useMarketingContext: () => ({
     segment: "Overall",
     setSegment: vi.fn(),
@@ -20,7 +20,7 @@ vi.mock("../../../src/context/MarketingContext", () => ({
 }));
 
 // Mock InsightCart Context
-vi.mock("../../../src/context/InsightCartContext", () => ({
+vi.mock("@/src/context/InsightCartContext", () => ({
   useInsightCart: () => ({
     items: [],
     addItem: vi.fn(),
@@ -46,7 +46,7 @@ describe("AnaliseContent (Exploration Workspace)", () => {
     render(<AnaliseContent />);
     
     // Check header text
-    expect(await screen.findByText("Exploration")).toBeDefined();
+    expect(await screen.findByText("Deep Analysis")).toBeDefined();
     expect(await screen.findByText(/Analyze and pivot your marketing data/i)).toBeDefined();
   });
 

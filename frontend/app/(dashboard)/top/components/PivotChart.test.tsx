@@ -1,7 +1,7 @@
 import { render } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 import { PivotChart } from "./PivotChart";
-import { PivotDetails } from "../../../../src/types/marketing";
+import { PivotDetails } from "@/src/types/marketing";
 
 describe("PivotChart Component (Large Dataset Rendering Performance Validation)", () => {
   const mockDetails: PivotDetails = {

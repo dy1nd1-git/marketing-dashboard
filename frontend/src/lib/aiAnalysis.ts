@@ -1,6 +1,6 @@
 "use server";
 
-import { getServerApiUrl } from "../lib/api";
+import { getServerApiUrl } from "./apiConfig";
 
 export async function executeAnalysisAction(question: string) {
   try {

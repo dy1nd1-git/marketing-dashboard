@@ -11,7 +11,7 @@ export const DocumentPanel: React.FC = () => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
       transition={{ duration: 0.25 }}
-      className="bg-surface-container-lowest rounded-2xl p-xl border border-outline-variant/30 shadow-sm flex flex-col gap-md max-w-4xl mx-auto w-full min-h-[600px]"
+      className="bg-surface-container-lowest rounded-2xl p-xl border border-outline-variant/30 shadow-sm flex flex-col gap-md max-w-4xl mx-auto w-full min-h-[450px]"
     >
       <h2 className="font-h2 text-h2 text-on-surface border-b pb-sm">
         Strategic Documentation

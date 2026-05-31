@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useInsightCart, InsightItem } from "../../context/InsightCartContext";
+import { useInsightCart, InsightItem } from "@/src/context/InsightCartContext";
 
 interface StockInsightButtonProps {
   item: Omit<InsightItem, "id" | "timestamp">;

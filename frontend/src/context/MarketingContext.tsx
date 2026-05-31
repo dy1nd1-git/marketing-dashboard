@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, ReactNode, useTransition } from "react";
+import React, { createContext, use, ReactNode, useTransition } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 interface MarketingContextType {
@@ -58,7 +58,7 @@ export const MarketingProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const useMarketingContext = () => {
-  const context = useContext(MarketingContext);
+  const context = use(MarketingContext);
   if (!context) {
     throw new Error("useMarketingContext must be used within a MarketingProvider");
   }
