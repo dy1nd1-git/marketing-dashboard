@@ -590,7 +590,7 @@ function AnaliseContent() {
               <h3 className="text-xl font-semibold text-on-surface mb-2">
                 No active analysis
               </h3>
-              <p className="text-outline text-data-sm max-w-md">
+              <p className="text-outline text-data-sm max-w-md w-full text-center">
                 Use the input bar above to query your marketing data. E.g.
                 &quot;推移&quot; or &quot;比較&quot;.
               </p>
