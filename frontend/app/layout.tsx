@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
-import { Manrope } from "next/font/google";
+import { Manrope, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
 const manrope = Manrope({
-  variable: "--font-sans",
+  variable: "--font-manrope",
+  subsets: ["latin"],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains",
   subsets: ["latin"],
 });
 
@@ -18,7 +23,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${manrope.variable} h-full antialiased`}>
+    <html lang="en" className={`${manrope.variable} ${jetbrainsMono.variable} h-full antialiased`}>
       <head>
         {/* Preconnect to reduce font CSS fetch latency */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
