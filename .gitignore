@@ -32,3 +32,6 @@ scripts/
 
 # Scratch/Temporary files
 scratch/
+
+# Credentials / Secrets
+credentials/
